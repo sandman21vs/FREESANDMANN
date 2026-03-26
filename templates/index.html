@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "components/progress_bar.html" import progress_bar %}
+{% from "components/qr_codes.html" import qr_section %}
+{% from "components/embed.html" import share_buttons %}
+
+{% block content %}
+{{ progress_bar(cfg.get('raised_btc', '0'), cfg.get('goal_btc', '1'), cfg.get('supporters_count', '0')) }}
+
+<section class="hero">
+    {% if cfg.get('hero_image_url') %}
+    <img src="{{ cfg.get('hero_image_url') }}" alt="{{ cfg.get('site_title') }}">
+    {% endif %}
+    <h1>{{ cfg.get('site_title', 'Free Sandmann') }}</h1>
+    <p>{{ cfg.get('site_description', '') }}</p>
+    {% if cfg.get('deadline_text') %}
+    <p class="deadline-text">{{ cfg.get('deadline_text') }}</p>
+    {% endif %}
+    <a href="{{ url_for('donate') }}" class="cta-btn">Donate Now</a>
+</section>
+
+{% if cfg.get('transparency_text') %}
+<section>
+    <h2>Transparency</h2>
+    <div>{{ cfg.get('transparency_text') }}</div>
+    {% if cfg.get('wallet_explorer_url') %}
+    <a href="{{ cfg.get('wallet_explorer_url') }}" target="_blank" rel="noopener">View on blockchain explorer</a>
+    {% endif %}
+</section>
+{% endif %}
+
+<section>
+    <h2>How to Donate</h2>
+    {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'medium') }}
+</section>
+
+{% if pinned %}
+<section>
+    <h2>Latest Updates</h2>
+    {% for a in pinned %}
+    <article>
+        <h3><a href="{{ url_for('article', slug=a.slug) }}">{{ a.title }}</a></h3>
+        <small>{{ a.created_at[:10] }}</small>
+    </article>
+    {% endfor %}
+    <a href="{{ url_for('updates') }}">See all updates &rarr;</a>
+</section>
+{% endif %}
+
+{% if media_links %}
+<section>
+    <h2>Media Coverage</h2>
+    <ul>
+        {% for link in media_links %}
+        <li>
+            {% if link.link_type == 'video' %}[Video]{% elif link.link_type == 'tweet' %}[Tweet]{% else %}[Article]{% endif %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+{{ share_buttons(request.url_root, cfg.get('site_title', 'Free Sandmann') ~ ' — ' ~ cfg.get('site_tagline', '')) }}
+{% endblock %}

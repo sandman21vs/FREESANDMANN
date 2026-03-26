@@ -1,0 +1,15 @@
+{% macro progress_bar(raised, goal, supporters="0") %}
+{% set raised_f = raised|float %}
+{% set goal_f = goal|float %}
+{% set pct = ((raised_f / goal_f * 100) if goal_f > 0 else 0)|round(1) %}
+<div class="progress-section">
+    <div class="progress-stats">
+        <strong>{{ "%.4f"|format(raised_f) }} / {{ "%.4f"|format(goal_f) }} BTC</strong>
+        <span>({{ pct }}%)</span>
+    </div>
+    <progress value="{{ pct }}" max="100">{{ pct }}%</progress>
+    {% if supporters and supporters != "0" %}
+    <small>{{ supporters }} supporters</small>
+    {% endif %}
+</div>
+{% endmacro %}

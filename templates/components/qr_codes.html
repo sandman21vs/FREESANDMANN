@@ -1,0 +1,38 @@
+{% macro qr_section(btc_address, lightning_address, size="medium") %}
+<div class="qr-grid">
+    {% if btc_address %}
+    <div class="qr-card">
+        <h3>Bitcoin On-Chain</h3>
+        <img src="{{ url_for('qr_code', qr_type='btc') }}" alt="Bitcoin QR Code" loading="lazy" class="qr-img qr-{{ size }}">
+        <div class="address-box">
+            <code class="address-text" id="btc-addr">{{ btc_address }}</code>
+            <button onclick="copyAddr('btc-addr', this)" class="copy-btn" title="Copy address">Copy</button>
+        </div>
+        <a href="bitcoin:{{ btc_address }}" class="wallet-link">Open in Wallet</a>
+    </div>
+    {% endif %}
+
+    {% if lightning_address %}
+    <div class="qr-card">
+        <h3>Lightning Network</h3>
+        <img src="{{ url_for('qr_code', qr_type='lightning') }}" alt="Lightning QR Code" loading="lazy" class="qr-img qr-{{ size }}">
+        <div class="address-box">
+            <code class="address-text" id="ln-addr">{{ lightning_address }}</code>
+            <button onclick="copyAddr('ln-addr', this)" class="copy-btn" title="Copy address">Copy</button>
+        </div>
+        <a href="lightning:{{ lightning_address }}" class="wallet-link">Open in Wallet</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyAddr(id, btn) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 2000);
+    });
+}
+</script>
+{% endmacro %}

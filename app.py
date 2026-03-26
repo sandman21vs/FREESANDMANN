@@ -1,0 +1,340 @@
+import io
+import os
+import time
+import functools
+import threading
+import json
+from collections import defaultdict
+from datetime import datetime
+
+import qrcode
+from flask import (
+    Flask, render_template, request, redirect, url_for,
+    session, flash, abort, send_file,
+)
+
+import config
+import models
+from init_db import init_db
+
+app = Flask(__name__)
+app.secret_key = config.SECRET_KEY
+
+init_db()
+
+# ── Rate limiting ────────────────────────────────────────────────────
+
+_login_attempts = defaultdict(list)
+MAX_ATTEMPTS = 5
+LOCKOUT_SECONDS = 300
+
+
+def _is_rate_limited(ip):
+    now = time.time()
+    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < LOCKOUT_SECONDS]
+    return len(_login_attempts[ip]) >= MAX_ATTEMPTS
+
+
+def _record_attempt(ip):
+    _login_attempts[ip].append(time.time())
+
+
+# ── CSRF protection ──────────────────────────────────────────────────
+
+@app.before_request
+def generate_csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = os.urandom(16).hex()
+
+
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        token = session.get("csrf_token", "")
+        form_token = request.form.get("csrf_token", "")
+        if not token or token != form_token:
+            abort(403)
+
+
+# ── Auth decorator ───────────────────────────────────────────────────
+
+def login_required(f):
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin"):
+            return redirect(url_for("admin_login"))
+        if models.must_change_password() and request.endpoint != "admin_change_password":
+            flash("You must change your password before continuing.", "warning")
+            return redirect(url_for("admin_change_password"))
+        return f(*args, **kwargs)
+    return wrapped
+
+
+# ── Context processor ────────────────────────────────────────────────
+
+@app.context_processor
+def inject_config():
+    cfg = models.get_all_config()
+    return {"cfg": cfg}
+
+
+# ── Public routes ────────────────────────────────────────────────────
+
+@app.route("/")
+def index():
+    articles = models.get_articles(published_only=True)
+    pinned = [a for a in articles if a["pinned"]]
+    media_links = models.get_media_links()
+    return render_template("index.html", articles=articles, pinned=pinned, media_links=media_links)
+
+
+@app.route("/donate")
+def donate():
+    return render_template("donate.html")
+
+
+@app.route("/updates")
+def updates():
+    articles = models.get_articles(published_only=True)
+    return render_template("articles.html", articles=articles)
+
+
+@app.route("/updates/<slug>")
+def article(slug):
+    art = models.get_article_by_slug(slug)
+    if not art:
+        abort(404)
+    return render_template("article.html", article=art)
+
+
+@app.route("/qr/<qr_type>")
+def qr_code(qr_type):
+    if qr_type == "btc":
+        address = models.get_config("btc_address")
+        if not address:
+            abort(404)
+        data = f"bitcoin:{address}"
+    elif qr_type == "lightning":
+        address = models.get_config("lightning_address")
+        if not address:
+            abort(404)
+        data = address
+    else:
+        abort(404)
+
+    img = qrcode.make(data, box_size=8, border=2)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png", max_age=3600)
+
+
+# ── Background balance checker ───────────────────────────────────────
+
+def _start_balance_checker():
+    def _run():
+        models.check_onchain_balance()
+        t = threading.Timer(3600, _run)
+        t.daemon = True
+        t.start()
+    t = threading.Timer(10, _run)
+    t.daemon = True
+    t.start()
+
+
+_start_balance_checker()
+
+
+# ── Admin routes ─────────────────────────────────────────────────────
+
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if session.get("admin"):
+        return redirect(url_for("admin_dashboard"))
+
+    if request.method == "POST":
+        ip = request.remote_addr or "unknown"
+        if _is_rate_limited(ip):
+            flash("Too many failed attempts. Please try again in 5 minutes.", "error")
+            return render_template("admin/login.html"), 200
+
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+
+        if username == config.ADMIN_USERNAME and models.verify_password(password):
+            session["admin"] = True
+            _login_attempts[ip] = []
+            if models.must_change_password():
+                return redirect(url_for("admin_change_password"))
+            return redirect(url_for("admin_dashboard"))
+        else:
+            _record_attempt(ip)
+            flash("Invalid username or password.", "error")
+
+    return render_template("admin/login.html")
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("admin", None)
+    return redirect(url_for("index"))
+
+
+@app.route("/admin/")
+@login_required
+def admin_dashboard():
+    articles = models.get_articles(published_only=False)
+    media_links = models.get_media_links()
+    return render_template("admin/dashboard.html", articles=articles, media_links=media_links)
+
+
+@app.route("/admin/change-password", methods=["GET", "POST"])
+@login_required
+def admin_change_password():
+    if request.method == "POST":
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if len(new_password) < 8:
+            flash("Password must be at least 8 characters.", "error")
+        elif new_password != confirm_password:
+            flash("Passwords do not match.", "error")
+        elif new_password == "FREE":
+            flash("You cannot use the default password.", "error")
+        else:
+            models.change_password(new_password)
+            flash("Password changed successfully.", "success")
+            return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin/change_password.html")
+
+
+@app.route("/admin/settings", methods=["GET", "POST"])
+@login_required
+def admin_settings():
+    if request.method == "POST":
+        fields = [
+            "site_title", "site_description", "site_tagline",
+            "btc_address", "lightning_address", "goal_btc",
+            "raised_lightning_btc", "raised_btc_manual_adjustment",
+            "goal_description", "supporters_count", "hero_image_url",
+            "deadline_text", "transparency_text", "og_image_url",
+            "wallet_explorer_url",
+        ]
+        for field in fields:
+            models.set_config(field, request.form.get(field, ""))
+        models.recalculate_raised_btc()
+        flash("Settings saved.", "success")
+        return redirect(url_for("admin_settings"))
+
+    return render_template("admin/settings.html")
+
+
+@app.route("/admin/articles")
+@login_required
+def admin_articles():
+    articles = models.get_articles(published_only=False)
+    return render_template("admin/articles.html", articles=articles)
+
+
+@app.route("/admin/articles/new", methods=["GET", "POST"])
+@login_required
+def admin_article_new():
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        if not title:
+            flash("Title is required.", "error")
+            return render_template("admin/article_form.html", article=None)
+
+        body_md = request.form.get("body_md", "")
+        published = 1 if request.form.get("published") else 0
+        pinned = 1 if request.form.get("pinned") else 0
+        models.create_article(title, body_md, published, pinned)
+        flash("Article created.", "success")
+        return redirect(url_for("admin_articles"))
+
+    return render_template("admin/article_form.html", article=None)
+
+
+@app.route("/admin/articles/<int:article_id>/edit", methods=["GET", "POST"])
+@login_required
+def admin_article_edit(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        if not title:
+            flash("Title is required.", "error")
+            return render_template("admin/article_form.html", article=art)
+
+        body_md = request.form.get("body_md", "")
+        published = 1 if request.form.get("published") else 0
+        pinned = 1 if request.form.get("pinned") else 0
+        models.update_article(article_id, title, body_md, published, pinned)
+        flash("Article updated.", "success")
+        return redirect(url_for("admin_articles"))
+
+    return render_template("admin/article_form.html", article=art)
+
+
+@app.route("/admin/articles/<int:article_id>/delete", methods=["POST"])
+@login_required
+def admin_article_delete(article_id):
+    models.delete_article(article_id)
+    flash("Article deleted.", "success")
+    return redirect(url_for("admin_articles"))
+
+
+@app.route("/admin/media-links", methods=["GET", "POST"])
+@login_required
+def admin_media_links():
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        url = request.form.get("url", "").strip()
+        link_type = request.form.get("link_type", "article")
+
+        if not title or not url:
+            flash("Title and URL are required.", "error")
+            links = models.get_media_links()
+            return render_template("admin/media_links.html", links=links)
+
+        models.add_media_link(title, url, link_type)
+        flash("Link added.", "success")
+        return redirect(url_for("admin_media_links"))
+
+    links = models.get_media_links()
+    return render_template("admin/media_links.html", links=links)
+
+
+@app.route("/admin/media-links/<int:link_id>/delete", methods=["POST"])
+@login_required
+def admin_media_link_delete(link_id):
+    models.delete_media_link(link_id)
+    flash("Link deleted.", "success")
+    return redirect(url_for("admin_media_links"))
+
+
+@app.route("/admin/refresh-balance", methods=["POST"])
+@login_required
+def admin_refresh_balance():
+    models.check_onchain_balance()
+    flash("Balance refreshed.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+# ── Error handlers ───────────────────────────────────────────────────
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("error.html", code=404, message="Page not found"), 404
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template("error.html", code=403, message="Forbidden"), 403
+
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=8000)

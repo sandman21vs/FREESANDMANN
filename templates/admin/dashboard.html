@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<article>
+    <h2>Fundraising</h2>
+    <p><strong>Raised:</strong> {{ cfg['raised_btc'] }} / {{ cfg['goal_btc'] }} BTC</p>
+    <p>
+        On-chain: {{ cfg['raised_onchain_btc'] }} BTC &mdash;
+        Lightning: {{ cfg['raised_lightning_btc'] }} BTC &mdash;
+        Manual adjustment: {{ cfg['raised_btc_manual_adjustment'] }} BTC
+    </p>
+    <p><strong>Last balance check:</strong> {{ cfg['last_balance_check'] or 'Never' }}</p>
+    <form method="POST" action="{{ url_for('admin_refresh_balance') }}" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <button type="submit">Refresh Balance Now</button>
+    </form>
+    <p><strong>Supporters:</strong> {{ cfg['supporters_count'] }}</p>
+    <p><strong>Articles:</strong> {{ articles|length }} &mdash; <strong>Media links:</strong> {{ media_links|length }}</p>
+</article>
+
+<nav>
+    <ul>
+        <li><a href="{{ url_for('admin_settings') }}">Settings</a></li>
+        <li><a href="{{ url_for('admin_articles') }}">Articles</a></li>
+        <li><a href="{{ url_for('admin_media_links') }}">Media Links</a></li>
+        <li><a href="{{ url_for('admin_change_password') }}">Change Password</a></li>
+        <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
+    </ul>
+</nav>
+{% endblock %}

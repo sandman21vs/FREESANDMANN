@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Updates &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>Updates</h1>
+
+{% if articles %}
+    {% for a in articles %}
+    <article>
+        <h2><a href="{{ url_for('article', slug=a.slug) }}">{{ a.title }}</a></h2>
+        <small>{{ a.created_at[:10] }}</small>
+        <p>{{ a.body_md[:200] }}</p>
+    </article>
+    {% endfor %}
+{% else %}
+    <p>No updates yet.</p>
+{% endif %}
+{% endblock %}

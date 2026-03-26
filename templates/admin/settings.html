@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Settings &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>Site Settings</h1>
+<a href="{{ url_for('admin_dashboard') }}">&larr; Back to Dashboard</a>
+
+<form method="POST" action="{{ url_for('admin_settings') }}">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <fieldset>
+        <legend>General</legend>
+        <label>Site Title
+            <input type="text" name="site_title" value="{{ cfg['site_title'] }}">
+        </label>
+        <label>Site Description
+            <textarea name="site_description">{{ cfg['site_description'] }}</textarea>
+        </label>
+        <label>Site Tagline
+            <input type="text" name="site_tagline" value="{{ cfg['site_tagline'] }}">
+        </label>
+        <label>Hero Image URL
+            <input type="text" name="hero_image_url" value="{{ cfg['hero_image_url'] }}">
+        </label>
+        <label>OG Image URL (for social media previews)
+            <input type="text" name="og_image_url" value="{{ cfg['og_image_url'] }}">
+        </label>
+        <label>Deadline / Urgency Text
+            <input type="text" name="deadline_text" value="{{ cfg['deadline_text'] }}" placeholder="e.g. Court date April 15">
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Bitcoin</legend>
+        <label>Bitcoin On-Chain Address
+            <input type="text" name="btc_address" value="{{ cfg['btc_address'] }}">
+        </label>
+        <label>Lightning Address / LNURL
+            <input type="text" name="lightning_address" value="{{ cfg['lightning_address'] }}">
+        </label>
+        <label>Wallet Explorer URL (for transparency)
+            <input type="text" name="wallet_explorer_url" value="{{ cfg['wallet_explorer_url'] }}">
+        </label>
+    </fieldset>
+
+    <fieldset>
+        <legend>Fundraising</legend>
+        <label>Goal (BTC)
+            <input type="text" name="goal_btc" value="{{ cfg['goal_btc'] }}">
+        </label>
+        <label>Goal Description
+            <input type="text" name="goal_description" value="{{ cfg['goal_description'] }}">
+        </label>
+        <label>Lightning Received (BTC) — update manually
+            <input type="text" name="raised_lightning_btc" value="{{ cfg['raised_lightning_btc'] }}">
+        </label>
+        <label>Manual Adjustment (BTC) — for off-system donations
+            <input type="text" name="raised_btc_manual_adjustment" value="{{ cfg['raised_btc_manual_adjustment'] }}">
+        </label>
+        <label>Supporters Count
+            <input type="text" name="supporters_count" value="{{ cfg['supporters_count'] }}">
+        </label>
+        <small>On-chain balance is updated automatically from mempool.space. Current: {{ cfg['raised_onchain_btc'] }} BTC</small>
+    </fieldset>
+
+    <fieldset>
+        <legend>Transparency</legend>
+        <label>Transparency Text (supports Markdown)
+            <textarea name="transparency_text" rows="8">{{ cfg['transparency_text'] }}</textarea>
+        </label>
+    </fieldset>
+
+    <button type="submit">Save Settings</button>
+</form>
+{% endblock %}

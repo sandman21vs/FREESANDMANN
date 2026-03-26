@@ -1,0 +1,280 @@
+:root {
+    --btc-orange: #f7931a;
+    --success-green: #2ea043;
+    --danger-red: #da3633;
+    --bg-dark: #0d1117;
+    --bg-card: #161b22;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+}
+
+[data-theme="dark"] {
+    --pico-background-color: var(--bg-dark);
+    --pico-card-background-color: var(--bg-card);
+    --pico-primary: var(--btc-orange);
+    --pico-primary-hover: #e8860f;
+}
+
+body {
+    font-size: 18px;
+}
+
+/* Progress bar */
+.progress-section {
+    margin-bottom: 1.5rem;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+
+progress {
+    width: 100%;
+    height: 1.5rem;
+}
+
+progress::-webkit-progress-bar {
+    background-color: var(--bg-card);
+    border-radius: 0.5rem;
+}
+
+progress::-webkit-progress-value {
+    background-color: var(--btc-orange);
+    border-radius: 0.5rem;
+}
+
+progress::-moz-progress-bar {
+    background-color: var(--btc-orange);
+    border-radius: 0.5rem;
+}
+
+/* QR codes */
+.qr-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+@media (min-width: 768px) {
+    .qr-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.qr-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+}
+
+.qr-img {
+    display: block;
+    margin: 1rem auto;
+    border-radius: 0.5rem;
+    background: white;
+    padding: 0.5rem;
+}
+
+.qr-medium { max-width: 200px; }
+.qr-large { max-width: 300px; }
+
+@media (max-width: 480px) {
+    .qr-medium { max-width: 160px; }
+    .qr-large { max-width: 240px; }
+}
+
+/* Address copy */
+.address-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    padding: 0.5rem;
+    background: var(--bg-dark);
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.address-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+}
+
+.copy-btn {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.wallet-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+/* Sticky donate button */
+.sticky-donate {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .sticky-donate {
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 0.75rem 1rem;
+        background: var(--bg-dark);
+        border-top: 1px solid var(--bg-card);
+        z-index: 100;
+        text-align: center;
+    }
+
+    .sticky-donate-btn {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        background: var(--btc-orange);
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border-radius: 0.5rem;
+    }
+
+    body {
+        padding-bottom: 5rem;
+    }
+}
+
+/* Donate nav button */
+.donate-nav-btn {
+    background: var(--btc-orange) !important;
+    color: white !important;
+    border-color: var(--btc-orange) !important;
+    font-weight: bold;
+}
+
+/* Hero */
+.hero {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.hero img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.hero .cta-btn {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: var(--btc-orange);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.cta-btn {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: var(--btc-orange);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.deadline-text {
+    color: var(--btc-orange);
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+/* Share buttons */
+.share-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+}
+
+.share-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Flash messages */
+.flash-msg {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.flash-success { border-left: 4px solid var(--success-green); }
+.flash-error { border-left: 4px solid var(--danger-red); }
+.flash-warning { border-left: 4px solid var(--btc-orange); }
+
+/* Embed containers */
+.embed-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    border-radius: 0.5rem;
+}
+
+.embed-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Admin */
+.admin-table {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-danger {
+    background: var(--danger-red);
+    border-color: var(--danger-red);
+    color: white;
+}

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import flask; print\\(flask.__version__\\)\")",
+      "Bash(python3 -c \"import qrcode; print\\(''qrcode available''\\)\")",
+      "Bash(python3 -c \"import sqlite3; print\\(''sqlite3 available''\\)\")",
+      "Bash(docker --version)",
+      "Bash(mkdir -p /home/msi/FREESANDMANN/tests /home/msi/FREESANDMANN/data)",
+      "Bash(touch /home/msi/FREESANDMANN/tests/__init__.py)",
+      "Bash(pip install:*)",
+      "Bash(pip index:*)",
+      "Bash(python:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

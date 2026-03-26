@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Articles &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>Articles</h1>
+<a href="{{ url_for('admin_article_new') }}" role="button">New Article</a>
+<a href="{{ url_for('admin_dashboard') }}">&larr; Dashboard</a>
+
+{% if articles %}
+<div class="admin-table">
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Pinned</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in articles %}
+        <tr>
+            <td>{{ a.title }}</td>
+            <td>{{ 'Published' if a.published else 'Draft' }}</td>
+            <td>{{ 'Yes' if a.pinned else 'No' }}</td>
+            <td>{{ a.created_at[:10] }}</td>
+            <td class="admin-actions">
+                <a href="{{ url_for('admin_article_edit', article_id=a.id) }}">Edit</a>
+                <form method="POST" action="{{ url_for('admin_article_delete', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Delete this article?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<p>No articles yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Article" if article else "New Article" }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>{{ "Edit Article" if article else "New Article" }}</h1>
+<a href="{{ url_for('admin_articles') }}">&larr; Back to Articles</a>
+
+<form method="POST" action="{{ url_for('admin_article_edit', article_id=article.id) if article else url_for('admin_article_new') }}">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <label>Title
+        <input type="text" name="title" value="{{ article.title if article else '' }}" required>
+    </label>
+    <label>Body (Markdown)
+        <textarea name="body_md" rows="20" placeholder="Write in Markdown. YouTube and Twitter/X URLs are auto-embedded.">{{ article.body_md if article else '' }}</textarea>
+    </label>
+    <label>
+        <input type="checkbox" name="published" {% if (article and article.published) or not article %}checked{% endif %}>
+        Published
+    </label>
+    <label>
+        <input type="checkbox" name="pinned" {% if article and article.pinned %}checked{% endif %}>
+        Pinned (show on homepage)
+    </label>
+    <button type="submit">{{ 'Update' if article else 'Create' }} Article</button>
+</form>
+{% endblock %}

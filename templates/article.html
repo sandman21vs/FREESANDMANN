@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "components/embed.html" import share_buttons %}
+
+{% block title %}{{ article.title }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<article>
+    <h1>{{ article.title }}</h1>
+    <small>{{ article.created_at[:10] }}</small>
+    <div>{{ article.body_html|safe }}</div>
+</article>
+
+{{ share_buttons(request.url, article.title) }}
+
+<p><a href="{{ url_for('updates') }}">&larr; Back to updates</a></p>
+{% endblock %}

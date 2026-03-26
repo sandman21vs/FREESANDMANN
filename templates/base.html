@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}</title>
+    <meta name="description" content="{{ cfg.get('site_description', '') }}">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{ cfg.get('site_title', 'Free Sandmann') }}">
+    <meta property="og:description" content="{{ cfg.get('site_description', '') }}">
+    {% if cfg.get('og_image_url') %}
+    <meta property="og:image" content="{{ cfg.get('og_image_url') }}">
+    {% endif %}
+    <meta property="og:type" content="website">
+
+    <!-- Pico CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="container">
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}"><strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong></a></li>
+            </ul>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('updates') }}">Updates</a></li>
+                <li><a href="{{ url_for('donate') }}" role="button" class="donate-nav-btn">Donate</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <article class="flash-msg flash-{{ category }}">{{ message }}</article>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="container">
+        <hr>
+        <small>
+            {{ cfg.get('site_title', 'Free Sandmann') }} &mdash; {{ cfg.get('site_tagline', '') }}<br>
+            <a href="https://github.com/freesandmann/freesandmann" target="_blank">Open Source</a> &mdash; Self-host this site for your own legal defense.
+        </small>
+    </footer>
+
+    <!-- Sticky donate button (mobile) -->
+    <div class="sticky-donate">
+        <a href="{{ url_for('donate') }}" class="sticky-donate-btn">Donate Now</a>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

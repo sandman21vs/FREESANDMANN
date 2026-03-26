@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Media Links &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>Media Links</h1>
+<a href="{{ url_for('admin_dashboard') }}">&larr; Dashboard</a>
+
+<form method="POST" action="{{ url_for('admin_media_links') }}">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <label>Title
+        <input type="text" name="title" placeholder="Link title" required>
+    </label>
+    <label>URL
+        <input type="url" name="url" placeholder="https://..." required>
+    </label>
+    <label>Type
+        <select name="link_type">
+            <option value="article">Article</option>
+            <option value="video">Video</option>
+            <option value="tweet">Tweet</option>
+        </select>
+    </label>
+    <button type="submit">Add Link</button>
+</form>
+
+{% if links %}
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for link in links %}
+        <tr>
+            <td><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.title }}</a></td>
+            <td>{{ link.link_type }}</td>
+            <td>{{ link.created_at[:10] }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('admin_media_link_delete', link_id=link.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Delete this link?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No media links yet.</p>
+{% endif %}
+{% endblock %}
