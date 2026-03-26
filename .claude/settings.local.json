@@ -12,7 +12,30 @@
       "Bash(python:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(ls /home/msi/FREESANDMANN/venv* /home/msi/FREESANDMANN/.venv*)",
+      "Bash(python3 -m venv venv)",
+      "Bash(source venv/bin/activate)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 init_db.py)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(curl -s -L --max-time 15 https://coinos.io/docs)",
+      "Bash(curl -s -L --max-time 15 https://coinos.io/api)",
+      "Bash(curl -s -L --max-time 15 https://raw.githubusercontent.com/coinos/coinos-server/master/README.md)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -s https://coinos.io/docs)",
+      "Bash(curl -s https://api.coinos.io/docs)",
+      "Bash(curl -s https://strike.me/docs/api)",
+      "WebFetch(domain:coinos.io)",
+      "WebFetch(domain:docs.strike.me)",
+      "WebFetch(domain:guides.getalby.com)",
+      "WebFetch(domain:bitclawd.com)",
+      "WebFetch(domain:developers.opennode.com)",
+      "WebFetch(domain:h17n.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:stacker.news)",
+      "WebFetch(domain:blog.zaprite.com)"
     ]
   }
 }
