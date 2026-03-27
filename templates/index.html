@@ -30,7 +30,7 @@
 
 <section>
     <h2>How to Donate</h2>
-    {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'medium') }}
+    {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'medium', cfg.get('liquid_address', '') if cfg.get('liquid_enabled') == '1' else '') }}
 
     {% if cfg.get('coinos_enabled') == '1' %}
     <div id="invoice-pay-home">

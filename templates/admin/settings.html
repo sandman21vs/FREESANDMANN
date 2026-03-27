@@ -66,6 +66,20 @@
     </fieldset>
 
     <fieldset>
+        <legend>Liquid Network</legend>
+        <label>
+            <input type="checkbox" name="liquid_enabled" value="1"
+                   {% if cfg['liquid_enabled'] == '1' %}checked{% endif %}>
+            Enable Liquid Network QR code
+        </label>
+        <label>Liquid Address
+            <input type="text" name="liquid_address" value="{{ cfg['liquid_address'] }}"
+                   placeholder="lq1qq... or VJL...">
+        </label>
+        <small>Enter a Liquid Network address to display a QR code for Liquid donations.</small>
+    </fieldset>
+
+    <fieldset>
         <legend>Fundraising</legend>
         <label>Goal (BTC)
             <input type="text" name="goal_btc" value="{{ cfg['goal_btc'] }}">

@@ -54,3 +54,46 @@ class TestQRCode:
         qr2 = resp2.data
 
         assert qr1 != qr2
+
+    def test_qr_liquid_returns_png(self, client):
+        """QR code Liquid deve retornar imagem PNG."""
+        models.set_config("liquid_address", "lq1qqtest123456")
+        resp = client.get("/qr/liquid")
+        assert resp.status_code == 200
+        assert resp.content_type == "image/png"
+        assert resp.data[:4] == b'\x89PNG'
+
+    def test_qr_liquid_empty_address_404(self, client):
+        """QR code sem endereco Liquid configurado deve retornar 404."""
+        models.set_config("liquid_address", "")
+        resp = client.get("/qr/liquid")
+        assert resp.status_code == 404
+
+
+class TestAdminSettingsLiquid:
+    def test_saves_liquid_fields(self, admin_session):
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "csrf_token": csrf,
+            "site_title": "Test",
+            "liquid_enabled": "1",
+            "liquid_address": "lq1qqtestaddr",
+        })
+
+        assert resp.status_code == 302
+        assert models.get_config("liquid_enabled") == "1"
+        assert models.get_config("liquid_address") == "lq1qqtestaddr"
+
+    def test_liquid_disabled_by_default(self, admin_session):
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "csrf_token": csrf,
+            "site_title": "Test",
+        })
+
+        assert resp.status_code == 302
+        assert models.get_config("liquid_enabled") == "0"

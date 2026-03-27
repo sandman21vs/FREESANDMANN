@@ -1,4 +1,4 @@
-{% macro qr_section(btc_address, lightning_address, size="medium") %}
+{% macro qr_section(btc_address, lightning_address, size="medium", liquid_address="") %}
 <div class="qr-grid">
     {% if btc_address %}
     <div class="qr-card">
@@ -21,6 +21,18 @@
             <button onclick="copyAddr('ln-addr', this)" class="copy-btn" title="Copy address">Copy</button>
         </div>
         <a href="lightning:{{ lightning_address }}" class="wallet-link">Open in Wallet</a>
+    </div>
+    {% endif %}
+
+    {% if liquid_address %}
+    <div class="qr-card">
+        <h3>Liquid Network</h3>
+        <img src="{{ url_for('qr_code', qr_type='liquid', v=liquid_address[-8:]) }}" alt="Liquid QR Code" loading="lazy" class="qr-img qr-{{ size }}">
+        <div class="address-box">
+            <code class="address-text" id="lq-addr">{{ liquid_address }}</code>
+            <button onclick="copyAddr('lq-addr', this)" class="copy-btn" title="Copy address">Copy</button>
+        </div>
+        <a href="liquidnetwork:{{ liquid_address }}" class="wallet-link">Open in Wallet</a>
     </div>
     {% endif %}
 </div>

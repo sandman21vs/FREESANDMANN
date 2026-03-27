@@ -120,6 +120,11 @@ def qr_code(qr_type):
         if not address:
             abort(404)
         data = address
+    elif qr_type == "liquid":
+        address = models.get_config("liquid_address")
+        if not address:
+            abort(404)
+        data = f"liquidnetwork:{address}"
     else:
         abort(404)
 
@@ -291,11 +296,14 @@ def admin_settings():
             "goal_description", "supporters_count", "hero_image_url",
             "deadline_text", "transparency_text", "og_image_url",
             "wallet_explorer_url", "coinos_api_key",
+            "liquid_address",
         ]
         coinos_enabled = "1" if request.form.get("coinos_enabled") else "0"
         coinos_onchain = "1" if request.form.get("coinos_onchain") else "0"
+        liquid_enabled = "1" if request.form.get("liquid_enabled") else "0"
         models.set_config("coinos_enabled", coinos_enabled)
         models.set_config("coinos_onchain", coinos_onchain)
+        models.set_config("liquid_enabled", liquid_enabled)
         for field in fields:
             if field == "raised_lightning_btc" and coinos_enabled == "1":
                 continue

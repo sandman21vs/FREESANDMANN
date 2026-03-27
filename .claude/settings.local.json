@@ -35,7 +35,26 @@
       "WebFetch(domain:h17n.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:stacker.news)",
-      "WebFetch(domain:blog.zaprite.com)"
+      "WebFetch(domain:blog.zaprite.com)",
+      "WebFetch(domain:getalby.com)",
+      "WebFetch(domain:demo.lnbits.com)",
+      "Bash(source /home/msi/FREESANDMANN/venv/bin/activate)",
+      "Bash(echo \"Virtual environment activated: $VIRTUAL_ENV\")",
+      "Bash(pytest tests/ -v)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)",
+      "Bash(curl:*)",
+      "Bash(fuser:*)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Bash(done)",
+      "Bash(sudo lsof:*)",
+      "Bash(do grep:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(sudo fuser:*)",
+      "Bash(kill 173134)",
+      "Bash(git status:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:blockstream.info)"
     ]
   }
 }

@@ -61,8 +61,12 @@ progress::-moz-progress-bar {
 
 @media (min-width: 768px) {
     .qr-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
+}
+
+.qr-card .address-box {
+    width: 100%;
 }
 
 .qr-card {
@@ -70,6 +74,9 @@ progress::-moz-progress-bar {
     padding: 1.5rem;
     background: var(--bg-card);
     border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .qr-img {
@@ -285,6 +292,7 @@ progress::-moz-progress-bar {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin: 1rem 0;
+    justify-content: center;
 }
 
 .preset-btn {
@@ -310,8 +318,10 @@ progress::-moz-progress-bar {
 
 .invoice-form {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
+    justify-content: center;
     margin: 1rem 0;
 }
 
@@ -363,4 +373,18 @@ progress::-moz-progress-bar {
 
 .invoice-label-liquid {
     color: #00b4e6;
+}
+
+/* Mobile centering fixes */
+@media (max-width: 480px) {
+    .invoice-form input[type="number"],
+    .invoice-form select,
+    .invoice-form button {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .share-section {
+        justify-content: center;
+    }
 }

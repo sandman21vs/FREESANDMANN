@@ -601,7 +601,7 @@ Estrutura:
         <hr>
         <small>
             {{ cfg.get('site_title', 'Free Sandmann') }} — {{ cfg.get('site_tagline', '') }}<br>
-            <a href="https://github.com/freesandmann/freesandmann" target="_blank">Open Source</a> — Self-host this site for your own legal defense.
+            <a href="https://github.com/sandman21vs/FREESANDMANN" target="_blank">Open Source</a> — Self-host this site for your own legal defense.
         </small>
     </footer>
 
@@ -1316,7 +1316,7 @@ Estrutura do README:
 
 **Quick Start**:
 ```bash
-git clone https://github.com/freesandmann/freesandmann.git
+git clone https://github.com/sandman21vs/FREESANDMANN.git
 cd freesandmann
 cp .env.example .env
 # Edit .env with your secret key
