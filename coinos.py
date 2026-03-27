@@ -27,7 +27,7 @@ def _coinos_request(method, path, body=None):
         return None
 
 
-def create_invoice(amount_sats, invoice_type="lightning"):
+def create_invoice(amount_sats, invoice_type="lightning", webhook_url=None):
     if models.get_config("coinos_enabled") != "1":
         return None
     if not amount_sats or amount_sats < 1:
@@ -35,11 +35,18 @@ def create_invoice(amount_sats, invoice_type="lightning"):
     if invoice_type not in ("lightning", "liquid"):
         return None
 
+    invoice_data = {
+        "amount": amount_sats,
+        "type": invoice_type,
+    }
+    if webhook_url:
+        webhook_secret = models.get_config("coinos_webhook_secret")
+        invoice_data["webhook"] = webhook_url
+        if webhook_secret:
+            invoice_data["secret"] = webhook_secret
+
     result = _coinos_request("POST", "/invoice", {
-        "invoice": {
-            "amount": amount_sats,
-            "type": invoice_type,
-        }
+        "invoice": invoice_data,
     })
     return result
 

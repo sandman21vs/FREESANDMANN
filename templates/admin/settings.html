@@ -62,7 +62,12 @@
                    value="{{ cfg['coinos_api_key'] }}"
                    placeholder="Paste your read-only token from coinos.io/docs">
         </label>
-        <small>Use the <strong>read-only</strong> token from coinos.io/docs. It can create invoices but cannot withdraw funds. Lightning balance will be auto-updated from your Coinos account. If "Use Coinos for on-chain" is enabled, a new Coinos BTC address will be generated and on-chain donations will also be tracked via Coinos.</small>
+        <label>Webhook Secret (optional, for verifying callbacks)
+            <input type="text" name="coinos_webhook_secret"
+                   value="{{ cfg['coinos_webhook_secret'] }}"
+                   placeholder="A random string to verify webhook authenticity">
+        </label>
+        <small>Use the <strong>read-only</strong> token from coinos.io/docs. It can create invoices but cannot withdraw funds. Lightning balance will be auto-updated from your Coinos account. When an invoice is paid, Coinos sends a webhook to update the balance instantly. If "Use Coinos for on-chain" is enabled, a new Coinos BTC address will be generated and on-chain donations will also be tracked via Coinos.</small>
     </fieldset>
 
     <fieldset>

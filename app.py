@@ -48,9 +48,14 @@ def generate_csrf_token():
         session["csrf_token"] = os.urandom(16).hex()
 
 
+CSRF_EXEMPT = {"/donate/webhook/coinos"}
+
+
 @app.before_request
 def csrf_protect():
     if request.method == "POST":
+        if request.path in CSRF_EXEMPT:
+            return
         token = session.get("csrf_token", "")
         form_token = request.form.get("csrf_token", "") or request.headers.get("X-CSRFToken", "")
         if not token or token != form_token:
@@ -162,7 +167,8 @@ def create_invoice():
     if invoice_type not in ("lightning", "liquid"):
         return jsonify({"ok": False, "error": "Type must be lightning or liquid"}), 400
 
-    result = coinos.create_invoice(amount, invoice_type)
+    webhook_url = request.url_root.rstrip("/") + url_for("coinos_webhook")
+    result = coinos.create_invoice(amount, invoice_type, webhook_url=webhook_url)
     if not result:
         return jsonify({"ok": False, "error": "Failed to create invoice"}), 500
 
@@ -204,13 +210,32 @@ def invoice_qr():
     return send_file(buf, mimetype="image/png", max_age=60)
 
 
+# ── Coinos webhook ───────────────────────────────────────────────────
+
+@app.route("/donate/webhook/coinos", methods=["POST"])
+def coinos_webhook():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"ok": False}), 400
+
+    webhook_secret = models.get_config("coinos_webhook_secret")
+    if webhook_secret and data.get("secret") != webhook_secret:
+        return jsonify({"ok": False}), 403
+
+    received = data.get("received", 0)
+    if received and int(received) > 0:
+        coinos.check_lightning_balance()
+
+    return jsonify({"ok": True})
+
+
 # ── Background balance checker ───────────────────────────────────────
 
 def _start_balance_checker():
     def _run():
         models.check_onchain_balance()
         coinos.check_lightning_balance()
-        t = threading.Timer(3600, _run)
+        t = threading.Timer(300, _run)
         t.daemon = True
         t.start()
     t = threading.Timer(10, _run)
@@ -295,7 +320,7 @@ def admin_settings():
             "raised_lightning_btc", "raised_btc_manual_adjustment",
             "goal_description", "supporters_count", "hero_image_url",
             "deadline_text", "transparency_text", "og_image_url",
-            "wallet_explorer_url", "coinos_api_key",
+            "wallet_explorer_url", "coinos_api_key", "coinos_webhook_secret",
             "liquid_address",
         ]
         coinos_enabled = "1" if request.form.get("coinos_enabled") else "0"

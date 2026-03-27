@@ -435,6 +435,97 @@ class TestInvoiceQrRoute:
         assert resp.status_code == 400
 
 
+class TestCoinosWebhook:
+    def test_webhook_triggers_balance_update(self, client, monkeypatch):
+        models.set_config("coinos_enabled", "1")
+        models.set_config("coinos_api_key", "test-token")
+        models.set_config("raised_lightning_btc", "0")
+
+        def mock_urlopen(req, **kwargs):
+            return MockResponse({
+                "payments": [],
+                "incoming": {"CHF": {"sats": 100000}},
+                "outgoing": {},
+            })
+
+        monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+        resp = client.post("/donate/webhook/coinos",
+            data=json.dumps({"received": 1000, "hash": "abc123"}),
+            content_type="application/json")
+
+        assert resp.status_code == 200
+        assert resp.get_json()["ok"] is True
+        assert models.get_config("raised_lightning_btc") == "0.001"
+
+    def test_webhook_no_data(self, client):
+        resp = client.post("/donate/webhook/coinos",
+            data="",
+            content_type="application/json")
+        assert resp.status_code == 400
+
+    def test_webhook_wrong_secret(self, client):
+        models.set_config("coinos_webhook_secret", "mysecret123")
+
+        resp = client.post("/donate/webhook/coinos",
+            data=json.dumps({"received": 1000, "secret": "wrongsecret"}),
+            content_type="application/json")
+
+        assert resp.status_code == 403
+
+    def test_webhook_correct_secret(self, client, monkeypatch):
+        models.set_config("coinos_enabled", "1")
+        models.set_config("coinos_api_key", "test-token")
+        models.set_config("coinos_webhook_secret", "mysecret123")
+
+        def mock_urlopen(req, **kwargs):
+            return MockResponse({
+                "payments": [],
+                "incoming": {"CHF": {"sats": 50000}},
+                "outgoing": {},
+            })
+
+        monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+        resp = client.post("/donate/webhook/coinos",
+            data=json.dumps({"received": 1000, "secret": "mysecret123"}),
+            content_type="application/json")
+
+        assert resp.status_code == 200
+        assert resp.get_json()["ok"] is True
+
+    def test_webhook_no_csrf_required(self, client):
+        """Webhook endpoint must be exempt from CSRF protection."""
+        models.set_config("coinos_enabled", "1")
+        models.set_config("coinos_api_key", "test-token")
+
+        resp = client.post("/donate/webhook/coinos",
+            data=json.dumps({"received": 0}),
+            content_type="application/json")
+
+        assert resp.status_code == 200
+
+    def test_webhook_zero_received_no_balance_update(self, client, monkeypatch):
+        models.set_config("coinos_enabled", "1")
+        models.set_config("coinos_api_key", "test-token")
+        models.set_config("raised_lightning_btc", "0")
+
+        called = []
+
+        def mock_urlopen(req, **kwargs):
+            called.append(True)
+            return MockResponse({})
+
+        monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+        resp = client.post("/donate/webhook/coinos",
+            data=json.dumps({"received": 0}),
+            content_type="application/json")
+
+        assert resp.status_code == 200
+        assert len(called) == 0
+
+
 class TestAdminSettingsSavesCoinos:
     def test_saves_coinos_fields(self, admin_session):
         with admin_session.session_transaction() as sess:

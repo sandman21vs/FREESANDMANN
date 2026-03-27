@@ -54,7 +54,9 @@
       "Bash(kill 173134)",
       "Bash(git status:*)",
       "Bash(git push:*)",
-      "WebFetch(domain:blockstream.info)"
+      "WebFetch(domain:blockstream.info)",
+      "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\); [print\\(i[''''name''''], i[''''type'''']\\) for i in items]\")",
+      "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\); [print\\(i[''''name'''']\\) for i in items]\")"
     ]
   }
 }

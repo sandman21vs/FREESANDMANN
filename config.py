@@ -30,6 +30,7 @@ DEFAULTS = {
     "coinos_api_key": "",
     "coinos_enabled": "0",
     "coinos_onchain": "0",
+    "coinos_webhook_secret": "",
     "liquid_enabled": "0",
     "liquid_address": "",
 }
