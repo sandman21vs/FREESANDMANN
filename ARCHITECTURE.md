@@ -505,7 +505,7 @@ O Pico CSS ja e responsivo, mas vamos alem:
 3. **Instrucoes para iniciantes**
    - Secao "Primeira vez doando Bitcoin?" na pagina de doacao
    - 3 passos simples com icones
-   - Link para wallets recomendadas (Muun, Phoenix, Blue Wallet)
+   - Link para wallets recomendadas (Muun, Coinos, Blue Wallet)
 
 4. **Pagina carregando rapido**
    - Pico CSS via CDN (cacheado)
@@ -677,7 +677,7 @@ Esses sao apenas chaves novas na tabela `config` (key-value), nao precisam de mi
 ├─────────────────────────┤
 │  PRIMEIRA VEZ?          │
 │  1. Baixe uma wallet    │
-│     (Muun, Phoenix)     │
+│     (Muun, Coinos)     │
 │  2. Escaneie o QR code  │
 │  3. Confirme o envio    │
 ├─────────────────────────┤

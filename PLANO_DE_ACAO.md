@@ -643,7 +643,7 @@ Secoes:
 1. Barra de progresso (macro)
 2. QR codes com size="large" (macro)
 3. Secao "First time donating Bitcoin?":
-   - Passo 1: Download a wallet (Muun, Phoenix, Blue Wallet) — links reais
+   - Passo 1: Download a wallet (Muun, Coinos, Blue Wallet) — links reais
    - Passo 2: Scan the QR code or copy the address
    - Passo 3: Confirm the transaction
 
