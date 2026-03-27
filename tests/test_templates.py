@@ -51,6 +51,47 @@ class TestPublicTemplates:
         resp = client.get("/donate")
         assert resp.status_code == 200
 
+    def test_invoice_widget_renders_shared_translations_on_index(self, client):
+        """Homepage deve usar widget com data attrs + JS compartilhado."""
+        models.set_config("coinos_enabled", "1")
+        with client.session_transaction() as sess:
+            sess["lang"] = "pt"
+
+        resp = client.get("/")
+        assert resp.status_code == 200
+        assert b"/static/app.js" in resp.data
+        assert "Gerar Invoice".encode() in resp.data
+        assert "Valor personalizado em sats".encode() in resp.data
+        assert "Aguardando pagamento...".encode() in resp.data
+        assert b'data-create-url="/donate/create-invoice"' in resp.data
+        assert b'data-copy-target=".invoice-bolt11"' in resp.data
+        assert b"function createInvoice()" not in resp.data
+
+    def test_invoice_widget_renders_shared_translations_on_donate(self, client):
+        """Pagina de doacao deve renderizar o mesmo widget compartilhado."""
+        models.set_config("coinos_enabled", "1")
+        with client.session_transaction() as sess:
+            sess["lang"] = "pt"
+
+        resp = client.get("/donate")
+        assert resp.status_code == 200
+        assert b"/static/app.js" in resp.data
+        assert "Escolha um valor e método de pagamento:".encode() in resp.data
+        assert "Gerar Invoice".encode() in resp.data
+        assert "Valor personalizado em sats".encode() in resp.data
+        assert b'data-check-url-template="/donate/check-invoice/__HASH__"' in resp.data
+        assert b"function createInvoice()" not in resp.data
+
+    def test_qr_and_share_copy_buttons_use_data_targets(self, client):
+        """Botoes de copiar devem usar data attrs e JS compartilhado."""
+        models.set_config("btc_address", "bc1qexampleaddress123")
+
+        resp = client.get("/")
+        assert resp.status_code == 200
+        assert b'data-copy-target="#btc-addr"' in resp.data
+        assert b'data-copy-target="#share-url"' in resp.data
+        assert b"function copyAddr(" not in resp.data
+
     def test_index_with_articles(self, client):
         """Homepage com artigos fixados deve mostrar titulos."""
         models.create_article("Pinned Story", "Important", pinned=1)

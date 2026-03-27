@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "components/progress_bar.html" import progress_bar with context %}
 {% from "components/qr_codes.html" import qr_section with context %}
+{% from "components/invoice_widget.html" import invoice_widget with context %}
 
 {% block title %}{{ t('donate_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
@@ -12,37 +13,7 @@
 {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'large', cfg.get('liquid_address', '') if cfg.get('liquid_enabled') == '1' else '') }}
 
 {% if cfg.get('coinos_enabled') == '1' %}
-<section id="invoice-pay">
-    <h2>{{ t('pay_lightning') }}</h2>
-    <p>{{ t('choose_amount') }}</p>
-    <div class="preset-amounts">
-        <button class="preset-btn" onclick="setAmount(1000)">1,000 sats</button>
-        <button class="preset-btn" onclick="setAmount(5000)">5,000 sats</button>
-        <button class="preset-btn" onclick="setAmount(10000)">10,000 sats</button>
-        <button class="preset-btn" onclick="setAmount(50000)">50,000 sats</button>
-        <button class="preset-btn" onclick="setAmount(100000)">100,000 sats</button>
-        <button class="preset-btn" onclick="setAmount(1000000)">1M sats</button>
-        <button class="preset-btn" onclick="setAmount(10000000)">10M sats</button>
-    </div>
-    <div class="invoice-form">
-        <input type="number" id="sats-amount" min="1" max="100000000"
-               placeholder="{{ t('custom_amount_placeholder') }}">
-        <select id="invoice-type">
-            <option value="lightning">{{ t('lightning_network') }}</option>
-            <option value="liquid">{{ t('liquid_network') }}</option>
-        </select>
-        <button id="create-invoice-btn" onclick="createInvoice()">{{ t('generate_invoice') }}</button>
-    </div>
-    <div id="invoice-result" style="display:none;">
-        <div id="invoice-type-label" class="invoice-type-label"></div>
-        <img id="invoice-qr" alt="Invoice QR" class="qr-img qr-large">
-        <div class="address-box">
-            <code class="address-text" id="invoice-bolt11" style="word-break:break-all;font-size:0.75em;"></code>
-            <button onclick="copyAddr('invoice-bolt11', this)" class="copy-btn">{{ t('copy') }}</button>
-        </div>
-        <div id="invoice-status" class="invoice-waiting">{{ t('waiting_payment') }}</div>
-    </div>
-</section>
+{{ invoice_widget(section_id='invoice-pay', heading_tag='h2', show_choose_amount=true) }}
 {% endif %}
 
 <section>
@@ -64,97 +35,4 @@
         </li>
     </ol>
 </section>
-{% endblock %}
-
-{% block scripts %}
-{% if cfg.get('coinos_enabled') == '1' %}
-<script>
-const csrfToken = "{{ session.csrf_token }}";
-const i18n = {
-    waitingPayment: "{{ t('waiting_payment') }}",
-    paymentReceived: "{{ t('payment_received') }}",
-    generating: "{{ t('generating') }}",
-    generateInvoice: "{{ t('generate_invoice') }}",
-    invalidAmount: "{{ t('invalid_amount') }}",
-    networkError: "{{ t('network_error') }}",
-    failedInvoice: "{{ t('failed_invoice') }}",
-    copy: "{{ t('copy') }}",
-    copied: "{{ t('copied') }}"
-};
-let pollTimer = null;
-
-function setAmount(sats) {
-    document.getElementById('sats-amount').value = sats;
-    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-}
-
-function createInvoice() {
-    const amount = parseInt(document.getElementById('sats-amount').value);
-    if (!amount || amount < 1 || amount > 100000000) {
-        alert(i18n.invalidAmount);
-        return;
-    }
-
-    const invoiceType = document.getElementById('invoice-type').value;
-    const btn = document.getElementById('create-invoice-btn');
-    btn.disabled = true;
-    btn.textContent = i18n.generating;
-
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-
-    fetch('/donate/create-invoice', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({amount_sats: amount, type: invoiceType})
-    })
-    .then(r => r.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.textContent = i18n.generateInvoice;
-
-        if (!data.ok) {
-            alert(data.error || i18n.failedInvoice);
-            return;
-        }
-
-        const resultDiv = document.getElementById('invoice-result');
-        resultDiv.style.display = 'block';
-
-        const label = document.getElementById('invoice-type-label');
-        label.textContent = data.type === 'liquid' ? "{{ t('liquid_network') }}" : "{{ t('lightning_network') }}";
-        label.className = 'invoice-type-label invoice-label-' + data.type;
-
-        document.getElementById('invoice-qr').src =
-            '/donate/invoice-qr?bolt11=' + encodeURIComponent(data.bolt11);
-        document.getElementById('invoice-bolt11').textContent = data.bolt11;
-
-        const status = document.getElementById('invoice-status');
-        status.textContent = i18n.waitingPayment;
-        status.className = 'invoice-waiting';
-
-        pollTimer = setInterval(function() {
-            fetch('/donate/check-invoice/' + encodeURIComponent(data.hash))
-            .then(r => r.json())
-            .then(s => {
-                if (s.paid) {
-                    clearInterval(pollTimer);
-                    pollTimer = null;
-                    status.textContent = i18n.paymentReceived;
-                    status.className = 'invoice-paid';
-                }
-            });
-        }, 2000);
-    })
-    .catch(() => {
-        btn.disabled = false;
-        btn.textContent = i18n.generateInvoice;
-        alert(i18n.networkError);
-    });
-}
-</script>
-{% endif %}
 {% endblock %}

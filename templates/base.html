@@ -26,7 +26,11 @@
     })();
     </script>
 </head>
-<body>
+<body
+    data-theme-light-label="{{ t('widget_theme_light') }}"
+    data-theme-dark-label="{{ t('widget_theme_dark') }}"
+    data-copied-label="{{ t('copied') }}"
+>
     <header class="container">
         <nav>
             <ul>
@@ -121,69 +125,7 @@
         </div>
     </div>
 
-    <script>
-    // Theme toggle
-    var themeI18n = {
-        light: "{{ t('widget_theme_light') }}",
-        dark: "{{ t('widget_theme_dark') }}"
-    };
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        var label = theme === 'dark' ? themeI18n.light : themeI18n.dark;
-        var btn = document.getElementById('theme-toggle');
-        var btnMobile = document.getElementById('theme-toggle-mobile');
-        if (btn) btn.textContent = label;
-        if (btnMobile) btnMobile.textContent = label;
-    }
-
-    var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    applyTheme(currentTheme);
-
-    function onThemeClick() {
-        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        applyTheme(currentTheme);
-    }
-
-    var themeBtn = document.getElementById('theme-toggle');
-    var themeBtnMobile = document.getElementById('theme-toggle-mobile');
-    if (themeBtn) themeBtn.addEventListener('click', onThemeClick);
-    if (themeBtnMobile) themeBtnMobile.addEventListener('click', onThemeClick);
-
-    // Widget toggle (desktop)
-    document.getElementById('pref-toggle').addEventListener('click', function() {
-        var panel = document.getElementById('pref-panel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Fechar widget ao clicar fora
-    document.addEventListener('click', function(e) {
-        var widget = document.getElementById('pref-widget');
-        if (!widget.contains(e.target)) {
-            document.getElementById('pref-panel').style.display = 'none';
-        }
-    });
-
-    // Hamburger menu toggle
-    var menuToggle = document.getElementById('menu-toggle');
-    var navLinks = document.getElementById('nav-links');
-    menuToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var isOpen = navLinks.classList.toggle('open');
-        menuToggle.classList.toggle('open', isOpen);
-        menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-
-    // Fechar menu ao clicar fora
-    document.addEventListener('click', function(e) {
-        if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
-            navLinks.classList.remove('open');
-            menuToggle.classList.remove('open');
-            menuToggle.setAttribute('aria-expanded', 'false');
-        }
-    });
-    </script>
-
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

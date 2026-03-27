@@ -1,0 +1,52 @@
+{% macro invoice_widget(section_id='invoice-pay', heading_tag='h2', show_choose_amount=false) -%}
+<div
+    id="{{ section_id }}"
+    class="invoice-widget"
+    data-create-url="{{ url_for('create_invoice') }}"
+    data-check-url-template="{{ url_for('check_invoice_status', invoice_hash='__HASH__') }}"
+    data-qr-url="{{ url_for('invoice_qr') }}"
+    data-csrf-token="{{ session.csrf_token }}"
+    data-waiting-payment="{{ t('waiting_payment') }}"
+    data-payment-received="{{ t('payment_received') }}"
+    data-generating="{{ t('generating') }}"
+    data-generate-invoice="{{ t('generate_invoice') }}"
+    data-invalid-amount="{{ t('invalid_amount') }}"
+    data-network-error="{{ t('network_error') }}"
+    data-failed-invoice="{{ t('failed_invoice') }}"
+    data-lightning-network="{{ t('lightning_network') }}"
+    data-liquid-network="{{ t('liquid_network') }}"
+    data-poll-interval-ms="2000"
+>
+    <{{ heading_tag }}>{{ t('pay_lightning') }}</{{ heading_tag }}>
+    {% if show_choose_amount %}
+    <p>{{ t('choose_amount') }}</p>
+    {% endif %}
+    <div class="preset-amounts">
+        <button type="button" class="preset-btn" data-sats="1000">1,000 sats</button>
+        <button type="button" class="preset-btn" data-sats="5000">5,000 sats</button>
+        <button type="button" class="preset-btn" data-sats="10000">10,000 sats</button>
+        <button type="button" class="preset-btn" data-sats="50000">50,000 sats</button>
+        <button type="button" class="preset-btn" data-sats="100000">100,000 sats</button>
+        <button type="button" class="preset-btn" data-sats="1000000">1M sats</button>
+        <button type="button" class="preset-btn" data-sats="10000000">10M sats</button>
+    </div>
+    <div class="invoice-form">
+        <input type="number" class="invoice-amount-input" min="1" max="100000000"
+               placeholder="{{ t('custom_amount_placeholder') }}">
+        <select class="invoice-type-select">
+            <option value="lightning">{{ t('lightning_network') }}</option>
+            <option value="liquid">{{ t('liquid_network') }}</option>
+        </select>
+        <button type="button" class="create-invoice-btn">{{ t('generate_invoice') }}</button>
+    </div>
+    <div class="invoice-result" style="display:none;">
+        <div class="invoice-type-label"></div>
+        <img alt="Invoice QR" class="qr-img qr-large invoice-qr">
+        <div class="address-box">
+            <code class="address-text invoice-bolt11" style="word-break:break-all;font-size:0.75em;"></code>
+            <button type="button" class="copy-btn" data-copy-target=".invoice-bolt11">{{ t('copy') }}</button>
+        </div>
+        <div class="invoice-status invoice-waiting">{{ t('waiting_payment') }}</div>
+    </div>
+</div>
+{%- endmacro %}
