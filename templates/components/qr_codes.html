@@ -6,9 +6,9 @@
         <img src="{{ url_for('qr_code', qr_type='btc', v=btc_address[-8:]) }}" alt="Bitcoin QR Code" loading="lazy" class="qr-img qr-{{ size }}">
         <div class="address-box">
             <code class="address-text" id="btc-addr">{{ btc_address }}</code>
-            <button onclick="copyAddr('btc-addr', this)" class="copy-btn" title="Copy address">Copy</button>
+            <button onclick="copyAddr('btc-addr', this)" class="copy-btn" title="Copy address">{{ t('copy') }}</button>
         </div>
-        <a href="bitcoin:{{ btc_address }}" class="wallet-link">Open in Wallet</a>
+        <a href="bitcoin:{{ btc_address }}" class="wallet-link">{{ t('open_wallet') }}</a>
     </div>
     {% endif %}
 
@@ -18,9 +18,9 @@
         <img src="{{ url_for('qr_code', qr_type='lightning', v=lightning_address[-8:]) }}" alt="Lightning QR Code" loading="lazy" class="qr-img qr-{{ size }}">
         <div class="address-box">
             <code class="address-text" id="ln-addr">{{ lightning_address }}</code>
-            <button onclick="copyAddr('ln-addr', this)" class="copy-btn" title="Copy address">Copy</button>
+            <button onclick="copyAddr('ln-addr', this)" class="copy-btn" title="Copy address">{{ t('copy') }}</button>
         </div>
-        <a href="lightning:{{ lightning_address }}" class="wallet-link">Open in Wallet</a>
+        <a href="lightning:{{ lightning_address }}" class="wallet-link">{{ t('open_wallet') }}</a>
     </div>
     {% endif %}
 
@@ -30,9 +30,9 @@
         <img src="{{ url_for('qr_code', qr_type='liquid', v=liquid_address[-8:]) }}" alt="Liquid QR Code" loading="lazy" class="qr-img qr-{{ size }}">
         <div class="address-box">
             <code class="address-text" id="lq-addr">{{ liquid_address }}</code>
-            <button onclick="copyAddr('lq-addr', this)" class="copy-btn" title="Copy address">Copy</button>
+            <button onclick="copyAddr('lq-addr', this)" class="copy-btn" title="Copy address">{{ t('copy') }}</button>
         </div>
-        <a href="liquidnetwork:{{ liquid_address }}" class="wallet-link">Open in Wallet</a>
+        <a href="liquidnetwork:{{ liquid_address }}" class="wallet-link">{{ t('open_wallet') }}</a>
     </div>
     {% endif %}
 </div>
@@ -40,9 +40,10 @@
 <script>
 function copyAddr(id, btn) {
     const text = document.getElementById(id).textContent;
+    {% if t %}const copiedText = "{{ t('copied') }}"{% else %}const copiedText = "Copied!"{% endif %};
     navigator.clipboard.writeText(text).then(function() {
         const orig = btn.textContent;
-        btn.textContent = 'Copied!';
+        btn.textContent = copiedText;
         setTimeout(function() { btn.textContent = orig; }, 2000);
     });
 }

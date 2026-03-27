@@ -15,26 +15,26 @@
     {% if cfg.get('deadline_text') %}
     <p class="deadline-text">{{ cfg.get('deadline_text') }}</p>
     {% endif %}
-    <a href="{{ url_for('donate') }}" class="cta-btn">Donate Now</a>
+    <a href="{{ url_for('donate') }}" class="cta-btn">{{ t('donate_now') }}</a>
 </section>
 
 {% if cfg.get('transparency_text') %}
 <section>
-    <h2>Transparency</h2>
+    <h2>{{ t('transparency') }}</h2>
     <div>{{ cfg.get('transparency_text') }}</div>
     {% if cfg.get('wallet_explorer_url') %}
-    <a href="{{ cfg.get('wallet_explorer_url') }}" target="_blank" rel="noopener">View on blockchain explorer</a>
+    <a href="{{ cfg.get('wallet_explorer_url') }}" target="_blank" rel="noopener">{{ t('view_explorer') }}</a>
     {% endif %}
 </section>
 {% endif %}
 
 <section>
-    <h2>How to Donate</h2>
+    <h2>{{ t('how_to_donate') }}</h2>
     {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'medium', cfg.get('liquid_address', '') if cfg.get('liquid_enabled') == '1' else '') }}
 
     {% if cfg.get('coinos_enabled') == '1' %}
     <div id="invoice-pay-home">
-        <h3>Pay with Lightning or Liquid</h3>
+        <h3>{{ t('pay_lightning') }}</h3>
         <div class="preset-amounts">
             <button class="preset-btn" onclick="setAmount(1000)">1,000 sats</button>
             <button class="preset-btn" onclick="setAmount(5000)">5,000 sats</button>
@@ -68,20 +68,20 @@
 
 {% if pinned %}
 <section>
-    <h2>Latest Updates</h2>
+    <h2>{{ t('latest_updates') }}</h2>
     {% for a in pinned %}
     <article>
         <h3><a href="{{ url_for('article', slug=a.slug) }}">{{ a.title }}</a></h3>
         <small>{{ a.created_at[:10] }}</small>
     </article>
     {% endfor %}
-    <a href="{{ url_for('updates') }}">See all updates &rarr;</a>
+    <a href="{{ url_for('updates') }}">{{ t('see_all') }}</a>
 </section>
 {% endif %}
 
 {% if media_links %}
 <section>
-    <h2>Media Coverage</h2>
+    <h2>{{ t('media_coverage') }}</h2>
     <ul>
         {% for link in media_links %}
         <li>
@@ -100,6 +100,17 @@
 {% if cfg.get('coinos_enabled') == '1' %}
 <script>
 const csrfToken = "{{ session.csrf_token }}";
+const i18n = {
+    waitingPayment: "{{ t('waiting_payment') }}",
+    paymentReceived: "{{ t('payment_received') }}",
+    generating: "{{ t('generating') }}",
+    generateInvoice: "{{ t('generate_invoice') }}",
+    invalidAmount: "{{ t('invalid_amount') }}",
+    networkError: "{{ t('network_error') }}",
+    failedInvoice: "{{ t('failed_invoice') }}",
+    copy: "{{ t('copy') }}",
+    copied: "{{ t('copied') }}"
+};
 let pollTimer = null;
 
 function setAmount(sats) {
@@ -111,14 +122,14 @@ function setAmount(sats) {
 function createInvoice() {
     const amount = parseInt(document.getElementById('sats-amount').value);
     if (!amount || amount < 1 || amount > 100000000) {
-        alert('Enter a valid amount (1 - 100,000,000 sats)');
+        alert(i18n.invalidAmount);
         return;
     }
 
     const invoiceType = document.getElementById('invoice-type').value;
     const btn = document.getElementById('create-invoice-btn');
     btn.disabled = true;
-    btn.textContent = 'Generating...';
+    btn.textContent = i18n.generating;
 
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 
@@ -133,10 +144,10 @@ function createInvoice() {
     .then(r => r.json())
     .then(data => {
         btn.disabled = false;
-        btn.textContent = 'Generate Invoice';
+        btn.textContent = i18n.generateInvoice;
 
         if (!data.ok) {
-            alert(data.error || 'Failed to create invoice');
+            alert(data.error || i18n.failedInvoice);
             return;
         }
 
@@ -152,7 +163,7 @@ function createInvoice() {
         document.getElementById('invoice-bolt11').textContent = data.bolt11;
 
         const status = document.getElementById('invoice-status');
-        status.textContent = 'Waiting for payment...';
+        status.textContent = i18n.waitingPayment;
         status.className = 'invoice-waiting';
 
         pollTimer = setInterval(function() {
@@ -162,7 +173,7 @@ function createInvoice() {
                 if (s.paid) {
                     clearInterval(pollTimer);
                     pollTimer = null;
-                    status.textContent = 'Payment received! Thank you!';
+                    status.textContent = i18n.paymentReceived;
                     status.className = 'invoice-paid';
                 }
             });
@@ -170,8 +181,8 @@ function createInvoice() {
     })
     .catch(() => {
         btn.disabled = false;
-        btn.textContent = 'Generate Invoice';
-        alert('Network error. Please try again.');
+        btn.textContent = i18n.generateInvoice;
+        alert(i18n.networkError);
     });
 }
 </script>

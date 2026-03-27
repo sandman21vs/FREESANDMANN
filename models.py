@@ -161,9 +161,24 @@ def get_article_by_id(article_id):
     return dict(row) if row else None
 
 
-def create_article(title, body_md, published=1, pinned=0):
+def get_article_for_lang(slug, lang):
+    article = get_article_by_slug(slug)
+    if not article:
+        return None
+    if lang == "en" and article.get("title_en"):
+        article["title"] = article["title_en"]
+        article["body_html"] = article["body_html_en"] or article["body_html"]
+    elif lang == "de" and article.get("title_de"):
+        article["title"] = article["title_de"]
+        article["body_html"] = article["body_html_de"] or article["body_html"]
+    return article
+
+
+def create_article(title, body_md, published=1, pinned=0, title_en="", body_md_en="", title_de="", body_md_de=""):
     slug = _make_slug(title)
     body_html = _render_markdown(body_md)
+    body_html_en = _render_markdown(body_md_en) if body_md_en else ""
+    body_html_de = _render_markdown(body_md_de) if body_md_de else ""
 
     conn = get_db()
     existing = conn.execute("SELECT id FROM articles WHERE slug = ?", (slug,)).fetchone()
@@ -171,18 +186,20 @@ def create_article(title, body_md, published=1, pinned=0):
         slug = f"{slug}-{int(datetime.utcnow().timestamp())}"
 
     conn.execute(
-        "INSERT INTO articles (title, slug, body_md, body_html, published, pinned) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
-        (title, slug, body_md, body_html, published, pinned),
+        "INSERT INTO articles (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de),
     )
     conn.commit()
     conn.close()
     return slug
 
 
-def update_article(article_id, title, body_md, published=1, pinned=0):
+def update_article(article_id, title, body_md, published=1, pinned=0, title_en="", body_md_en="", title_de="", body_md_de=""):
     slug = _make_slug(title)
     body_html = _render_markdown(body_md)
+    body_html_en = _render_markdown(body_md_en) if body_md_en else ""
+    body_html_de = _render_markdown(body_md_de) if body_md_de else ""
 
     conn = get_db()
     # Check slug collision (excluding current article)
@@ -193,9 +210,8 @@ def update_article(article_id, title, body_md, published=1, pinned=0):
         slug = f"{slug}-{int(datetime.utcnow().timestamp())}"
 
     conn.execute(
-        "UPDATE articles SET title=?, slug=?, body_md=?, body_html=?, published=?, pinned=?, "
-        "updated_at=datetime('now') WHERE id=?",
-        (title, slug, body_md, body_html, published, pinned, article_id),
+        "UPDATE articles SET title=?, slug=?, body_md=?, body_html=?, published=?, pinned=?, title_en=?, body_md_en=?, body_html_en=?, title_de=?, body_md_de=?, body_html_de=?, updated_at=datetime('now') WHERE id=?",
+        (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de, article_id),
     )
     conn.commit()
     conn.close()

@@ -15,6 +15,17 @@
     --pico-primary-hover: #e8860f;
 }
 
+[data-theme="light"] {
+    --pico-background-color: #ffffff;
+    --pico-card-background-color: #f6f8fa;
+    --pico-primary: var(--btc-orange);
+    --pico-primary-hover: #e8860f;
+    --bg-dark: #f6f8fa;
+    --bg-card: #ffffff;
+    --text-primary: #1c1c1e;
+    --text-secondary: #6e6e73;
+}
+
 body {
     font-size: 18px;
 }
@@ -394,4 +405,71 @@ progress::-moz-progress-bar {
     .share-section {
         justify-content: center;
     }
+}
+
+/* Preferences Widget */
+.pref-widget {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 200;
+}
+
+.pref-toggle-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--text-secondary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.pref-panel {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--text-secondary);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    min-width: 130px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.pref-section {
+    margin-bottom: 0.75rem;
+}
+.pref-section:last-child {
+    margin-bottom: 0;
+}
+
+.pref-lang-btns {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.pref-lang {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    font-size: 0.85rem;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+}
+.pref-lang.active {
+    background: var(--btc-orange);
+    color: white;
+}
+
+.pref-theme-btn {
+    margin-top: 0.25rem;
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
 }

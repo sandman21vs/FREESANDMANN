@@ -17,6 +17,14 @@
     <!-- Pico CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Theme detection (antes de render para evitar flash) -->
+    <script>
+    (function() {
+      var stored = localStorage.getItem('theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+    </script>
 </head>
 <body>
     <header class="container">
@@ -25,9 +33,9 @@
                 <li><a href="{{ url_for('index') }}"><strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong></a></li>
             </ul>
             <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('updates') }}">Updates</a></li>
-                <li><a href="{{ url_for('donate') }}" role="button" class="donate-nav-btn">Donate</a></li>
+                <li><a href="{{ url_for('index') }}">{{ t('nav_home') }}</a></li>
+                <li><a href="{{ url_for('updates') }}">{{ t('nav_updates') }}</a></li>
+                <li><a href="{{ url_for('donate') }}" role="button" class="donate-nav-btn">{{ t('nav_donate') }}</a></li>
             </ul>
         </nav>
     </header>
@@ -48,14 +56,66 @@
         <hr>
         <small>
             {{ cfg.get('site_title', 'Free Sandmann') }} &mdash; {{ cfg.get('site_tagline', '') }}<br>
-            <a href="https://github.com/sandman21vs/FREESANDMANN" target="_blank">Open Source</a> &mdash; Self-host this site for your own legal defense.
+            <a href="https://github.com/sandman21vs/FREESANDMANN" target="_blank">{{ t('footer_open_source') }}</a> &mdash; {{ t('footer_selfhost') }}
         </small>
     </footer>
 
     <!-- Sticky donate button (mobile) -->
     <div class="sticky-donate">
-        <a href="{{ url_for('donate') }}" class="sticky-donate-btn">Donate Now</a>
+        <a href="{{ url_for('donate') }}" class="sticky-donate-btn">{{ t('donate_now') }}</a>
     </div>
+
+    <!-- Language & Theme Widget -->
+    <div id="pref-widget" class="pref-widget">
+        <button id="pref-toggle" class="pref-toggle-btn" aria-label="Settings" title="Language & Theme">
+            🌐
+        </button>
+        <div id="pref-panel" class="pref-panel" style="display:none;">
+            <div class="pref-section">
+                <small>Language</small>
+                <div class="pref-lang-btns">
+                    <a href="/set-lang/pt" class="pref-lang {% if lang == 'pt' %}active{% endif %}">PT</a>
+                    <a href="/set-lang/en" class="pref-lang {% if lang == 'en' %}active{% endif %}">EN</a>
+                    <a href="/set-lang/de" class="pref-lang {% if lang == 'de' %}active{% endif %}">DE</a>
+                </div>
+            </div>
+            <div class="pref-section">
+                <small>Theme</small>
+                <button id="theme-toggle" class="pref-theme-btn">☀️ Light</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Theme toggle
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        localStorage.setItem('theme', t);
+        document.getElementById('theme-toggle').textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    applyTheme(currentTheme);
+
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        currentTheme = localStorage.getItem('theme');
+    });
+
+    // Widget toggle
+    document.getElementById('pref-toggle').addEventListener('click', function() {
+        var panel = document.getElementById('pref-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Fechar ao clicar fora
+    document.addEventListener('click', function(e) {
+        var widget = document.getElementById('pref-widget');
+        if (!widget.contains(e.target)) {
+            document.getElementById('pref-panel').style.display = 'none';
+        }
+    });
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

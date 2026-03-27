@@ -22,6 +22,27 @@
         <input type="checkbox" name="pinned" {% if article and article.pinned %}checked{% endif %}>
         Pinned (show on homepage)
     </label>
+
+    <details>
+        <summary>English Translation (optional)</summary>
+        <label>Title (EN)
+            <input type="text" name="title_en" value="{{ article.title_en if article else '' }}">
+        </label>
+        <label>Content (EN — Markdown)
+            <textarea name="body_md_en" rows="12" placeholder="Write in Markdown.">{{ article.body_md_en if article else '' }}</textarea>
+        </label>
+    </details>
+
+    <details>
+        <summary>Deutsche Übersetzung (optional)</summary>
+        <label>Titel (DE)
+            <input type="text" name="title_de" value="{{ article.title_de if article else '' }}">
+        </label>
+        <label>Inhalt (DE — Markdown)
+            <textarea name="body_md_de" rows="12" placeholder="Schreiben Sie auf Markdown.">{{ article.body_md_de if article else '' }}</textarea>
+        </label>
+    </details>
+
     <button type="submit">{{ 'Update' if article else 'Create' }} Article</button>
 </form>
 {% endblock %}

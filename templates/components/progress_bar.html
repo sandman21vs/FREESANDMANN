@@ -9,7 +9,7 @@
     </div>
     <progress value="{{ pct }}" max="100">{{ pct }}%</progress>
     {% if supporters and supporters != "0" %}
-    <small>{{ supporters }} supporters</small>
+    <small>{{ supporters }} {{ t('supporters') }}</small>
     {% endif %}
 </div>
 {% endmacro %}

@@ -2,10 +2,10 @@
 {% from "components/progress_bar.html" import progress_bar %}
 {% from "components/qr_codes.html" import qr_section %}
 
-{% block title %}Donate &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+{% block title %}{{ t('donate_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
-<h1>Donate Bitcoin</h1>
+<h1>{{ t('donate_title') }}</h1>
 
 {{ progress_bar(cfg.get('raised_btc', '0'), cfg.get('goal_btc', '1'), cfg.get('supporters_count', '0')) }}
 
@@ -13,8 +13,8 @@
 
 {% if cfg.get('coinos_enabled') == '1' %}
 <section id="invoice-pay">
-    <h2>Pay with Lightning or Liquid</h2>
-    <p>Choose an amount and payment method:</p>
+    <h2>{{ t('pay_lightning') }}</h2>
+    <p>{{ t('choose_amount') }}</p>
     <div class="preset-amounts">
         <button class="preset-btn" onclick="setAmount(1000)">1,000 sats</button>
         <button class="preset-btn" onclick="setAmount(5000)">5,000 sats</button>
@@ -31,22 +31,22 @@
             <option value="lightning">Lightning</option>
             <option value="liquid">Liquid</option>
         </select>
-        <button id="create-invoice-btn" onclick="createInvoice()">Generate Invoice</button>
+        <button id="create-invoice-btn" onclick="createInvoice()">{{ t('generate_invoice') }}</button>
     </div>
     <div id="invoice-result" style="display:none;">
         <div id="invoice-type-label" class="invoice-type-label"></div>
         <img id="invoice-qr" alt="Invoice QR" class="qr-img qr-large">
         <div class="address-box">
             <code class="address-text" id="invoice-bolt11" style="word-break:break-all;font-size:0.75em;"></code>
-            <button onclick="copyAddr('invoice-bolt11', this)" class="copy-btn">Copy</button>
+            <button onclick="copyAddr('invoice-bolt11', this)" class="copy-btn">{{ t('copy') }}</button>
         </div>
-        <div id="invoice-status" class="invoice-waiting">Waiting for payment...</div>
+        <div id="invoice-status" class="invoice-waiting">{{ t('waiting_payment') }}</div>
     </div>
 </section>
 {% endif %}
 
 <section>
-    <h2>First time donating Bitcoin?</h2>
+    <h2>{{ t('first_time') }}</h2>
     <ol>
         <li>
             <strong>Download a wallet</strong><br>
@@ -71,6 +71,17 @@
 {% if cfg.get('coinos_enabled') == '1' %}
 <script>
 const csrfToken = "{{ session.csrf_token }}";
+const i18n = {
+    waitingPayment: "{{ t('waiting_payment') }}",
+    paymentReceived: "{{ t('payment_received') }}",
+    generating: "{{ t('generating') }}",
+    generateInvoice: "{{ t('generate_invoice') }}",
+    invalidAmount: "{{ t('invalid_amount') }}",
+    networkError: "{{ t('network_error') }}",
+    failedInvoice: "{{ t('failed_invoice') }}",
+    copy: "{{ t('copy') }}",
+    copied: "{{ t('copied') }}"
+};
 let pollTimer = null;
 
 function setAmount(sats) {
@@ -82,14 +93,14 @@ function setAmount(sats) {
 function createInvoice() {
     const amount = parseInt(document.getElementById('sats-amount').value);
     if (!amount || amount < 1 || amount > 100000000) {
-        alert('Enter a valid amount (1 - 100,000,000 sats)');
+        alert(i18n.invalidAmount);
         return;
     }
 
     const invoiceType = document.getElementById('invoice-type').value;
     const btn = document.getElementById('create-invoice-btn');
     btn.disabled = true;
-    btn.textContent = 'Generating...';
+    btn.textContent = i18n.generating;
 
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 
@@ -104,10 +115,10 @@ function createInvoice() {
     .then(r => r.json())
     .then(data => {
         btn.disabled = false;
-        btn.textContent = 'Generate Invoice';
+        btn.textContent = i18n.generateInvoice;
 
         if (!data.ok) {
-            alert(data.error || 'Failed to create invoice');
+            alert(data.error || i18n.failedInvoice);
             return;
         }
 
@@ -123,7 +134,7 @@ function createInvoice() {
         document.getElementById('invoice-bolt11').textContent = data.bolt11;
 
         const status = document.getElementById('invoice-status');
-        status.textContent = 'Waiting for payment...';
+        status.textContent = i18n.waitingPayment;
         status.className = 'invoice-waiting';
 
         pollTimer = setInterval(function() {
@@ -133,7 +144,7 @@ function createInvoice() {
                 if (s.paid) {
                     clearInterval(pollTimer);
                     pollTimer = null;
-                    status.textContent = 'Payment received! Thank you!';
+                    status.textContent = i18n.paymentReceived;
                     status.className = 'invoice-paid';
                 }
             });
@@ -141,8 +152,8 @@ function createInvoice() {
     })
     .catch(() => {
         btn.disabled = false;
-        btn.textContent = 'Generate Invoice';
-        alert('Network error. Please try again.');
+        btn.textContent = i18n.generateInvoice;
+        alert(i18n.networkError);
     });
 }
 </script>

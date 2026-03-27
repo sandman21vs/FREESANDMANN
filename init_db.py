@@ -42,6 +42,20 @@ def init_db():
         )
     """)
 
+    # Adicionar colunas multilíngues aos artigos (se não existirem)
+    for col, col_type in [
+        ("title_en", "TEXT NOT NULL DEFAULT ''"),
+        ("body_md_en", "TEXT NOT NULL DEFAULT ''"),
+        ("body_html_en", "TEXT NOT NULL DEFAULT ''"),
+        ("title_de", "TEXT NOT NULL DEFAULT ''"),
+        ("body_md_de", "TEXT NOT NULL DEFAULT ''"),
+        ("body_html_de", "TEXT NOT NULL DEFAULT ''"),
+    ]:
+        try:
+            conn.execute(f"ALTER TABLE articles ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass  # coluna já existe
+
     for key, value in config.DEFAULTS.items():
         conn.execute(
             "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",

@@ -16,7 +16,9 @@ from flask import (
 import config
 import models
 import coinos
+import i18n
 from init_db import init_db
+from flask import g
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
@@ -38,6 +40,16 @@ def _is_rate_limited(ip):
 
 def _record_attempt(ip):
     _login_attempts[ip].append(time.time())
+
+
+# ── Language detection ───────────────────────────────────────────────
+
+@app.before_request
+def detect_language():
+    lang = i18n.get_lang(session, request)
+    session["lang"] = lang
+    g.lang = lang
+    g.t = lambda key: i18n.t(key, lang)
 
 
 # ── CSRF protection ──────────────────────────────────────────────────
@@ -81,10 +93,20 @@ def login_required(f):
 @app.context_processor
 def inject_config():
     cfg = models.get_all_config()
-    return {"cfg": cfg}
+    lang = g.get("lang", "pt")
+    def t(key):
+        return i18n.t(key, lang)
+    return {"cfg": cfg, "t": t, "lang": lang}
 
 
 # ── Public routes ────────────────────────────────────────────────────
+
+@app.route("/set-lang/<lang>")
+def set_language(lang):
+    if lang in ("pt", "en", "de"):
+        session["lang"] = lang
+    return redirect(request.referrer or url_for("index"))
+
 
 @app.route("/")
 def index():
@@ -107,7 +129,8 @@ def updates():
 
 @app.route("/updates/<slug>")
 def article(slug):
-    art = models.get_article_by_slug(slug)
+    lang = session.get("lang", "pt")
+    art = models.get_article_for_lang(slug, lang)
     if not art:
         abort(404)
     return render_template("article.html", article=art)
@@ -365,7 +388,11 @@ def admin_article_new():
         body_md = request.form.get("body_md", "")
         published = 1 if request.form.get("published") else 0
         pinned = 1 if request.form.get("pinned") else 0
-        models.create_article(title, body_md, published, pinned)
+        title_en = request.form.get("title_en", "")
+        body_md_en = request.form.get("body_md_en", "")
+        title_de = request.form.get("title_de", "")
+        body_md_de = request.form.get("body_md_de", "")
+        models.create_article(title, body_md, published, pinned, title_en, body_md_en, title_de, body_md_de)
         flash("Article created.", "success")
         return redirect(url_for("admin_articles"))
 
@@ -388,7 +415,11 @@ def admin_article_edit(article_id):
         body_md = request.form.get("body_md", "")
         published = 1 if request.form.get("published") else 0
         pinned = 1 if request.form.get("pinned") else 0
-        models.update_article(article_id, title, body_md, published, pinned)
+        title_en = request.form.get("title_en", "")
+        body_md_en = request.form.get("body_md_en", "")
+        title_de = request.form.get("title_de", "")
+        body_md_de = request.form.get("body_md_de", "")
+        models.update_article(article_id, title, body_md, published, pinned, title_en, body_md_en, title_de, body_md_de)
         flash("Article updated.", "success")
         return redirect(url_for("admin_articles"))
 
