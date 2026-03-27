@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-27 — 262 tests passing.
+Last verified: 2026-03-27 — 266 tests passing.
 
 ---
 
@@ -12,7 +12,7 @@ Last verified: 2026-03-27 — 262 tests passing.
 | Backend | Python 3.12 + Flask | `app.py` assembles the app; routes/hooks and data logic live in focused modules |
 | Database | SQLite (WAL mode) | Single file, zero config |
 | Templates | Jinja2 (server-side) | No build step |
-| CSS | Pico CSS 2.x (CDN) + `static/style.css` | Dark/light theme via `data-theme` |
+| CSS | Pico CSS 2.x (CDN) + `static/style.css` | Public theme + dedicated backoffice vocabulary for admin/lawyer shells |
 | QR codes | `python-qrcode` + Pillow | Generated server-side as PNG |
 | Markdown | `markdown` (Python) | Pre-rendered to HTML on save |
 | Auth | Flask sessions + werkzeug PBKDF2 | Two roles: admin, lawyer |
@@ -62,7 +62,9 @@ FREESANDMANN/
 │   └── style.css       # Custom styles over Pico CSS
 │
 ├── templates/
-│   ├── base.html       # Master layout: nav, footer, widget, scripts
+│   ├── base.html       # Public layout: nav, footer, donate CTA, language/theme widget
+│   ├── base_admin.html # Standalone admin shell: topbar, sidebar, flashes, scripts
+│   ├── base_lawyer.html # Standalone lawyer shell: topbar, sidebar, flashes, scripts
 │   ├── index.html      # Homepage
 │   ├── donate.html     # Donation page
 │   ├── articles.html   # Updates list
@@ -70,6 +72,7 @@ FREESANDMANN/
 │   ├── error.html      # 404 / 403
 │   │
 │   ├── components/
+│   │   ├── bo_components.html      # Backoffice UI macros: page header, stat card, status badge
 │   │   ├── article_form_fields.html  # Shared article form macro for admin + lawyer
 │   │   ├── embed.html
 │   │   ├── invoice_widget.html  # Shared Coinos invoice markup + data attrs
@@ -78,17 +81,17 @@ FREESANDMANN/
 │   │
 │   ├── admin/
 │   │   ├── login.html
-│   │   ├── dashboard.html
+│   │   ├── dashboard.html     # Task-oriented dashboard with stats, alerts, quick actions
 │   │   ├── settings.html
-│   │   ├── articles.html      # CRUD list with approval status column
+│   │   ├── articles.html      # Card-based editorial queue with filters + badges
 │   │   ├── article_form.html  # Create/edit shell using shared article form macro
-│   │   ├── media_links.html
+│   │   ├── media_links.html   # Reference links in card layout
 │   │   ├── change_password.html
-│   │   └── lawyers.html       # Lawyer account management
+│   │   └── lawyers.html       # Lawyer account management in card layout
 │   │
 │   └── advogado/
 │       ├── login.html
-│       ├── dashboard.html
+│       ├── dashboard.html     # Reviewer queue: awaiting action + history
 │       ├── article_form.html  # Lawyer shell using shared article form macro
 │       └── change_password.html
 │
@@ -97,7 +100,7 @@ FREESANDMANN/
 │   ├── en.json         # 77 keys
 │   └── de.json         # 77 keys
 │
-├── tests/              # 262 tests via pytest
+├── tests/              # 266 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
@@ -267,20 +270,20 @@ CREATE TABLE login_attempts (
 |--------|------|-------------|
 | GET/POST | `/admin/login` | Login (not linked publicly) |
 | GET | `/admin/logout` | Clear session |
-| GET | `/admin/` | Dashboard: stats, balance breakdown |
+| GET | `/admin/` | Dashboard: stats, alerts, quick actions, balance breakdown |
 | GET/POST | `/admin/change-password` | Change admin password |
 | GET/POST | `/admin/settings` | Edit all site config with validation/normalization |
-| GET | `/admin/articles` | List all articles with approval status |
+| GET | `/admin/articles` | Card-based editorial queue with filters (`all`, `pending`, `published`, `drafts`) |
 | GET/POST | `/admin/articles/new` | Create article |
 | GET/POST | `/admin/articles/<id>/edit` | Edit article |
 | POST | `/admin/articles/<id>/delete` | Delete article |
 | POST | `/admin/articles/<id>/approve` | Admin-side approval |
 | POST | `/admin/articles/<id>/publish` | Publish (requires both approvals or override) |
 | POST | `/admin/articles/<id>/unpublish` | Unpublish article |
-| GET/POST | `/admin/media-links` | Manage media links |
+| GET/POST | `/admin/media-links` | Manage media links in card layout |
 | POST | `/admin/media-links/<id>/delete` | Delete media link |
 | POST | `/admin/refresh-balance` | Force mempool.space balance refresh |
-| GET/POST | `/admin/lawyers` | List and create lawyer accounts |
+| GET/POST | `/admin/lawyers` | List and create lawyer accounts in card layout |
 | POST | `/admin/lawyers/<id>/toggle` | Activate/deactivate lawyer |
 | POST | `/admin/lawyers/<id>/reset-password` | Reset lawyer password |
 
@@ -291,7 +294,7 @@ CREATE TABLE login_attempts (
 | GET/POST | `/advogado/login` | Lawyer login |
 | GET | `/advogado/logout` | Clear lawyer session |
 | GET/POST | `/advogado/change-password` | Change password (required on first login) |
-| GET | `/advogado/` | Lawyer dashboard: articles pending review |
+| GET | `/advogado/` | Lawyer dashboard: awaiting-review queue + approval history |
 | GET/POST | `/advogado/articles/new` | Create article (creates as `pending`) |
 | GET/POST | `/advogado/articles/<id>/edit` | Edit own article (clears approvals) |
 | POST | `/advogado/articles/<id>/approve` | Lawyer-side approval |
@@ -336,6 +339,26 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 - `t(key)` function injected into all Jinja2 templates via `inject_config()` context processor
 - `lang` variable also injected (used in `<html lang="{{ lang }}">`)
 - Articles have per-language title/body fields; fall back to PT if EN/DE empty
+
+---
+
+## Backoffice UI
+
+- Public pages continue to use `templates/base.html`
+- Authenticated admin pages use `templates/base_admin.html`
+- Authenticated lawyer pages use `templates/base_lawyer.html`
+- Login pages intentionally remain on the public shell
+- Shared backoffice UI primitives live in `templates/components/bo_components.html`
+- `static/style.css` now contains a dedicated backoffice vocabulary:
+  - `bo-layout`, `bo-sidebar`, `bo-main`
+  - `bo-page-header`, `bo-stats`, `bo-stat-card`
+  - `bo-badge-*`, `bo-alert-*`
+  - `bo-card`, `bo-card-meta`, `bo-card-actions`
+  - `bo-tabs`, `bo-section-nav`, `bo-sticky-save`
+- Responsive behavior:
+  - sidebar collapses into a horizontal nav on mobile
+  - stat cards collapse to a 2-column grid on smaller screens
+  - article, lawyer, and media records render as stacked cards instead of wide tables
 
 ---
 
@@ -444,7 +467,7 @@ python app.py              # dev server on :8000
 ```
 
 ```bash
-python -m pytest tests/ -v        # run all 262 tests
+python -m pytest tests/ -v        # run all 266 tests
 python -m pytest tests/ -q        # quiet summary
 python -m pytest tests/test_i18n.py -v   # single file
 ```

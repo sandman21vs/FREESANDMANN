@@ -8,12 +8,12 @@ A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork i
 - **Automatic balance tracking**: mempool.space API for on-chain, Coinos webhook for Lightning/Liquid
 - **Multilingual**: PT / EN / DE with browser `Accept-Language` detection and per-session override
 - **Content approval workflow**: dual-sign before publishing (admin + lawyer/professional)
-- **Admin panel**: articles, site settings, media links, lawyer account management
-- **Lawyer portal** (`/advogado/`): restricted role for content review and co-approval
+- **Admin panel**: dedicated backoffice shell with dashboard, alerts, editorial queue, settings, media links, lawyer account management
+- **Lawyer portal** (`/advogado/`): dedicated reviewer shell with task queue and approval history
 - **Markdown articles** with auto-embed for YouTube and Twitter/X
 - **Mobile-first** responsive design — hamburger menu, sticky donate button
 - **Docker** deployment, one command to start
-- **262 automated tests**
+- **266 automated tests**
 
 ## Quick Start
 
