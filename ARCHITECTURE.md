@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-27 — 266 tests passing.
+Last verified: 2026-03-27 — 268 tests passing.
 
 ---
 
@@ -100,7 +100,7 @@ FREESANDMANN/
 │   ├── en.json         # 77 keys
 │   └── de.json         # 77 keys
 │
-├── tests/              # 266 tests via pytest
+├── tests/              # 268 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
@@ -130,15 +130,19 @@ Admin writes go through validation/normalization before saving:
 - trims text fields;
 - validates numeric fields (`goal_btc`, `raised_lightning_btc`, `raised_btc_manual_adjustment`, `supporters_count`);
 - accepts only `http(s)` or site-relative URLs for public URL fields;
-- enforces feature dependencies such as Coinos token required when Coinos is enabled.
+- enforces feature dependencies such as Coinos token required when Coinos is enabled;
+- stores optional `*_en` and `*_de` variants for public campaign copy, with PT/default fallback when a translation is empty.
 
 **Populated keys:**
 
 | Key | Description |
 |-----|-------------|
 | `site_title` | Site name |
+| `site_title_en` / `site_title_de` | Optional localized site title overrides |
 | `site_description` | SEO description / homepage intro |
+| `site_description_en` / `site_description_de` | Optional localized homepage/meta description |
 | `site_tagline` | Short slogan |
+| `site_tagline_en` / `site_tagline_de` | Optional localized tagline |
 | `btc_address` | Bitcoin on-chain address |
 | `lightning_address` | Lightning address (static, shown on donate page) |
 | `liquid_address` | Liquid Network address |
@@ -150,8 +154,11 @@ Admin writes go through validation/normalization before saving:
 | `last_balance_check` | ISO timestamp of last mempool.space check |
 | `supporters_count` | Number of supporters (manual) |
 | `deadline_text` | Urgency/deadline text shown on homepage |
+| `deadline_text_en` / `deadline_text_de` | Optional localized urgency text |
 | `transparency_text` | Markdown: cost breakdown for donors |
+| `transparency_text_en` / `transparency_text_de` | Optional localized transparency Markdown |
 | `goal_description` | Text below progress bar |
+| `goal_description_en` / `goal_description_de` | Optional localized goal description |
 | `og_image_url` | Open Graph image URL |
 | `wallet_explorer_url` | Link to public on-chain explorer |
 | `hero_image_url` | Hero banner image URL |
@@ -339,6 +346,7 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 - `t(key)` function injected into all Jinja2 templates via `inject_config()` context processor
 - `lang` variable also injected (used in `<html lang="{{ lang }}">`)
 - Articles have per-language title/body fields; fall back to PT if EN/DE empty
+- Public config copy (`site_title`, `site_description`, `site_tagline`, `goal_description`, `deadline_text`, `transparency_text`) also supports `*_en` / `*_de` overrides with PT/default fallback
 
 ---
 
@@ -467,7 +475,7 @@ python app.py              # dev server on :8000
 ```
 
 ```bash
-python -m pytest tests/ -v        # run all 266 tests
+python -m pytest tests/ -v        # run all 268 tests
 python -m pytest tests/ -q        # quiet summary
 python -m pytest tests/test_i18n.py -v   # single file
 ```

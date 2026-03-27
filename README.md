@@ -6,14 +6,14 @@ A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork i
 
 - **Bitcoin donations**: on-chain (QR + address copy) and Lightning/Liquid via Coinos.io
 - **Automatic balance tracking**: mempool.space API for on-chain, Coinos webhook for Lightning/Liquid
-- **Multilingual**: PT / EN / DE with browser `Accept-Language` detection and per-session override
+- **Multilingual**: PT / EN / DE with browser `Accept-Language` detection, per-session override, and localized campaign copy from admin settings
 - **Content approval workflow**: dual-sign before publishing (admin + lawyer/professional)
 - **Admin panel**: dedicated backoffice shell with dashboard, alerts, editorial queue, settings, media links, lawyer account management
 - **Lawyer portal** (`/advogado/`): dedicated reviewer shell with task queue and approval history
 - **Markdown articles** with auto-embed for YouTube and Twitter/X
 - **Mobile-first** responsive design — hamburger menu, sticky donate button
 - **Docker** deployment, one command to start
-- **266 automated tests**
+- **268 automated tests**
 
 ## Quick Start
 
@@ -31,7 +31,7 @@ Visit `http://localhost:4040` (mapped from container port 8000)
 1. Navigate to `/admin/login`
 2. Login: username `FREE`, password `FREE`
 3. Change password (enforced on first login, min 8 chars, cannot be "FREE")
-4. Configure Bitcoin addresses, goal, and content in Settings
+4. Configure Bitcoin addresses, goal, and campaign copy in Settings, including optional EN/DE versions for public texts
 
 ## Fork for Your Own Case
 
