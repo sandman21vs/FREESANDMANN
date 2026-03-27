@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('lawyer_dashboard_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+
+{% block content %}
+<h1>{{ t('lawyer_dashboard_title') }}</h1>
+
+<nav>
+    <ul>
+        <li><a href="{{ url_for('lawyer_article_new') }}" role="button">{{ t('new_article') }}</a></li>
+        <li><a href="{{ url_for('lawyer_change_password') }}">Change Password</a></li>
+        <li><a href="{{ url_for('lawyer_logout') }}">Logout</a></li>
+    </ul>
+</nav>
+
+<h2>{{ t('lawyer_articles_pending') }}</h2>
+
+{% set pending = articles|selectattr('approval_status', 'in', ['pending', 'draft'])|list %}
+{% if pending %}
+<div class="admin-table">
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>{{ t('approval_status') }}</th>
+            <th>{{ t('created_by_label') }}</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in pending %}
+        <tr>
+            <td>{{ a.title }}</td>
+            <td>{{ t('approval_' + a.approval_status) }}</td>
+            <td>{{ a.created_by }}</td>
+            <td>{{ a.created_at[:10] }}</td>
+            <td class="admin-actions">
+                <a href="{{ url_for('lawyer_article_edit', article_id=a.id) }}">Edit</a>
+                <form method="POST" action="{{ url_for('lawyer_article_approve', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit">{{ t('approve') }}</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<p>No pending articles.</p>
+{% endif %}
+
+<h2>All Articles</h2>
+{% if articles %}
+<div class="admin-table">
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>{{ t('approval_status') }}</th>
+            <th>{{ t('approved_by') }}</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in articles %}
+        <tr>
+            <td>{{ a.title }}</td>
+            <td>{{ t('approval_' + a.approval_status) }}</td>
+            <td>{{ a.approved_by_display or '-' }}</td>
+            <td>{{ a.created_at[:10] }}</td>
+            <td class="admin-actions">
+                <a href="{{ url_for('lawyer_article_edit', article_id=a.id) }}">Edit</a>
+                {% if a.approval_status in ('pending', 'draft') %}
+                <form method="POST" action="{{ url_for('lawyer_article_approve', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit">{{ t('approve') }}</button>
+                </form>
+                {% elif a.approval_status in ('approved', 'published') %}
+                <form method="POST" action="{{ url_for('lawyer_article_revoke', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Revoke your approval?')">{{ t('revoke') }}</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<p>No articles yet.</p>
+{% endif %}
+{% endblock %}

@@ -69,6 +69,210 @@ def must_change_password():
     return get_config("admin_force_password_change") == "1"
 
 
+# ── Lawyers ──────────────────────────────────────────────────────
+
+def create_lawyer(username, display_name, temporary_password):
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO lawyers (username, display_name, password_hash, force_password_change) "
+            "VALUES (?, ?, ?, 1)",
+            (username, display_name, generate_password_hash(temporary_password)),
+        )
+        conn.commit()
+        lawyer_id = conn.execute(
+            "SELECT id FROM lawyers WHERE username = ?", (username,)
+        ).fetchone()["id"]
+        conn.close()
+        return lawyer_id
+    except sqlite3.IntegrityError:
+        conn.close()
+        return None
+
+
+def get_lawyer_by_username(username):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM lawyers WHERE username = ?", (username,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_lawyer_by_id(lawyer_id):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM lawyers WHERE id = ?", (lawyer_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_all_lawyers():
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM lawyers ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def verify_lawyer_password(username, password):
+    if not username or not password:
+        return None
+    lawyer = get_lawyer_by_username(username)
+    if not lawyer or not lawyer["active"]:
+        return None
+    if check_password_hash(lawyer["password_hash"], password):
+        return lawyer
+    return None
+
+
+def change_lawyer_password(lawyer_id, new_password):
+    conn = get_db()
+    conn.execute(
+        "UPDATE lawyers SET password_hash = ?, force_password_change = 0 WHERE id = ?",
+        (generate_password_hash(new_password), lawyer_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def lawyer_must_change_password(lawyer_id):
+    lawyer = get_lawyer_by_id(lawyer_id)
+    if not lawyer:
+        return False
+    return lawyer["force_password_change"] == 1
+
+
+def deactivate_lawyer(lawyer_id):
+    conn = get_db()
+    conn.execute("UPDATE lawyers SET active = 0 WHERE id = ?", (lawyer_id,))
+    conn.commit()
+    conn.close()
+
+
+def activate_lawyer(lawyer_id):
+    conn = get_db()
+    conn.execute("UPDATE lawyers SET active = 1 WHERE id = ?", (lawyer_id,))
+    conn.commit()
+    conn.close()
+
+
+def reset_lawyer_password(lawyer_id, temporary_password):
+    conn = get_db()
+    conn.execute(
+        "UPDATE lawyers SET password_hash = ?, force_password_change = 1 WHERE id = ?",
+        (generate_password_hash(temporary_password), lawyer_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+# ── Article Approvals ────────────────────────────────────────────
+
+def approve_article(article_id, approved_by_name, role):
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO article_approvals (article_id, approved_by, role, approved_at) "
+        "VALUES (?, ?, ?, datetime('now'))",
+        (article_id, approved_by_name, role),
+    )
+    approvals = conn.execute(
+        "SELECT role FROM article_approvals WHERE article_id = ?", (article_id,)
+    ).fetchall()
+    roles = {r["role"] for r in approvals}
+    if "admin" in roles and "lawyer" in roles:
+        conn.execute(
+            "UPDATE articles SET approval_status = 'approved' WHERE id = ?", (article_id,)
+        )
+    elif "admin" in roles or "lawyer" in roles:
+        conn.execute(
+            "UPDATE articles SET approval_status = 'pending' WHERE id = ? AND approval_status = 'draft'",
+            (article_id,),
+        )
+    _update_approval_display(conn, article_id)
+    conn.commit()
+    conn.close()
+
+
+def publish_article_with_approval(article_id, approved_by_name):
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO article_approvals (article_id, approved_by, role, approved_at) "
+        "VALUES (?, ?, 'admin', datetime('now'))",
+        (article_id, approved_by_name),
+    )
+    conn.execute(
+        "UPDATE articles SET published = 1, approval_status = 'published' WHERE id = ?",
+        (article_id,),
+    )
+    _update_approval_display(conn, article_id)
+    conn.commit()
+    conn.close()
+
+
+def unpublish_article(article_id):
+    conn = get_db()
+    conn.execute(
+        "UPDATE articles SET published = 0, approval_status = 'pending' WHERE id = ?",
+        (article_id,),
+    )
+    conn.commit()
+    conn.close()
+
+
+def revoke_approval(article_id, role):
+    conn = get_db()
+    conn.execute(
+        "DELETE FROM article_approvals WHERE article_id = ? AND role = ?",
+        (article_id, role),
+    )
+    remaining = conn.execute(
+        "SELECT role FROM article_approvals WHERE article_id = ?", (article_id,)
+    ).fetchall()
+    if not remaining:
+        conn.execute(
+            "UPDATE articles SET approval_status = 'pending' WHERE id = ? AND approval_status != 'draft'",
+            (article_id,),
+        )
+    else:
+        conn.execute(
+            "UPDATE articles SET approval_status = 'pending' WHERE id = ? AND approval_status = 'approved'",
+            (article_id,),
+        )
+    _update_approval_display(conn, article_id)
+    conn.commit()
+    conn.close()
+
+
+def get_article_approvals(article_id):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM article_approvals WHERE article_id = ? ORDER BY approved_at",
+        (article_id,),
+    ).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def clear_article_approvals(article_id):
+    conn = get_db()
+    conn.execute("DELETE FROM article_approvals WHERE article_id = ?", (article_id,))
+    conn.execute(
+        "UPDATE articles SET approval_status = 'pending', approved_by_display = '' WHERE id = ?",
+        (article_id,),
+    )
+    conn.commit()
+    conn.close()
+
+
+def _update_approval_display(conn, article_id):
+    rows = conn.execute(
+        "SELECT approved_by FROM article_approvals WHERE article_id = ? ORDER BY approved_at",
+        (article_id,),
+    ).fetchall()
+    display = ", ".join(r["approved_by"] for r in rows)
+    conn.execute(
+        "UPDATE articles SET approved_by_display = ? WHERE id = ?",
+        (display, article_id),
+    )
+
+
 # ── Articles ─────────────────────────────────────────────────────────
 
 def _make_slug(title):
@@ -189,11 +393,18 @@ def get_article_for_lang(slug, lang):
     return article
 
 
-def create_article(title, body_md, published=1, pinned=0, title_en="", body_md_en="", title_de="", body_md_de=""):
+def create_article(title, body_md, published=1, pinned=0, title_en="", body_md_en="", title_de="", body_md_de="", created_by="admin", approval_status=None):
     slug = _make_slug(title)
     body_html = _render_markdown(body_md)
     body_html_en = _render_markdown(body_md_en) if body_md_en else ""
     body_html_de = _render_markdown(body_md_de) if body_md_de else ""
+
+    if created_by == "lawyer":
+        published = 0
+        if approval_status is None:
+            approval_status = "pending"
+    if approval_status is None:
+        approval_status = "published" if published else "draft"
 
     conn = get_db()
     existing = conn.execute("SELECT id FROM articles WHERE slug = ?", (slug,)).fetchone()
@@ -201,16 +412,16 @@ def create_article(title, body_md, published=1, pinned=0, title_en="", body_md_e
         slug = f"{slug}-{int(datetime.utcnow().timestamp())}"
 
     conn.execute(
-        "INSERT INTO articles (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de),
+        "INSERT INTO articles (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de, created_by, approval_status) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de, created_by, approval_status),
     )
     conn.commit()
     conn.close()
     return slug
 
 
-def update_article(article_id, title, body_md, published=1, pinned=0, title_en="", body_md_en="", title_de="", body_md_de=""):
+def update_article(article_id, title, body_md, published=1, pinned=0, title_en="", body_md_en="", title_de="", body_md_de="", clear_approvals=True):
     slug = _make_slug(title)
     body_html = _render_markdown(body_md)
     body_html_en = _render_markdown(body_md_en) if body_md_en else ""
@@ -228,6 +439,12 @@ def update_article(article_id, title, body_md, published=1, pinned=0, title_en="
         "UPDATE articles SET title=?, slug=?, body_md=?, body_html=?, published=?, pinned=?, title_en=?, body_md_en=?, body_html_en=?, title_de=?, body_md_de=?, body_html_de=?, updated_at=datetime('now') WHERE id=?",
         (title, slug, body_md, body_html, published, pinned, title_en, body_md_en, body_html_en, title_de, body_md_de, body_html_de, article_id),
     )
+    if clear_approvals:
+        conn.execute("DELETE FROM article_approvals WHERE article_id = ?", (article_id,))
+        conn.execute(
+            "UPDATE articles SET approval_status = 'pending', approved_by_display = '' WHERE id = ?",
+            (article_id,),
+        )
     conn.commit()
     conn.close()
 

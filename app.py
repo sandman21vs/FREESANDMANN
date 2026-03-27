@@ -88,6 +88,19 @@ def login_required(f):
     return wrapped
 
 
+def lawyer_required(f):
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        if not session.get("lawyer_id"):
+            return redirect(url_for("lawyer_login"))
+        if models.lawyer_must_change_password(session["lawyer_id"]) \
+                and request.endpoint != "lawyer_change_password":
+            flash("You must change your password before continuing.", "warning")
+            return redirect(url_for("lawyer_change_password"))
+        return f(*args, **kwargs)
+    return wrapped
+
+
 # ── Context processor ────────────────────────────────────────────────
 
 @app.context_processor
@@ -388,14 +401,22 @@ def admin_article_new():
             return render_template("admin/article_form.html", article=None)
 
         body_md = request.form.get("body_md", "")
-        published = 1 if request.form.get("published") else 0
         pinned = 1 if request.form.get("pinned") else 0
         title_en = request.form.get("title_en", "")
         body_md_en = request.form.get("body_md_en", "")
         title_de = request.form.get("title_de", "")
         body_md_de = request.form.get("body_md_de", "")
-        models.create_article(title, body_md, published, pinned, title_en, body_md_en, title_de, body_md_de)
-        flash("Article created.", "success")
+
+        publish_mode = request.form.get("publish_mode", "review")
+        if publish_mode == "override":
+            slug = models.create_article(title, body_md, 1, pinned, title_en, body_md_en, title_de, body_md_de, created_by="admin", approval_status="published")
+            models.publish_article_with_approval(
+                models.get_article_by_slug(slug)["id"], "Admin"
+            )
+            flash("Article published (admin override).", "success")
+        else:
+            models.create_article(title, body_md, 0, pinned, title_en, body_md_en, title_de, body_md_de, created_by="admin", approval_status="pending")
+            flash("Article submitted for review.", "success")
         return redirect(url_for("admin_articles"))
 
     return render_template("admin/article_form.html", article=None)
@@ -415,17 +436,24 @@ def admin_article_edit(article_id):
             return render_template("admin/article_form.html", article=art)
 
         body_md = request.form.get("body_md", "")
-        published = 1 if request.form.get("published") else 0
         pinned = 1 if request.form.get("pinned") else 0
         title_en = request.form.get("title_en", "")
         body_md_en = request.form.get("body_md_en", "")
         title_de = request.form.get("title_de", "")
         body_md_de = request.form.get("body_md_de", "")
-        models.update_article(article_id, title, body_md, published, pinned, title_en, body_md_en, title_de, body_md_de)
-        flash("Article updated.", "success")
+
+        publish_mode = request.form.get("publish_mode", "review")
+        if publish_mode == "override":
+            models.update_article(article_id, title, body_md, 1, pinned, title_en, body_md_en, title_de, body_md_de, clear_approvals=True)
+            models.publish_article_with_approval(article_id, "Admin")
+            flash("Article updated and published (admin override).", "success")
+        else:
+            models.update_article(article_id, title, body_md, 0, pinned, title_en, body_md_en, title_de, body_md_de, clear_approvals=True)
+            flash("Article updated and submitted for review.", "success")
         return redirect(url_for("admin_articles"))
 
-    return render_template("admin/article_form.html", article=art)
+    approvals = models.get_article_approvals(article_id)
+    return render_template("admin/article_form.html", article=art, approvals=approvals)
 
 
 @app.route("/admin/articles/<int:article_id>/delete", methods=["POST"])
@@ -472,6 +500,239 @@ def admin_refresh_balance():
     coinos.check_lightning_balance()
     flash("Balance refreshed.", "success")
     return redirect(url_for("admin_dashboard"))
+
+
+# ── Admin: Lawyer management ────────────────────────────────────────
+
+@app.route("/admin/lawyers", methods=["GET", "POST"])
+@login_required
+def admin_lawyers():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        display_name = request.form.get("display_name", "").strip()
+        temp_password = request.form.get("temp_password", "").strip()
+
+        if not username or not display_name or not temp_password:
+            flash("All fields are required.", "error")
+        elif len(temp_password) < 8:
+            flash("Temporary password must be at least 8 characters.", "error")
+        else:
+            lawyer_id = models.create_lawyer(username, display_name, temp_password)
+            if lawyer_id:
+                flash(f"Lawyer account created for {display_name}.", "success")
+            else:
+                flash("Username already exists.", "error")
+        return redirect(url_for("admin_lawyers"))
+
+    lawyers = models.get_all_lawyers()
+    return render_template("admin/lawyers.html", lawyers=lawyers)
+
+
+@app.route("/admin/lawyers/<int:lawyer_id>/toggle", methods=["POST"])
+@login_required
+def admin_lawyer_toggle(lawyer_id):
+    lawyer = models.get_lawyer_by_id(lawyer_id)
+    if not lawyer:
+        abort(404)
+    if lawyer["active"]:
+        models.deactivate_lawyer(lawyer_id)
+        flash(f"{lawyer['display_name']} deactivated.", "success")
+    else:
+        models.activate_lawyer(lawyer_id)
+        flash(f"{lawyer['display_name']} activated.", "success")
+    return redirect(url_for("admin_lawyers"))
+
+
+@app.route("/admin/lawyers/<int:lawyer_id>/reset-password", methods=["POST"])
+@login_required
+def admin_lawyer_reset_password(lawyer_id):
+    lawyer = models.get_lawyer_by_id(lawyer_id)
+    if not lawyer:
+        abort(404)
+    temp_password = request.form.get("temp_password", "").strip()
+    if not temp_password or len(temp_password) < 8:
+        flash("Temporary password must be at least 8 characters.", "error")
+    else:
+        models.reset_lawyer_password(lawyer_id, temp_password)
+        flash(f"Password reset for {lawyer['display_name']}.", "success")
+    return redirect(url_for("admin_lawyers"))
+
+
+# ── Admin: Article approval ─────────────────────────────────────────
+
+@app.route("/admin/articles/<int:article_id>/approve", methods=["POST"])
+@login_required
+def admin_article_approve(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+    models.approve_article(article_id, "Admin", "admin")
+    flash("Article approved by admin.", "success")
+    return redirect(url_for("admin_articles"))
+
+
+@app.route("/admin/articles/<int:article_id>/publish", methods=["POST"])
+@login_required
+def admin_article_publish(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+    models.publish_article_with_approval(article_id, "Admin")
+    flash("Article published.", "success")
+    return redirect(url_for("admin_articles"))
+
+
+@app.route("/admin/articles/<int:article_id>/unpublish", methods=["POST"])
+@login_required
+def admin_article_unpublish(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+    models.unpublish_article(article_id)
+    flash("Article unpublished.", "success")
+    return redirect(url_for("admin_articles"))
+
+
+# ── Lawyer routes ───────────────────────────────────────────────────
+
+@app.route("/advogado/login", methods=["GET", "POST"])
+def lawyer_login():
+    if session.get("lawyer_id"):
+        return redirect(url_for("lawyer_dashboard"))
+
+    if request.method == "POST":
+        ip = request.remote_addr or "unknown"
+        if _is_rate_limited(ip):
+            flash("Too many failed attempts. Please try again in 5 minutes.", "error")
+            return render_template("advogado/login.html"), 200
+
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+
+        lawyer = models.verify_lawyer_password(username, password)
+        if lawyer:
+            session["lawyer_id"] = lawyer["id"]
+            session["lawyer_display_name"] = lawyer["display_name"]
+            _login_attempts[ip] = []
+            if models.lawyer_must_change_password(lawyer["id"]):
+                return redirect(url_for("lawyer_change_password"))
+            return redirect(url_for("lawyer_dashboard"))
+        else:
+            _record_attempt(ip)
+            flash("Invalid username or password.", "error")
+
+    return render_template("advogado/login.html")
+
+
+@app.route("/advogado/logout")
+def lawyer_logout():
+    session.pop("lawyer_id", None)
+    session.pop("lawyer_display_name", None)
+    return redirect(url_for("index"))
+
+
+@app.route("/advogado/change-password", methods=["GET", "POST"])
+@lawyer_required
+def lawyer_change_password():
+    if request.method == "POST":
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if len(new_password) < 8:
+            flash("Password must be at least 8 characters.", "error")
+        elif new_password != confirm_password:
+            flash("Passwords do not match.", "error")
+        else:
+            models.change_lawyer_password(session["lawyer_id"], new_password)
+            flash("Password changed successfully.", "success")
+            return redirect(url_for("lawyer_dashboard"))
+
+    return render_template("advogado/change_password.html")
+
+
+@app.route("/advogado/")
+@lawyer_required
+def lawyer_dashboard():
+    articles = models.get_articles(published_only=False)
+    return render_template("advogado/dashboard.html", articles=articles)
+
+
+@app.route("/advogado/articles/new", methods=["GET", "POST"])
+@lawyer_required
+def lawyer_article_new():
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        if not title:
+            flash("Title is required.", "error")
+            return render_template("advogado/article_form.html", article=None)
+
+        body_md = request.form.get("body_md", "")
+        title_en = request.form.get("title_en", "")
+        body_md_en = request.form.get("body_md_en", "")
+        title_de = request.form.get("title_de", "")
+        body_md_de = request.form.get("body_md_de", "")
+        models.create_article(
+            title, body_md, 0, 0,
+            title_en, body_md_en, title_de, body_md_de,
+            created_by="lawyer", approval_status="pending",
+        )
+        flash("Article submitted for review.", "success")
+        return redirect(url_for("lawyer_dashboard"))
+
+    return render_template("advogado/article_form.html", article=None)
+
+
+@app.route("/advogado/articles/<int:article_id>/edit", methods=["GET", "POST"])
+@lawyer_required
+def lawyer_article_edit(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        if not title:
+            flash("Title is required.", "error")
+            return render_template("advogado/article_form.html", article=art)
+
+        body_md = request.form.get("body_md", "")
+        title_en = request.form.get("title_en", "")
+        body_md_en = request.form.get("body_md_en", "")
+        title_de = request.form.get("title_de", "")
+        body_md_de = request.form.get("body_md_de", "")
+        models.update_article(
+            article_id, title, body_md, 0, art.get("pinned", 0),
+            title_en, body_md_en, title_de, body_md_de,
+            clear_approvals=True,
+        )
+        flash("Article updated and submitted for review.", "success")
+        return redirect(url_for("lawyer_dashboard"))
+
+    approvals = models.get_article_approvals(article_id)
+    return render_template("advogado/article_form.html", article=art, approvals=approvals)
+
+
+@app.route("/advogado/articles/<int:article_id>/approve", methods=["POST"])
+@lawyer_required
+def lawyer_article_approve(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+    display_name = session.get("lawyer_display_name", "Advogado")
+    models.approve_article(article_id, display_name, "lawyer")
+    flash("Article approved.", "success")
+    return redirect(url_for("lawyer_dashboard"))
+
+
+@app.route("/advogado/articles/<int:article_id>/revoke", methods=["POST"])
+@lawyer_required
+def lawyer_article_revoke(article_id):
+    art = models.get_article_by_id(article_id)
+    if not art:
+        abort(404)
+    models.revoke_approval(article_id, "lawyer")
+    flash("Approval revoked.", "success")
+    return redirect(url_for("lawyer_dashboard"))
 
 
 # ── Error handlers ───────────────────────────────────────────────────

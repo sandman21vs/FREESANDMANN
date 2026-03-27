@@ -84,3 +84,26 @@ def csrf_token(client):
     client.get("/")
     with client.session_transaction() as sess:
         return sess.get("csrf_token", "")
+
+
+@pytest.fixture
+def lawyer_session(client):
+    """
+    Retorna um client ja logado como advogado.
+    Cria conta, troca senha, e faz login.
+    """
+    import models
+    models.create_lawyer("drsilva", "Dr. Silva", "TempPass123!")
+    lawyer = models.get_lawyer_by_username("drsilva")
+    models.change_lawyer_password(lawyer["id"], "permanent_pass_123")
+
+    resp = client.get("/advogado/login")
+    with client.session_transaction() as sess:
+        csrf = sess.get("csrf_token", "")
+
+    client.post("/advogado/login", data={
+        "username": "drsilva",
+        "password": "permanent_pass_123",
+        "csrf_token": csrf,
+    })
+    return client

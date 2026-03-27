@@ -4,7 +4,7 @@ import os
 
 _translations = {}
 _SUPPORTED = ("pt", "en", "de")
-_DEFAULT = "pt"
+_DEFAULT = "en"
 
 
 def _load():

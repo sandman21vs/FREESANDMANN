@@ -34,12 +34,12 @@ class TestLanguageDetection:
         with client.session_transaction() as sess:
             assert sess.get("lang") == "en"
 
-    def test_accept_language_unsupported_falls_back_to_pt(self, client):
-        """Idioma não suportado (fr, ja, etc) faz fallback para PT."""
+    def test_accept_language_unsupported_falls_back_to_en(self, client):
+        """Idioma não suportado (fr, ja, etc) faz fallback para EN."""
         resp = client.get("/", headers={"Accept-Language": "fr,ja"})
         assert resp.status_code == 200
         with client.session_transaction() as sess:
-            assert sess.get("lang") == "pt"
+            assert sess.get("lang") == "en"
 
     def test_session_lang_overrides_header(self, client):
         """Idioma salvo na session tem prioridade sobre Accept-Language."""

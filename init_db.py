@@ -56,6 +56,43 @@ def init_db():
         except Exception:
             pass  # coluna já existe
 
+    # Colunas de workflow de aprovação
+    for col, col_type in [
+        ("approval_status", "TEXT NOT NULL DEFAULT 'draft'"),
+        ("created_by", "TEXT NOT NULL DEFAULT 'admin'"),
+        ("approved_by_display", "TEXT NOT NULL DEFAULT ''"),
+    ]:
+        try:
+            conn.execute(f"ALTER TABLE articles ADD COLUMN {col} {col_type}")
+        except Exception:
+            pass
+
+    # Tabela de advogados
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS lawyers (
+            id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+            username              TEXT UNIQUE NOT NULL,
+            display_name          TEXT NOT NULL DEFAULT '',
+            password_hash         TEXT NOT NULL,
+            force_password_change INTEGER DEFAULT 1,
+            active                INTEGER DEFAULT 1,
+            created_at            TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
+    # Tabela de aprovações de artigos
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS article_approvals (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            article_id  INTEGER NOT NULL,
+            approved_by TEXT NOT NULL,
+            role        TEXT NOT NULL,
+            approved_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE,
+            UNIQUE(article_id, role)
+        )
+    """)
+
     for key, value in config.DEFAULTS.items():
         conn.execute(
             "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",

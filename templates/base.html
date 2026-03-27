@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="{{ lang }}" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,10 +32,29 @@
             <ul>
                 <li><a href="{{ url_for('index') }}"><strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong></a></li>
             </ul>
-            <ul>
+            <button class="hamburger" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
                 <li><a href="{{ url_for('index') }}">{{ t('nav_home') }}</a></li>
                 <li><a href="{{ url_for('updates') }}">{{ t('nav_updates') }}</a></li>
                 <li><a href="{{ url_for('donate') }}" role="button" class="donate-nav-btn">{{ t('nav_donate') }}</a></li>
+                <li class="nav-pref-mobile">
+                    <div class="nav-pref-inner">
+                        <div class="pref-section">
+                            <small>{{ t('widget_language') }}</small>
+                            <div class="pref-lang-btns">
+                                <a href="/set-lang/pt" class="pref-lang {% if lang == 'pt' %}active{% endif %}">PT</a>
+                                <a href="/set-lang/en" class="pref-lang {% if lang == 'en' %}active{% endif %}">EN</a>
+                                <a href="/set-lang/de" class="pref-lang {% if lang == 'de' %}active{% endif %}">DE</a>
+                            </div>
+                        </div>
+                        <div class="pref-section">
+                            <small>{{ t('widget_theme') }}</small>
+                            <button id="theme-toggle-mobile" class="pref-theme-btn">{{ t('widget_theme_light') }}</button>
+                        </div>
+                    </div>
+                </li>
             </ul>
         </nav>
     </header>
@@ -52,12 +71,28 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="container">
-        <hr>
-        <small>
-            {{ cfg.get('site_title', 'Free Sandmann') }} &mdash; {{ cfg.get('site_tagline', '') }}<br>
-            <a href="https://github.com/sandman21vs/FREESANDMANN" target="_blank">{{ t('footer_open_source') }}</a> &mdash; {{ t('footer_selfhost') }}
-        </small>
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-col">
+                <strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong>
+                <p>{{ cfg.get('site_tagline', '') }}</p>
+            </div>
+            <div class="footer-col">
+                <strong>{{ t('footer_nav') }}</strong>
+                <ul class="footer-nav-list">
+                    <li><a href="{{ url_for('index') }}">{{ t('nav_home') }}</a></li>
+                    <li><a href="{{ url_for('updates') }}">{{ t('nav_updates') }}</a></li>
+                    <li><a href="{{ url_for('donate') }}">{{ t('nav_donate') }}</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <a href="https://github.com/sandman21vs/FREESANDMANN" target="_blank">{{ t('footer_open_source') }}</a>
+                <p>{{ t('footer_selfhost') }}</p>
+            </div>
+        </div>
+        <div class="container footer-bottom">
+            <small>&copy; {{ cfg.get('site_title', 'Free Sandmann') }}</small>
+        </div>
     </footer>
 
     <!-- Sticky donate button (mobile) -->
@@ -92,31 +127,59 @@
         light: "{{ t('widget_theme_light') }}",
         dark: "{{ t('widget_theme_dark') }}"
     };
-    function applyTheme(t) {
-        document.documentElement.setAttribute('data-theme', t);
-        localStorage.setItem('theme', t);
-        document.getElementById('theme-toggle').textContent = t === 'dark' ? themeI18n.light : themeI18n.dark;
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        var label = theme === 'dark' ? themeI18n.light : themeI18n.dark;
+        var btn = document.getElementById('theme-toggle');
+        var btnMobile = document.getElementById('theme-toggle-mobile');
+        if (btn) btn.textContent = label;
+        if (btnMobile) btnMobile.textContent = label;
     }
 
     var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     applyTheme(currentTheme);
 
-    document.getElementById('theme-toggle').addEventListener('click', function() {
-        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        currentTheme = localStorage.getItem('theme');
-    });
+    function onThemeClick() {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(currentTheme);
+    }
 
-    // Widget toggle
+    var themeBtn = document.getElementById('theme-toggle');
+    var themeBtnMobile = document.getElementById('theme-toggle-mobile');
+    if (themeBtn) themeBtn.addEventListener('click', onThemeClick);
+    if (themeBtnMobile) themeBtnMobile.addEventListener('click', onThemeClick);
+
+    // Widget toggle (desktop)
     document.getElementById('pref-toggle').addEventListener('click', function() {
         var panel = document.getElementById('pref-panel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Fechar ao clicar fora
+    // Fechar widget ao clicar fora
     document.addEventListener('click', function(e) {
         var widget = document.getElementById('pref-widget');
         if (!widget.contains(e.target)) {
             document.getElementById('pref-panel').style.display = 'none';
+        }
+    });
+
+    // Hamburger menu toggle
+    var menuToggle = document.getElementById('menu-toggle');
+    var navLinks = document.getElementById('nav-links');
+    menuToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = navLinks.classList.toggle('open');
+        menuToggle.classList.toggle('open', isOpen);
+        menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    // Fechar menu ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+            navLinks.classList.remove('open');
+            menuToggle.classList.remove('open');
+            menuToggle.setAttribute('aria-expanded', 'false');
         }
     });
     </script>

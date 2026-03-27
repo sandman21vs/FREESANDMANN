@@ -1,0 +1,75 @@
+
+======================================================================
+[2026-03-27 15:46:16.704] Arduino Extension 启动 (v0.2.1)
+  平台: win32 x64
+  VS Code: 1.113.0
+  Node: v22.22.1
+======================================================================
+[2026-03-27 15:46:16.705][INFO] 板卡缓存目录: c:\Users\Vinicius Soriano\AppData\Roaming\Code\User\globalStorage\oakiot.vscode-arduino-cli
+[2026-03-27 15:46:16.705][INFO] [BoardListHistory] 已初始化，加载了 0 个板卡记录，0 个端口记录
+[2026-03-27 15:46:16.706][INFO] [BuildOutputWebview] 编译日志缓存路径: c:\Users\Vinicius Soriano\Documents\GitHub\FREESANDMANN\.vscode\build-output.log
+[2026-03-27 15:46:16.706][INFO] 刷新板卡列表...
+[2026-03-27 15:46:16.707][INFO] 获取板卡列表...
+[2026-03-27 15:46:16.707][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.722][INFO] 刷新板卡管理器...
+[2026-03-27 15:46:16.723][INFO] 获取已安装的平台列表...
+[2026-03-27 15:46:16.723][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.733][INFO] 获取已安装库列表...
+[2026-03-27 15:46:16.733][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.752][INFO] 已注册调试命令
+[2026-03-27 15:46:16.752][INFO] 正在检测 Arduino CLI...
+[2026-03-27 15:46:16.753][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.759][INFO] Arduino CLI 插件激活完成
+[2026-03-27 15:46:16.774][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.775][INFO] 开始自动检测 Arduino CLI...
+[2026-03-27 15:46:16.776][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.784][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.785][INFO] 开始自动检测 Arduino CLI...
+[2026-03-27 15:46:16.785][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.793][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.794][INFO] 开始自动检测 Arduino CLI...
+[2026-03-27 15:46:16.794][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.823][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.823][INFO] 开始自动检测 Arduino CLI...
+[2026-03-27 15:46:16.823][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.832][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.832][WARN] 未能自动检测到 Arduino CLI
+[2026-03-27 15:46:16.833][ERROR] 获取板卡列表失败: CliNotReadyError: Arduino CLI 未配置或路径无效，请先执行 "Arduino: Configure CLI Path"
+[2026-03-27 15:46:16.833][INFO] 获取所有已安装的板卡...
+[2026-03-27 15:46:16.834][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.843][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.844][WARN] 未能自动检测到 Arduino CLI
+[2026-03-27 15:46:16.844][ERROR] 获取平台列表失败: CliNotReadyError: Arduino CLI 未配置或路径无效，请先执行 "Arduino: Configure CLI Path"
+[2026-03-27 15:46:16.848][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.848][WARN] 未能自动检测到 Arduino CLI
+[2026-03-27 15:46:16.848][ERROR] 获取已安装库列表失败: CliNotReadyError: Arduino CLI 未配置或路径无效，请先执行 "Arduino: Configure CLI Path"
+[2026-03-27 15:46:16.870][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.871][WARN] 未能自动检测到 Arduino CLI
+[2026-03-27 15:46:16.871][WARN] Arduino CLI 未找到
+[2026-03-27 15:46:16.878][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.878][INFO] 开始自动检测 Arduino CLI...
+[2026-03-27 15:46:16.879][INFO] 验证 Arduino CLI 路径: arduino-cli
+[2026-03-27 15:46:16.922][WARN] Arduino CLI 路径无效: arduino-cli, 错误: 命令执行失败 (退出码: 1): 'arduino-cli' is not recognized as an internal or external command,
+operable program or batch file.
+
+[2026-03-27 15:46:16.923][WARN] 未能自动检测到 Arduino CLI
+[2026-03-27 15:46:16.923][ERROR] 获取板卡列表失败: CliNotReadyError: Arduino CLI 未配置或路径无效，请先执行 "Arduino: Configure CLI Path"
+[2026-03-27 15:46:16.923][INFO] 加载了 0 个平台，共 0 个板卡

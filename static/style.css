@@ -486,3 +486,180 @@ progress::-moz-progress-bar {
     padding: 0.25rem 0.5rem;
     font-size: 0.85rem;
 }
+
+/* ============================
+   Hamburger menu
+   ============================ */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    border-radius: 0.375rem;
+    cursor: pointer;
+}
+
+.hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* Animate to X when open */
+.hamburger.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.hamburger.open span:nth-child(2) {
+    opacity: 0;
+}
+.hamburger.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Desktop: hide hamburger, show nav normally */
+.nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-pref-mobile {
+    display: none;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex;
+    }
+
+    /* Hide fixed pref widget on mobile */
+    .pref-widget {
+        display: none;
+    }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--text-secondary);
+        padding: 1rem;
+        gap: 0.5rem;
+        z-index: 150;
+        animation: slideDown 0.2s ease;
+    }
+
+    .nav-links.open {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 0.5rem 0;
+    }
+
+    .nav-links .donate-nav-btn {
+        display: block;
+        text-align: center;
+        padding: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .nav-pref-mobile {
+        display: block;
+        border-top: 1px solid var(--text-secondary);
+        padding-top: 0.75rem;
+        margin-top: 0.25rem;
+    }
+
+    .nav-pref-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    header {
+        position: relative;
+    }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================
+   Footer grid
+   ============================ */
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 1.5rem;
+    border-top: 1px solid var(--text-secondary);
+}
+
+.footer-col strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.footer-col p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.footer-col a {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.footer-col a:hover {
+    color: var(--btc-orange);
+}
+
+.footer-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.footer-bottom {
+    padding-bottom: 1.5rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}

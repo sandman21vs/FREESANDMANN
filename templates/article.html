@@ -7,6 +7,9 @@
 <article>
     <h1>{{ article.title }}</h1>
     <small>{{ article.created_at[:10] }}</small>
+    {% if article.approved_by_display %}
+    <br><small>{{ t('approved_by') }}: {{ article.approved_by_display }}</small>
+    {% endif %}
     <div>{{ article.body_html|safe }}</div>
 </article>
 

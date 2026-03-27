@@ -14,6 +14,8 @@
         <tr>
             <th>Title</th>
             <th>Status</th>
+            <th>{{ t('approval_status') }}</th>
+            <th>{{ t('approved_by') }}</th>
             <th>Pinned</th>
             <th>Date</th>
             <th>Actions</th>
@@ -24,10 +26,27 @@
         <tr>
             <td>{{ a.title }}</td>
             <td>{{ 'Published' if a.published else 'Draft' }}</td>
+            <td>{{ t('approval_' + (a.approval_status or 'draft')) }}</td>
+            <td>{{ a.approved_by_display or '-' }}</td>
             <td>{{ 'Yes' if a.pinned else 'No' }}</td>
             <td>{{ a.created_at[:10] }}</td>
             <td class="admin-actions">
                 <a href="{{ url_for('admin_article_edit', article_id=a.id) }}">Edit</a>
+                {% if not a.published %}
+                <form method="POST" action="{{ url_for('admin_article_approve', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit">{{ t('approve') }}</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_article_publish', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit">{{ t('publish') }}</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('admin_article_unpublish', article_id=a.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit">{{ t('unpublish') }}</button>
+                </form>
+                {% endif %}
                 <form method="POST" action="{{ url_for('admin_article_delete', article_id=a.id) }}" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
                     <button type="submit" class="btn-danger" onclick="return confirm('Delete this article?')">Delete</button>

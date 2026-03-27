@@ -213,7 +213,7 @@ class TestAdminArticles:
         resp = admin_session.post("/admin/articles/new", data={
             "title": "Admin Created",
             "body_md": "Some **content**",
-            "published": "on",
+            "publish_mode": "override",
             "csrf_token": csrf,
         })
         assert resp.status_code == 302
