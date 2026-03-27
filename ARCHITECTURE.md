@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-27 — 243 tests passing.
+Last verified: 2026-03-27 — 260 tests passing.
 
 ---
 
@@ -9,7 +9,7 @@ Last verified: 2026-03-27 — 243 tests passing.
 
 | Layer | Technology | Notes |
 |-------|-----------|-------|
-| Backend | Python 3.12 + Flask | All routes in `app.py` |
+| Backend | Python 3.12 + Flask | `app.py` assembles the app; routes/hooks and data logic live in focused modules |
 | Database | SQLite (WAL mode) | Single file, zero config |
 | Templates | Jinja2 (server-side) | No build step |
 | CSS | Pico CSS 2.x (CDN) + `static/style.css` | Dark/light theme via `data-theme` |
@@ -21,7 +21,7 @@ Last verified: 2026-03-27 — 243 tests passing.
 | Proxy/SSL | Cloudflare Tunnel | No open ports required |
 
 **Zero JS frameworks. Zero build steps. Zero node_modules.**
-JS in the project: theme toggle, hamburger menu, copy-to-clipboard, Lightning invoice polling — all vanilla, all inline.
+JS in the project: theme toggle, hamburger menu, copy-to-clipboard, and Lightning invoice polling — all vanilla, centralized in `static/app.js`, with only a tiny inline theme-init script in `<head>` to avoid flash.
 
 ---
 
@@ -29,19 +29,36 @@ JS in the project: theme toggle, hamburger menu, copy-to-clipboard, Lightning in
 
 ```
 FREESANDMANN/
-├── app.py              # All Flask routes (~740 lines)
-├── models.py           # All SQLite queries
+├── app.py              # Flask app assembly + bootstrap
+├── app_auth.py         # Admin/lawyer auth decorators
+├── app_background.py   # Background maintenance loop bootstrap
+├── app_hooks.py        # Language, CSRF, and template context hooks
+├── routes_public.py    # Public pages + thin donation/QR route handlers + error handlers
+├── routes_admin.py     # Thin admin route handlers
+├── routes_lawyer.py    # Lawyer portal routes
+├── db.py               # Shared SQLite connection helper
+├── model_config.py     # Config storage + admin settings validation
+├── model_auth.py       # Admin/lawyer auth + rate limiting
+├── model_content.py    # Articles, approvals, markdown, media links
+├── model_balance.py    # Balance math + mempool.space sync
+├── models.py           # Compatibility facade re-exporting the data-layer API
+├── coinos_client.py    # Low-level Coinos.io API client + balance sync
+├── coinos.py           # Compatibility facade for Coinos helpers
+├── service_donations.py # Donation flow validation + webhook handling
+├── service_qr.py       # QR-code response helpers
+├── service_admin.py    # Admin workflow helpers: auth, settings, content, lawyers
 ├── config.py           # Defaults + env vars
 ├── init_db.py          # Schema creation + seeding
 ├── i18n.py             # PT/EN/DE translation loader
+├── gunicorn.conf.py    # Gunicorn preload + single background loop bootstrap
 ├── requirements.txt    # 6 Python dependencies
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env.example
 │
 ├── static/
-│   ├── style.css       # Custom styles over Pico CSS
-│   └── logo.png        # Site logo (replace for custom branding)
+│   ├── app.js          # Shared frontend behavior: theme, menu, clipboard, invoice polling
+│   └── style.css       # Custom styles over Pico CSS
 │
 ├── templates/
 │   ├── base.html       # Master layout: nav, footer, widget, scripts
@@ -50,6 +67,12 @@ FREESANDMANN/
 │   ├── articles.html   # Updates list
 │   ├── article.html    # Single article (shows approval info if published)
 │   ├── error.html      # 404 / 403
+│   │
+│   ├── components/
+│   │   ├── embed.html
+│   │   ├── invoice_widget.html  # Shared Coinos invoice markup + data attrs
+│   │   ├── progress_bar.html
+│   │   └── qr_codes.html
 │   │
 │   ├── admin/
 │   │   ├── login.html
@@ -72,8 +95,8 @@ FREESANDMANN/
 │   ├── en.json         # 77 keys
 │   └── de.json         # 77 keys
 │
-├── tests/              # 243 tests via pytest
-│   ├── conftest.py     # In-memory SQLite fixture, test client
+├── tests/              # 260 tests via pytest
+│   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
 │   ├── test_i18n.py
@@ -97,6 +120,12 @@ CREATE TABLE config (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 ```
 
 All site configuration lives here. No migrations needed — new keys are `INSERT OR IGNORE` on startup.
+
+Admin writes go through validation/normalization before saving:
+- trims text fields;
+- validates numeric fields (`goal_btc`, `raised_lightning_btc`, `raised_btc_manual_adjustment`, `supporters_count`);
+- accepts only `http(s)` or site-relative URLs for public URL fields;
+- enforces feature dependencies such as Coinos token required when Coinos is enabled.
 
 **Populated keys:**
 
@@ -126,7 +155,7 @@ All site configuration lives here. No migrations needed — new keys are `INSERT
 | `coinos_api_key` | Coinos.io API key (empty = disabled) |
 | `coinos_enabled` | `"0"` or `"1"` |
 | `coinos_webhook_secret` | Webhook HMAC secret |
-| `coinos_onchain_enabled` | `"0"` or `"1"` — use Coinos for on-chain address generation |
+| `coinos_onchain` | `"0"` or `"1"` — use Coinos for on-chain address generation |
 
 ### `articles`
 
@@ -146,7 +175,7 @@ CREATE TABLE articles (
     published      INTEGER DEFAULT 1,       -- 0=draft, 1=published
     pinned         INTEGER DEFAULT 0,       -- show on homepage
     approval_status TEXT NOT NULL DEFAULT 'draft',  -- draft|pending|approved|published
-    created_by     TEXT NOT NULL DEFAULT 'admin',   -- 'admin' or lawyer username
+    created_by     TEXT NOT NULL DEFAULT 'admin',   -- 'admin' or 'lawyer'
     approved_by_display TEXT NOT NULL DEFAULT '',   -- display name shown publicly
     created_at     TEXT DEFAULT (datetime('now')),
     updated_at     TEXT DEFAULT (datetime('now'))
@@ -196,6 +225,16 @@ CREATE TABLE article_approvals (
 );
 ```
 
+### `login_attempts`
+
+```sql
+CREATE TABLE login_attempts (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip           TEXT NOT NULL,
+    attempted_at TEXT DEFAULT (datetime('now'))
+);
+```
+
 ---
 
 ## Routes
@@ -228,7 +267,7 @@ CREATE TABLE article_approvals (
 | GET | `/admin/logout` | Clear session |
 | GET | `/admin/` | Dashboard: stats, balance breakdown |
 | GET/POST | `/admin/change-password` | Change admin password |
-| GET/POST | `/admin/settings` | Edit all site config |
+| GET/POST | `/admin/settings` | Edit all site config with validation/normalization |
 | GET | `/admin/articles` | List all articles with approval status |
 | GET/POST | `/admin/articles/new` | Create article |
 | GET/POST | `/admin/articles/<id>/edit` | Edit article |
@@ -292,7 +331,7 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 - Detection order: `session['lang']` → `Accept-Language` header → `en`
 - Language set via `/set-lang/<lang>` (redirects back, saves to session)
 - All UI strings in `translations/{pt,en,de}.json` (77 keys each)
-- `t(key)` function injected into all Jinja2 templates via `inject_globals()`
+- `t(key)` function injected into all Jinja2 templates via `inject_config()` context processor
 - `lang` variable also injected (used in `<html lang="{{ lang }}">`)
 - Articles have per-language title/body fields; fall back to PT if EN/DE empty
 
@@ -300,14 +339,14 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 
 ## Coinos.io Integration
 
-**Module:** `app.py` (routes) + `models.py` (API calls)
+**Modules:** `coinos_client.py` (API client), `service_donations.py` (flow orchestration), `routes_public.py` (HTTP routes)
 
 - Enabled when `coinos_enabled = "1"` and `coinos_api_key` is set
 - **Lightning invoices**: `POST /api/invoice` → returns `bolt11` string
 - **Liquid invoices**: same endpoint with `network: 'L-BTC'`
-- **Polling**: client polls `/donate/check-invoice/<hash>` every 3s
+- **Polling**: client polls `/donate/check-invoice/<hash>` every 2s
 - **Webhook**: Coinos POSTs to `/donate/webhook/coinos` on payment; updates `raised_lightning_btc`
-- **On-chain via Coinos**: if `coinos_onchain_enabled = "1"`, generates BTC address via Coinos API and stores in `btc_address`
+- **On-chain via Coinos**: if `coinos_onchain = "1"`, generates BTC address via Coinos API and stores in `btc_address`
 - CSRF is **exempted** for the webhook route
 
 ---
@@ -316,7 +355,8 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 
 - **API**: `https://mempool.space/api/address/<address>`
 - **Field used**: `chain_stats.funded_txo_sum` + `mempool_stats.funded_txo_sum` (satoshis)
-- **Frequency**: background thread, every 3600 seconds
+- **Frequency**: background thread, every 300 seconds (5 minutes)
+- **Startup model**: started once in dev via `python app.py`; in production via Gunicorn master (`gunicorn.conf.py`) to avoid duplicate worker threads
 - **Manual trigger**: admin dashboard "Refresh Balance" button → `POST /admin/refresh-balance`
 - **Calculation**: `raised_btc = raised_onchain_btc + raised_lightning_btc + raised_btc_manual_adjustment`
 - Uses `urllib.request` (stdlib) — no `requests` dependency
@@ -330,11 +370,11 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 - Password stored as werkzeug PBKDF2 hash in `config.admin_password_hash`.
 - `session['admin'] = True` on login.
 - `admin_force_password_change = "1"` → all admin routes redirect to change-password.
-- Rate limit: 5 failed attempts per IP → 5-minute lockout (in-memory counter).
+- Rate limit: SQLite-backed per IP, 5 failed attempts → 5-minute lockout.
 
 ### Lawyer
 - Multiple lawyer accounts in `lawyers` table.
-- `session['lawyer_id']` + `session['lawyer_username']` on login.
+- `session['lawyer_id']` + `session['lawyer_display_name']` on login.
 - `force_password_change = 1` → all lawyer routes redirect to change-password.
 - Same rate limiting as admin.
 - Inactive (`active = 0`) lawyers cannot login.
@@ -346,12 +386,21 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 | Mechanism | Implementation |
 |-----------|---------------|
 | CSRF | Hidden token in every form; validated on all POSTs (except Coinos webhook) |
-| Rate limiting | In-memory `dict` per IP, 5 attempts / 5-min lockout |
+| Rate limiting | SQLite-backed `login_attempts`, 5 attempts / 5-min lockout per IP |
 | Password hashing | werkzeug `generate_password_hash` (PBKDF2-SHA256) |
 | Session security | `SECRET_KEY` from env var; Flask signed cookies |
 | Admin URL | `/admin/login` not linked anywhere on the public site |
-| Content Security Policy | Allows YouTube / Twitter iframes (set in `app.py`) |
 | SQLite WAL mode | Better read concurrency, atomic writes |
+| Logging | Python stdlib logging to stdout/stderr, captured by Docker/Gunicorn |
+
+---
+
+## Observability
+
+- Module loggers in route/background modules, `model_auth.py`, `model_balance.py`, `coinos_client.py`, and `service_donations.py`
+- External API failures are logged with stack traces instead of failing silently
+- Logs include: login success/failure, rate limiting, invoice creation, Coinos webhooks, balance updates, and cleanup of expired login attempts
+- Operational view: `docker compose logs -f`
 
 ---
 
@@ -376,6 +425,8 @@ docker compose down        # stop
 docker compose build       # rebuild after dependency changes
 ```
 
+Gunicorn runs from `gunicorn.conf.py` with `preload_app = True`; the background maintenance loop is started once from the master process.
+
 The `data/` directory is mounted as a Docker volume — the SQLite database persists across restarts.
 
 ---
@@ -387,23 +438,19 @@ python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python init_db.py
-python app.py              # dev server on :5000
+python app.py              # dev server on :8000
 ```
 
 ```bash
-python -m pytest tests/ -v        # run all 243 tests
+python -m pytest tests/ -v        # run all 260 tests
 python -m pytest tests/ -q        # quiet summary
 python -m pytest tests/test_i18n.py -v   # single file
 ```
 
-Tests use an in-memory SQLite fixture (`conftest.py`) — they never touch `data/freesandmann.db`.
+Tests use a temporary SQLite file fixture (`conftest.py`, via pytest `tmp_path`) — they never touch `data/freesandmann.db`.
 
 ---
 
 ## Known Open Issues
 
-| Issue | File | Notes |
-|-------|------|-------|
-| `datetime.utcnow()` deprecation warnings | `models.py` lines ~171, ~265 | Replace with `datetime.now(datetime.UTC)` — functional now, breaks Python 3.14+ |
-| `transparency_text` renders raw | `templates/index.html` | Field supports Markdown in admin but renders as plain text on homepage; needs `\|safe` filter after pre-rendering |
-| QR sections show when addresses empty | `templates/index.html`, `templates/donate.html` | Wrap QR sections in `{% if cfg.get('btc_address') %}` guards |
+No critical open issues. Previously tracked issues (datetime.utcnow deprecation, transparency_text raw rendering, QR empty address guards) have been resolved.

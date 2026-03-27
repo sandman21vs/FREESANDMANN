@@ -1,6 +1,6 @@
 # Free Sandmann — Legal Defense Campaign Engine
 
-A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork it, configure through the admin panel, start accepting donations — no payment processors, no middlemen.
+A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork it, configure through the admin panel, start accepting donations — on-chain directly to your wallet, Lightning/Liquid optionally via Coinos.io (no KYC, zero fees).
 
 ## Features
 
@@ -12,8 +12,8 @@ A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork i
 - **Lawyer portal** (`/advogado/`): restricted role for content review and co-approval
 - **Markdown articles** with auto-embed for YouTube and Twitter/X
 - **Mobile-first** responsive design — hamburger menu, sticky donate button
-- **Docker + Cloudflare Tunnel** deployment, one command to start
-- **243 automated tests**
+- **Docker** deployment, one command to start
+- **260 automated tests**
 
 ## Quick Start
 
@@ -24,7 +24,7 @@ cp .env.example .env        # set SECRET_KEY
 docker compose up -d
 ```
 
-Visit `http://localhost:8000`
+Visit `http://localhost:4040` (mapped from container port 8000)
 
 ## Admin Access
 
@@ -42,6 +42,18 @@ Visit `http://localhost:8000`
 5. Share the link
 
 No code changes required for basic use. All configuration is in the admin panel.
+
+## Exposing to the Internet (Cloudflare Tunnel)
+
+For production, use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) to expose your site with HTTPS — no port forwarding needed:
+
+```bash
+# Install cloudflared, then:
+cloudflared tunnel login
+cloudflared tunnel create freesandmann
+cloudflared tunnel route dns freesandmann yourdomain.com
+cloudflared tunnel run --url http://localhost:4040 freesandmann
+```
 
 ## Tech Stack
 
