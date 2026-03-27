@@ -1,0 +1,22 @@
+{% macro stat_card(value, label, color=none) %}
+<div class="bo-stat-card">
+    <span class="bo-stat-value"{% if color %} style="color: {{ color }};"{% endif %}>{{ value }}</span>
+    <span class="bo-stat-label">{{ label }}</span>
+</div>
+{% endmacro %}
+
+{% macro status_badge(status, label=none) %}
+<span class="bo-badge bo-badge-{{ status }}">{{ label or t('approval_' + status) }}</span>
+{% endmacro %}
+
+{% macro page_header(title, subtitle=none, action_url=none, action_label=none) %}
+<div class="bo-page-header">
+    <div>
+        <h1>{{ title }}</h1>
+        {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}" role="button">{{ action_label }}</a>
+    {% endif %}
+</div>
+{% endmacro %}

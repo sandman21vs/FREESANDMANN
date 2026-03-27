@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}</title>
+    <meta name="description" content="{{ cfg.get('site_description', '') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+    (function() {
+      var stored = localStorage.getItem('theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+    </script>
+</head>
+<body
+    data-theme-light-label="{{ t('widget_theme_light') }}"
+    data-theme-dark-label="{{ t('widget_theme_dark') }}"
+    data-copied-label="{{ t('copied') }}"
+>
+    <header class="bo-topbar">
+        <div class="container bo-topbar-inner">
+            <div class="bo-topbar-title">
+                <strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong>
+                <small>Admin</small>
+            </div>
+            <div class="bo-topbar-actions">
+                <button id="theme-toggle" type="button" class="secondary outline">{{ t('widget_theme_light') }}</button>
+                <a href="{{ url_for('admin_logout') }}">{{ t('logout') if t('logout') != 'logout' else 'Logout' }}</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="bo-layout">
+        <aside class="bo-sidebar">
+            <div class="bo-sidebar-section">
+                <nav aria-label="Admin">
+                    <ul class="bo-sidebar-nav">
+                        <li><a href="{{ url_for('admin_dashboard') }}" class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}">Dashboard</a></li>
+                        <li><a href="{{ url_for('admin_articles') }}" class="{% if request.endpoint in ('admin_articles', 'admin_article_new', 'admin_article_edit') %}active{% endif %}">Articles</a></li>
+                        <li><a href="{{ url_for('admin_media_links') }}" class="{% if request.endpoint in ('admin_media_links', 'admin_media_link_delete') %}active{% endif %}">Media Links</a></li>
+                        <li><a href="{{ url_for('admin_lawyers') }}" class="{% if request.endpoint in ('admin_lawyers', 'admin_lawyer_toggle', 'admin_lawyer_reset_password') %}active{% endif %}">{{ t('manage_lawyers') }}</a></li>
+                        <li><a href="{{ url_for('admin_settings') }}" class="{% if request.endpoint == 'admin_settings' %}active{% endif %}">Settings</a></li>
+                        <li><a href="{{ url_for('admin_change_password') }}" class="{% if request.endpoint == 'admin_change_password' %}active{% endif %}">Change Password</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="bo-sidebar-section">
+                <div class="bo-sidebar-note">Operations</div>
+                <nav aria-label="Admin shortcuts">
+                    <ul class="bo-sidebar-nav">
+                        <li><a href="{{ url_for('index') }}" target="_blank" rel="noopener">View Site</a></li>
+                        <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <section class="bo-main">
+            <div class="bo-main-shell">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <article class="flash-msg flash-{{ category }}">{{ message }}</article>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

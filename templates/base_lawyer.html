@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ t('lawyer_dashboard_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}</title>
+    <meta name="description" content="{{ cfg.get('site_description', '') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+    (function() {
+      var stored = localStorage.getItem('theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+    </script>
+</head>
+<body
+    data-theme-light-label="{{ t('widget_theme_light') }}"
+    data-theme-dark-label="{{ t('widget_theme_dark') }}"
+    data-copied-label="{{ t('copied') }}"
+>
+    <header class="bo-topbar">
+        <div class="container bo-topbar-inner">
+            <div class="bo-topbar-title">
+                <strong>Lawyer Portal</strong>
+                <small>{{ session.get('lawyer_display_name', t('lawyer_dashboard_title')) }}</small>
+            </div>
+            <div class="bo-topbar-actions">
+                <button id="theme-toggle" type="button" class="secondary outline">{{ t('widget_theme_light') }}</button>
+                <a href="{{ url_for('lawyer_logout') }}">{{ t('logout') if t('logout') != 'logout' else 'Logout' }}</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="bo-layout">
+        <aside class="bo-sidebar">
+            <div class="bo-sidebar-section">
+                <nav aria-label="Lawyer">
+                    <ul class="bo-sidebar-nav">
+                        <li><a href="{{ url_for('lawyer_dashboard') }}" class="{% if request.endpoint == 'lawyer_dashboard' %}active{% endif %}">{{ t('lawyer_dashboard_title') }}</a></li>
+                        <li><a href="{{ url_for('lawyer_article_new') }}" class="{% if request.endpoint in ('lawyer_article_new', 'lawyer_article_edit') %}active{% endif %}">{{ t('new_article') }}</a></li>
+                        <li><a href="{{ url_for('lawyer_change_password') }}" class="{% if request.endpoint == 'lawyer_change_password' %}active{% endif %}">Change Password</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="bo-sidebar-section">
+                <div class="bo-sidebar-note">Operations</div>
+                <nav aria-label="Lawyer shortcuts">
+                    <ul class="bo-sidebar-nav">
+                        <li><a href="{{ url_for('index') }}" target="_blank" rel="noopener">View Site</a></li>
+                        <li><a href="{{ url_for('lawyer_logout') }}">Logout</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <section class="bo-main">
+            <div class="bo-main-shell">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <article class="flash-msg flash-{{ category }}">{{ message }}</article>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
