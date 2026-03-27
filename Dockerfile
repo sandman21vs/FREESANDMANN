@@ -7,10 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Criar diretorio de dados
 RUN mkdir -p /app/data
 
-# Inicializar banco (sera sobrescrito pelo volume se ja existir)
 RUN python init_db.py
 
 EXPOSE 8000

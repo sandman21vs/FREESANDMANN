@@ -36,9 +36,21 @@ class TestQRCode:
         resp = client.get("/qr/invalid")
         assert resp.status_code == 404
 
-    def test_qr_has_cache_header(self, client):
-        """QR code deve ter header de cache."""
+    def test_qr_no_cache(self, client):
+        """QR code nao deve ser cacheado para refletir mudancas de endereco."""
         models.set_config("btc_address", "bc1qtest123456")
         resp = client.get("/qr/btc")
         cache = resp.headers.get("Cache-Control", "")
-        assert "max-age" in cache or resp.status_code == 200
+        assert "no-cache" in cache or "no-store" in cache
+
+    def test_qr_changes_with_address(self, client):
+        """QR code deve mudar quando o endereco muda."""
+        models.set_config("btc_address", "bc1qaddress1")
+        resp1 = client.get("/qr/btc")
+        qr1 = resp1.data
+
+        models.set_config("btc_address", "bc1qaddress2")
+        resp2 = client.get("/qr/btc")
+        qr2 = resp2.data
+
+        assert qr1 != qr2

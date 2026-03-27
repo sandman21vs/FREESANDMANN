@@ -10,11 +10,12 @@ from datetime import datetime
 import qrcode
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    session, flash, abort, send_file,
+    session, flash, abort, send_file, jsonify,
 )
 
 import config
 import models
+import coinos
 from init_db import init_db
 
 app = Flask(__name__)
@@ -51,7 +52,7 @@ def generate_csrf_token():
 def csrf_protect():
     if request.method == "POST":
         token = session.get("csrf_token", "")
-        form_token = request.form.get("csrf_token", "")
+        form_token = request.form.get("csrf_token", "") or request.headers.get("X-CSRFToken", "")
         if not token or token != form_token:
             abort(403)
 
@@ -126,7 +127,71 @@ def qr_code(qr_type):
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    return send_file(buf, mimetype="image/png", max_age=3600)
+    response = send_file(buf, mimetype="image/png", max_age=0)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
+# ── Lightning invoice routes ─────────────────────────────────────────
+
+@app.route("/donate/create-invoice", methods=["POST"])
+def create_invoice():
+    if models.get_config("coinos_enabled") != "1":
+        return jsonify({"ok": False, "error": "Lightning invoices not enabled"}), 400
+
+    data = request.get_json(silent=True)
+    if not data or "amount_sats" not in data:
+        return jsonify({"ok": False, "error": "amount_sats required"}), 400
+
+    try:
+        amount = int(data["amount_sats"])
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "Invalid amount"}), 400
+
+    if amount < 1 or amount > 10_000_000:
+        return jsonify({"ok": False, "error": "Amount must be between 1 and 10,000,000 sats"}), 400
+
+    result = coinos.create_invoice(amount)
+    if not result:
+        return jsonify({"ok": False, "error": "Failed to create invoice"}), 500
+
+    return jsonify({
+        "ok": True,
+        "hash": result.get("hash", ""),
+        "bolt11": result.get("text", ""),
+        "amount_sats": amount,
+    })
+
+
+@app.route("/donate/check-invoice/<invoice_hash>")
+def check_invoice_status(invoice_hash):
+    if not invoice_hash or len(invoice_hash) > 1000:
+        return jsonify({"paid": False, "error": "Invalid hash"}), 400
+
+    result = coinos.check_invoice(invoice_hash)
+    if result is None:
+        return jsonify({"paid": False, "error": "Invoice not found"}), 404
+
+    received = result.get("received", 0)
+    paid = received > 0
+    if paid:
+        coinos.check_lightning_balance()
+    return jsonify({"paid": paid, "amount_received": received})
+
+
+@app.route("/donate/invoice-qr")
+def invoice_qr():
+    bolt11 = request.args.get("bolt11", "")
+    if not bolt11 or len(bolt11) > 2000:
+        abort(400)
+
+    img = qrcode.make(bolt11, box_size=8, border=2)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png", max_age=60)
 
 
 # ── Background balance checker ───────────────────────────────────────
@@ -134,6 +199,7 @@ def qr_code(qr_type):
 def _start_balance_checker():
     def _run():
         models.check_onchain_balance()
+        coinos.check_lightning_balance()
         t = threading.Timer(3600, _run)
         t.daemon = True
         t.start()
@@ -219,10 +285,22 @@ def admin_settings():
             "raised_lightning_btc", "raised_btc_manual_adjustment",
             "goal_description", "supporters_count", "hero_image_url",
             "deadline_text", "transparency_text", "og_image_url",
-            "wallet_explorer_url",
+            "wallet_explorer_url", "coinos_api_key",
         ]
+        coinos_enabled = "1" if request.form.get("coinos_enabled") else "0"
+        coinos_onchain = "1" if request.form.get("coinos_onchain") else "0"
+        models.set_config("coinos_enabled", coinos_enabled)
+        models.set_config("coinos_onchain", coinos_onchain)
         for field in fields:
+            if field == "raised_lightning_btc" and coinos_enabled == "1":
+                continue
+            if field == "btc_address" and coinos_onchain == "1":
+                continue
             models.set_config(field, request.form.get(field, ""))
+        if coinos_onchain == "1" and coinos_enabled == "1":
+            onchain_addr = coinos.get_onchain_address()
+            if onchain_addr:
+                models.set_config("btc_address", onchain_addr)
         models.recalculate_raised_btc()
         flash("Settings saved.", "success")
         return redirect(url_for("admin_settings"))
@@ -320,6 +398,7 @@ def admin_media_link_delete(link_id):
 @login_required
 def admin_refresh_balance():
     models.check_onchain_balance()
+    coinos.check_lightning_balance()
     flash("Balance refreshed.", "success")
     return redirect(url_for("admin_dashboard"))
 

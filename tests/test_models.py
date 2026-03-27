@@ -254,6 +254,10 @@ class TestBalanceCheck:
             "chain_stats": {
                 "funded_txo_sum": 150000000,  # 1.5 BTC em satoshis
                 "spent_txo_sum": 0
+            },
+            "mempool_stats": {
+                "funded_txo_sum": 0,
+                "spent_txo_sum": 0
             }
         }).encode()
 
@@ -277,3 +281,39 @@ class TestBalanceCheck:
         # Total tambem deve ser atualizado
         total = float(models.get_config("raised_btc"))
         assert total >= 1.5
+
+    def test_check_onchain_balance_includes_mempool(self, temp_database, monkeypatch):
+        """Saldo deve incluir transacoes nao confirmadas (mempool)."""
+        import json
+        import urllib.request
+
+        models.set_config("btc_address", "bc1qtest123")
+
+        mock_response_data = json.dumps({
+            "chain_stats": {
+                "funded_txo_sum": 100000000,  # 1.0 BTC confirmado
+                "spent_txo_sum": 0
+            },
+            "mempool_stats": {
+                "funded_txo_sum": 50000000,  # 0.5 BTC na mempool
+                "spent_txo_sum": 0
+            }
+        }).encode()
+
+        class MockResponse:
+            def read(self):
+                return mock_response_data
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+
+        def mock_urlopen(*args, **kwargs):
+            return MockResponse()
+
+        monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+        models.check_onchain_balance()
+        onchain = float(models.get_config("raised_onchain_btc"))
+        # Deve ser 1.0 + 0.5 = 1.5 BTC (confirmado + mempool)
+        assert abs(onchain - 1.5) < 0.0001, f"Expected 1.5 (confirmed+mempool), got {onchain}"

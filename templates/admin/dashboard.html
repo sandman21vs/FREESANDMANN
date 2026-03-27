@@ -7,11 +7,11 @@
 
 <article>
     <h2>Fundraising</h2>
-    <p><strong>Raised:</strong> {{ cfg['raised_btc'] }} / {{ cfg['goal_btc'] }} BTC</p>
+    <p><strong>Raised:</strong> {{ "%.8f"|format(cfg['raised_btc']|float) }} / {{ "%.8f"|format(cfg['goal_btc']|float) }} BTC</p>
     <p>
-        On-chain: {{ cfg['raised_onchain_btc'] }} BTC &mdash;
-        Lightning: {{ cfg['raised_lightning_btc'] }} BTC &mdash;
-        Manual adjustment: {{ cfg['raised_btc_manual_adjustment'] }} BTC
+        On-chain: {{ "%.8f"|format(cfg['raised_onchain_btc']|float) }} BTC &mdash;
+        Lightning: {{ "%.8f"|format(cfg['raised_lightning_btc']|float) }} BTC &mdash;
+        Manual adjustment: {{ "%.8f"|format(cfg['raised_btc_manual_adjustment']|float) }} BTC
     </p>
     <p><strong>Last balance check:</strong> {{ cfg['last_balance_check'] or 'Never' }}</p>
     <form method="POST" action="{{ url_for('admin_refresh_balance') }}" style="display:inline">

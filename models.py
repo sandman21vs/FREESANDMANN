@@ -255,8 +255,9 @@ def check_onchain_balance():
     try:
         with urllib.request.urlopen(url, timeout=10) as resp:
             data = json.loads(resp.read())
-        funded = data["chain_stats"]["funded_txo_sum"]
-        balance_btc = funded / 100_000_000
+        confirmed = data["chain_stats"]["funded_txo_sum"]
+        mempool = data.get("mempool_stats", {}).get("funded_txo_sum", 0)
+        balance_btc = (confirmed + mempool) / 100_000_000
         set_config("raised_onchain_btc", str(round(balance_btc, 8)))
         lightning = float(get_config("raised_lightning_btc", "0"))
         adjustment = float(get_config("raised_btc_manual_adjustment", "0"))

@@ -2,11 +2,14 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "4040:8000"
     volumes:
-      - ./data:/app/data
+      - freesandmann_data:/app/data
     environment:
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - DATABASE_PATH=/app/data/freesandmann.db
       - ADMIN_USERNAME=${ADMIN_USERNAME:-FREE}
     restart: unless-stopped
+
+volumes:
+  freesandmann_data:

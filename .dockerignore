@@ -7,5 +7,11 @@ data/
 .env
 venv/
 .venv/
-*.md
-!README.md
+.claude/
+.pytest_cache/
+tests/
+PLANO_DE_ACAO.md
+PLANO_DE_TESTES.md
+ARCHITECTURE.md
+LIGHTNING_API_RESEARCH.md
+CORRECOES_E_PROXIMOS_PASSOS.md

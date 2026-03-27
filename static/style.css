@@ -278,3 +278,70 @@ progress::-moz-progress-bar {
     border-color: var(--danger-red);
     color: white;
 }
+
+/* Lightning invoice form */
+.preset-amounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.preset-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-card);
+    border: 2px solid var(--text-secondary);
+    color: var(--text-primary);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.preset-btn:hover {
+    border-color: var(--btc-orange);
+}
+
+.preset-btn.active {
+    border-color: var(--btc-orange);
+    background: var(--btc-orange);
+    color: white;
+}
+
+.invoice-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.invoice-form input[type="number"] {
+    max-width: 200px;
+    margin-bottom: 0;
+}
+
+.invoice-form button {
+    white-space: nowrap;
+    margin-bottom: 0;
+}
+
+#invoice-result {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
+.invoice-waiting {
+    color: var(--btc-orange);
+    font-weight: bold;
+    margin-top: 1rem;
+}
+
+.invoice-paid {
+    color: var(--success-green);
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-top: 1rem;
+}

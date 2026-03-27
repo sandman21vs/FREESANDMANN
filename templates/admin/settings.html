@@ -33,8 +33,9 @@
 
     <fieldset>
         <legend>Bitcoin</legend>
-        <label>Bitcoin On-Chain Address
-            <input type="text" name="btc_address" value="{{ cfg['btc_address'] }}">
+        <label>Bitcoin On-Chain Address {% if cfg['coinos_onchain'] == '1' %}&mdash; managed by Coinos{% endif %}
+            <input type="text" name="btc_address" value="{{ cfg['btc_address'] }}"
+                   {% if cfg['coinos_onchain'] == '1' %}readonly{% endif %}>
         </label>
         <label>Lightning Address / LNURL
             <input type="text" name="lightning_address" value="{{ cfg['lightning_address'] }}">
@@ -45,6 +46,26 @@
     </fieldset>
 
     <fieldset>
+        <legend>Coinos Lightning API</legend>
+        <label>
+            <input type="checkbox" name="coinos_enabled" value="1"
+                   {% if cfg['coinos_enabled'] == '1' %}checked{% endif %}>
+            Enable Coinos Lightning invoices
+        </label>
+        <label>
+            <input type="checkbox" name="coinos_onchain" value="1"
+                   {% if cfg['coinos_onchain'] == '1' %}checked{% endif %}>
+            Use Coinos for on-chain address too (balance tracked via Coinos)
+        </label>
+        <label>Coinos Read-Only API Token
+            <input type="password" name="coinos_api_key"
+                   value="{{ cfg['coinos_api_key'] }}"
+                   placeholder="Paste your read-only token from coinos.io/docs">
+        </label>
+        <small>Use the <strong>read-only</strong> token from coinos.io/docs. It can create invoices but cannot withdraw funds. Lightning balance will be auto-updated from your Coinos account. If "Use Coinos for on-chain" is enabled, a new Coinos BTC address will be generated and on-chain donations will also be tracked via Coinos.</small>
+    </fieldset>
+
+    <fieldset>
         <legend>Fundraising</legend>
         <label>Goal (BTC)
             <input type="text" name="goal_btc" value="{{ cfg['goal_btc'] }}">
@@ -52,8 +73,9 @@
         <label>Goal Description
             <input type="text" name="goal_description" value="{{ cfg['goal_description'] }}">
         </label>
-        <label>Lightning Received (BTC) — update manually
-            <input type="text" name="raised_lightning_btc" value="{{ cfg['raised_lightning_btc'] }}">
+        <label>Lightning Received (BTC) {% if cfg['coinos_enabled'] == '1' %}&mdash; auto-updated from Coinos{% else %}&mdash; update manually{% endif %}
+            <input type="text" name="raised_lightning_btc" value="{{ cfg['raised_lightning_btc'] }}"
+                   {% if cfg['coinos_enabled'] == '1' %}readonly{% endif %}>
         </label>
         <label>Manual Adjustment (BTC) — for off-system donations
             <input type="text" name="raised_btc_manual_adjustment" value="{{ cfg['raised_btc_manual_adjustment'] }}">
