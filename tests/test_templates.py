@@ -187,6 +187,7 @@ class TestAdminTemplates:
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
+        assert b"Open Link" in resp.data or b"No media links yet" in resp.data
 
     def test_lawyers_page_uses_card_layout(self, admin_session):
         """Pagina de advogados deve renderizar no shell novo com cards."""
