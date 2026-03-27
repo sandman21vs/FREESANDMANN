@@ -300,6 +300,23 @@ class TestAdminArticles:
         resp = admin_session.get("/admin/articles")
         assert resp.status_code == 200
 
+    def test_articles_filter_tabs_show_only_requested_subset(self, admin_session):
+        """Filtro por query string deve limitar os cards exibidos."""
+        models.create_article("Published Story", "Body")
+        models.create_article("Draft Story", "Body", 0, 0)
+        models.create_article("Pending Story", "Body", 0, 0, approval_status="pending")
+
+        resp = admin_session.get("/admin/articles?filter=drafts")
+        assert resp.status_code == 200
+        assert b"Draft Story" in resp.data
+        assert b"Published Story" not in resp.data
+        assert b"Pending Story" not in resp.data
+
+        resp = admin_session.get("/admin/articles?filter=pending")
+        assert resp.status_code == 200
+        assert b"Pending Story" in resp.data
+        assert b"Published Story" not in resp.data
+
     def test_create_article(self, admin_session):
         """Criar artigo via admin deve funcionar."""
         with admin_session.session_transaction() as sess:

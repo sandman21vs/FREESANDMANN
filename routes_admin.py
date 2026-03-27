@@ -91,8 +91,31 @@ def register_admin_routes(app):
     @app.route("/admin/articles")
     @login_required
     def admin_articles():
-        articles = models.get_articles(published_only=False)
-        return render_template("admin/articles.html", articles=articles)
+        all_articles = models.get_articles(published_only=False)
+        selected_filter = request.args.get("filter", "all")
+        filter_counts = {
+            "all": len(all_articles),
+            "pending": len([a for a in all_articles if a["approval_status"] in ("pending", "approved")]),
+            "published": len([a for a in all_articles if a["published"]]),
+            "drafts": len([a for a in all_articles if a["approval_status"] == "draft"]),
+        }
+
+        articles = all_articles
+        if selected_filter == "pending":
+            articles = [a for a in all_articles if a["approval_status"] in ("pending", "approved")]
+        elif selected_filter == "published":
+            articles = [a for a in all_articles if a["published"]]
+        elif selected_filter == "drafts":
+            articles = [a for a in all_articles if a["approval_status"] == "draft"]
+        else:
+            selected_filter = "all"
+
+        return render_template(
+            "admin/articles.html",
+            articles=articles,
+            filter_counts=filter_counts,
+            selected_filter=selected_filter,
+        )
 
     @app.route("/admin/articles/new", methods=["GET", "POST"])
     @login_required

@@ -1,62 +1,77 @@
 {% extends "base_admin.html" %}
+{% from "components/bo_components.html" import page_header, status_badge with context %}
 
 {% block title %}Articles &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
-<h1>Articles</h1>
-<a href="{{ url_for('admin_article_new') }}" role="button">New Article</a>
+{{ page_header(
+    "Articles",
+    "Track drafts, approvals, and published updates from a single editorial queue.",
+    url_for('admin_article_new'),
+    "New Article"
+) }}
+
+<nav class="bo-tabs" aria-label="Article filters">
+    <a href="{{ url_for('admin_articles') }}" class="bo-tab {% if selected_filter == 'all' %}bo-tab-active{% endif %}">
+        All <span class="bo-tab-count">{{ filter_counts['all'] }}</span>
+    </a>
+    <a href="{{ url_for('admin_articles', filter='pending') }}" class="bo-tab {% if selected_filter == 'pending' %}bo-tab-active{% endif %}">
+        Pending <span class="bo-tab-count">{{ filter_counts['pending'] }}</span>
+    </a>
+    <a href="{{ url_for('admin_articles', filter='published') }}" class="bo-tab {% if selected_filter == 'published' %}bo-tab-active{% endif %}">
+        Published <span class="bo-tab-count">{{ filter_counts['published'] }}</span>
+    </a>
+    <a href="{{ url_for('admin_articles', filter='drafts') }}" class="bo-tab {% if selected_filter == 'drafts' %}bo-tab-active{% endif %}">
+        Drafts <span class="bo-tab-count">{{ filter_counts['drafts'] }}</span>
+    </a>
+</nav>
 
 {% if articles %}
-<div class="admin-table">
-<table>
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Status</th>
-            <th>{{ t('approval_status') }}</th>
-            <th>{{ t('approved_by') }}</th>
-            <th>Pinned</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for a in articles %}
-        <tr>
-            <td>{{ a.title }}</td>
-            <td>{{ 'Published' if a.published else 'Draft' }}</td>
-            <td>{{ t('approval_' + (a.approval_status or 'draft')) }}</td>
-            <td>{{ a.approved_by_display or '-' }}</td>
-            <td>{{ 'Yes' if a.pinned else 'No' }}</td>
-            <td>{{ a.created_at[:10] }}</td>
-            <td class="admin-actions">
-                <a href="{{ url_for('admin_article_edit', article_id=a.id) }}">Edit</a>
-                {% if not a.published %}
-                <form method="POST" action="{{ url_for('admin_article_approve', article_id=a.id) }}" style="display:inline">
-                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                    <button type="submit">{{ t('approve') }}</button>
-                </form>
-                <form method="POST" action="{{ url_for('admin_article_publish', article_id=a.id) }}" style="display:inline">
-                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                    <button type="submit">{{ t('publish') }}</button>
-                </form>
-                {% else %}
-                <form method="POST" action="{{ url_for('admin_article_unpublish', article_id=a.id) }}" style="display:inline">
-                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                    <button type="submit">{{ t('unpublish') }}</button>
-                </form>
-                {% endif %}
-                <form method="POST" action="{{ url_for('admin_article_delete', article_id=a.id) }}" style="display:inline">
+    {% for article in articles %}
+    <article class="bo-card">
+        <div class="bo-card-header">
+            <div class="bo-card-stack">
+                <h2 class="bo-card-title">{{ article.title }}</h2>
+                <div class="bo-card-meta">
+                    {{ status_badge(article.approval_status or 'draft') }}
+                    <span>{{ t('created_by_label') }}: {{ article.created_by }}</span>
+                    <span>{{ article.created_at[:10] }}</span>
+                    <span>{{ t('approved_by') }}: {{ article.approved_by_display or '-' }}</span>
+                    {% if article.pinned %}<span>Pinned</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="bo-card-actions">
+            <a href="{{ url_for('admin_article_edit', article_id=article.id) }}" role="button">Edit</a>
+            {% if not article.published %}
+            <form method="POST" action="{{ url_for('admin_article_approve', article_id=article.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <button type="submit" class="secondary">{{ t('approve') }}</button>
+            </form>
+            <form method="POST" action="{{ url_for('admin_article_publish', article_id=article.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <button type="submit" class="secondary">{{ t('publish') }}</button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('admin_article_unpublish', article_id=article.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <button type="submit" class="secondary">{{ t('unpublish') }}</button>
+            </form>
+            {% endif %}
+            <details class="bo-expandable">
+                <summary>More</summary>
+                <form method="POST" action="{{ url_for('admin_article_delete', article_id=article.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
                     <button type="submit" class="btn-danger" onclick="return confirm('Delete this article?')">Delete</button>
                 </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
+            </details>
+        </div>
+    </article>
+    {% endfor %}
 {% else %}
-<p>No articles yet.</p>
+<div class="bo-empty-state">
+    <h2>No articles yet</h2>
+    <p>Create the first campaign update to start the editorial workflow.</p>
+</div>
 {% endif %}
 {% endblock %}
