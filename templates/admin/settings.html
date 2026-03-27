@@ -1,14 +1,27 @@
 {% extends "base_admin.html" %}
+{% from "components/bo_components.html" import page_header %}
 
 {% block title %}Settings &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
-<h1>Site Settings</h1>
+{{ page_header(
+    "Site Settings",
+    "Edit public campaign content, payment settings, and transparency details from one place."
+) }}
 
-<form method="POST" action="{{ url_for('admin_settings') }}">
+<nav class="bo-section-nav" aria-label="Settings sections">
+    <a href="#section-general">General</a>
+    <a href="#section-bitcoin">Bitcoin</a>
+    <a href="#section-coinos">Coinos</a>
+    <a href="#section-liquid">Liquid</a>
+    <a href="#section-fundraising">Fundraising</a>
+    <a href="#section-transparency">Transparency</a>
+</nav>
+
+<form method="POST" action="{{ url_for('admin_settings') }}" class="bo-settings-form">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
-    <fieldset>
+    <fieldset id="section-general">
         <legend>General</legend>
         <label>Site Title
             <input type="text" name="site_title" value="{{ cfg['site_title'] }}">
@@ -30,7 +43,7 @@
         </label>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="section-bitcoin">
         <legend>Bitcoin</legend>
         <label>Bitcoin On-Chain Address {% if cfg['coinos_onchain'] == '1' %}&mdash; managed by Coinos{% endif %}
             <input type="text" name="btc_address" value="{{ cfg['btc_address'] }}"
@@ -44,7 +57,7 @@
         </label>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="section-coinos">
         <legend>Coinos Lightning API</legend>
         <label>
             <input type="checkbox" name="coinos_enabled" value="1"
@@ -69,7 +82,7 @@
         <small>Use the <strong>read-only</strong> token from coinos.io/docs. It can create invoices but cannot withdraw funds. Lightning balance will be auto-updated from your Coinos account. When an invoice is paid, Coinos sends a webhook to update the balance instantly. If "Use Coinos for on-chain" is enabled, a new Coinos BTC address will be generated and on-chain donations will also be tracked via Coinos.</small>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="section-liquid">
         <legend>Liquid Network</legend>
         <label>
             <input type="checkbox" name="liquid_enabled" value="1"
@@ -83,7 +96,7 @@
         <small>Enter a Liquid Network address to display a QR code for Liquid donations.</small>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="section-fundraising">
         <legend>Fundraising</legend>
         <label>Goal (BTC)
             <input type="text" name="goal_btc" value="{{ cfg['goal_btc'] }}">
@@ -104,13 +117,16 @@
         <small>On-chain balance is updated automatically from mempool.space. Current: {{ cfg['raised_onchain_btc'] }} BTC</small>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="section-transparency">
         <legend>Transparency</legend>
         <label>Transparency Text (supports Markdown)
             <textarea name="transparency_text" rows="8">{{ cfg['transparency_text'] }}</textarea>
         </label>
     </fieldset>
 
-    <button type="submit">Save Settings</button>
+    <div class="bo-card bo-sticky-save">
+        <span class="bo-muted">Review your changes and save when you are ready.</span>
+        <button type="submit">Save Settings</button>
+    </div>
 </form>
 {% endblock %}

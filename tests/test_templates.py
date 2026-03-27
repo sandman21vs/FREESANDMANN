@@ -140,6 +140,8 @@ class TestAdminTemplates:
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
         assert b"sticky-donate" not in resp.data
+        assert b'href="#section-general"' in resp.data
+        assert b"bo-sticky-save" in resp.data
 
     def test_articles_list_renders(self, admin_session):
         """Lista de artigos admin renderiza sem erro."""

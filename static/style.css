@@ -1039,6 +1039,21 @@ progress::-moz-progress-bar {
     color: var(--text-primary);
 }
 
+.bo-settings-form fieldset {
+    scroll-margin-top: 5rem;
+}
+
+.bo-sticky-save {
+    position: sticky;
+    bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
+}
+
 @media (max-width: 768px) {
     .bo-topbar-inner {
         align-items: flex-start;
@@ -1088,5 +1103,10 @@ progress::-moz-progress-bar {
     .bo-card-header,
     .bo-balance-row {
         flex-direction: column;
+    }
+
+    .bo-sticky-save {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
