@@ -110,7 +110,8 @@ def set_language(lang):
 
 @app.route("/")
 def index():
-    articles = models.get_articles(published_only=True)
+    lang = session.get("lang", "pt")
+    articles = models.get_articles_for_lang(published_only=True, lang=lang)
     pinned = [a for a in articles if a["pinned"]]
     media_links = models.get_media_links()
     return render_template("index.html", articles=articles, pinned=pinned, media_links=media_links)
@@ -123,7 +124,8 @@ def donate():
 
 @app.route("/updates")
 def updates():
-    articles = models.get_articles(published_only=True)
+    lang = session.get("lang", "pt")
+    articles = models.get_articles_for_lang(published_only=True, lang=lang)
     return render_template("articles.html", articles=articles)
 
 

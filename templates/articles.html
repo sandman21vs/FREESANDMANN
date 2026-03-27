@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Updates &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+{% block title %}{{ t('updates_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
-<h1>Updates</h1>
+<h1>{{ t('updates_title') }}</h1>
 
 {% if articles %}
     {% for a in articles %}

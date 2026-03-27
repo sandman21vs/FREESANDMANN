@@ -16,14 +16,27 @@
 }
 
 [data-theme="light"] {
-    --pico-background-color: #ffffff;
-    --pico-card-background-color: #f6f8fa;
+    /* Pico overrides */
+    --pico-background-color: #f4f5f7;
+    --pico-card-background-color: #ffffff;
+    --pico-card-border-color: #d0d7de;
     --pico-primary: var(--btc-orange);
     --pico-primary-hover: #e8860f;
-    --bg-dark: #f6f8fa;
+    --pico-color: #1c1c1e;
+    --pico-h1-color: #1c1c1e;
+    --pico-h2-color: #2d2d2d;
+    --pico-h3-color: #3a3a3a;
+    --pico-muted-color: #57606a;
+    --pico-muted-border-color: #d0d7de;
+    --pico-border-color: #d0d7de;
+    --pico-code-background-color: #f0f0f0;
+    --pico-progress-background-color: #dde1e6;
+    --pico-progress-color: var(--btc-orange);
+    /* custom vars */
+    --bg-dark: #f4f5f7;
     --bg-card: #ffffff;
     --text-primary: #1c1c1e;
-    --text-secondary: #6e6e73;
+    --text-secondary: #57606a;
 }
 
 body {
@@ -48,7 +61,7 @@ progress {
 }
 
 progress::-webkit-progress-bar {
-    background-color: var(--bg-card);
+    background-color: var(--pico-progress-background-color, var(--bg-card));
     border-radius: 0.5rem;
 }
 

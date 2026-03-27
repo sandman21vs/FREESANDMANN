@@ -147,6 +147,21 @@ def get_articles(published_only=True):
     return [dict(row) for row in rows]
 
 
+def get_articles_for_lang(published_only=True, lang="pt"):
+    articles = get_articles(published_only=published_only)
+    result = []
+    for a in articles:
+        a = dict(a)
+        if lang == "en" and a.get("title_en"):
+            a["title"] = a["title_en"]
+            a["body_md"] = a.get("body_md_en") or a["body_md"]
+        elif lang == "de" and a.get("title_de"):
+            a["title"] = a["title_de"]
+            a["body_md"] = a.get("body_md_de") or a["body_md"]
+        result.append(a)
+    return result
+
+
 def get_article_by_slug(slug):
     conn = get_db()
     row = conn.execute("SELECT * FROM articles WHERE slug = ?", (slug,)).fetchone()
