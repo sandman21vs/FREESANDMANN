@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "components/embed.html" import share_buttons %}
+{% from "components/embed.html" import share_buttons with context %}
 
 {% block title %}{{ article.title }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 

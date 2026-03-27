@@ -40,7 +40,7 @@
 <script>
 function copyAddr(id, btn) {
     const text = document.getElementById(id).textContent;
-    {% if t %}const copiedText = "{{ t('copied') }}"{% else %}const copiedText = "Copied!"{% endif %};
+    const copiedText = "{{ t('copied') }}";
     navigator.clipboard.writeText(text).then(function() {
         const orig = btn.textContent;
         btn.textContent = copiedText;

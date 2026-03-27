@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% from "components/progress_bar.html" import progress_bar %}
-{% from "components/qr_codes.html" import qr_section %}
+{% from "components/progress_bar.html" import progress_bar with context %}
+{% from "components/qr_codes.html" import qr_section with context %}
 
 {% block title %}{{ t('donate_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
