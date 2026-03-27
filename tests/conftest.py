@@ -14,10 +14,25 @@ def temp_database(tmp_path, monkeypatch):
     Isso garante que testes nao interferem entre si.
     O banco e criado em tmp_path (diretorio temporario do pytest)
     e deletado automaticamente apos cada teste.
+
+    PBKDF2 iterations sao reduzidas APENAS aqui para acelerar testes.
+    Em producao, werkzeug usa o default (1_000_000 iterations).
     """
     db_path = str(tmp_path / "test.db")
     monkeypatch.setenv("DATABASE_PATH", db_path)
     monkeypatch.setattr("config.DATABASE_PATH", db_path)
+
+    # Acelerar hashing de senha apenas em testes (producao nao e afetada)
+    # Werkzeug >= 2.3 usa scrypt por padrao (n=32768), que e lento.
+    # Substituimos por pbkdf2 com 1 iteracao APENAS no ambiente de teste.
+    # monkeypatch reverte automaticamente apos cada teste.
+    import werkzeug.security
+    _original = werkzeug.security.generate_password_hash
+    monkeypatch.setattr(
+        werkzeug.security,
+        "generate_password_hash",
+        lambda pw, **kw: _original(pw, method="pbkdf2:sha256:1"),
+    )
 
     # Inicializar banco limpo
     from init_db import init_db
