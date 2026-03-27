@@ -1,67 +1,52 @@
-# Free Sandmann — Self-hosted Legal Defense Fundraising Site
+# Free Sandmann — Legal Defense Campaign Engine
 
-A simple, self-hostable Bitcoin fundraising site for legal defense. Fork it, deploy it in minutes, and start accepting donations. No payment processors, no middlemen — direct Bitcoin on-chain and Lightning Network donations.
+A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork it, configure through the admin panel, start accepting donations — no payment processors, no middlemen.
 
 ## Features
 
-- Bitcoin on-chain and Lightning Network donations via QR codes
-- Automatic on-chain balance tracking via mempool.space API
-- Fundraising progress bar with real-time goal tracking
-- Admin panel to manage articles, settings, and donation addresses
-- Markdown support for articles with auto-embed for YouTube and Twitter
-- Mobile-first responsive design
-- Docker deployment ready
-- Easy to fork and customize
+- **Bitcoin donations**: on-chain (QR + address copy) and Lightning/Liquid via Coinos.io
+- **Automatic balance tracking**: mempool.space API for on-chain, Coinos webhook for Lightning/Liquid
+- **Multilingual**: PT / EN / DE with browser `Accept-Language` detection and per-session override
+- **Content approval workflow**: dual-sign before publishing (admin + lawyer/professional)
+- **Admin panel**: articles, site settings, media links, lawyer account management
+- **Lawyer portal** (`/advogado/`): restricted role for content review and co-approval
+- **Markdown articles** with auto-embed for YouTube and Twitter/X
+- **Mobile-first** responsive design — hamburger menu, sticky donate button
+- **Docker + Cloudflare Tunnel** deployment, one command to start
+- **243 automated tests**
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/freesandmann/freesandmann.git
-cd freesandmann
-cp .env.example .env
-# Edit .env with your secret key
+git clone https://github.com/sandman21vs/FREESANDMANN.git
+cd FREESANDMANN
+cp .env.example .env        # set SECRET_KEY
 docker compose up -d
 ```
 
-Then visit `http://localhost:8000`
+Visit `http://localhost:8000`
 
 ## Admin Access
 
 1. Navigate to `/admin/login`
-2. Login with username `FREE` and password `FREE`
-3. You will be required to change the password on first login
-4. Configure your Bitcoin addresses and fundraising goal in Settings
+2. Login: username `FREE`, password `FREE`
+3. Change password (enforced on first login, min 8 chars, cannot be "FREE")
+4. Configure Bitcoin addresses, goal, and content in Settings
 
-## Deploy with Cloudflare Tunnel
+## Fork for Your Own Case
 
-```bash
-# Option 1: Quick tunnel (testing)
-cloudflared tunnel --url http://localhost:8000
-
-# Option 2: Named tunnel with custom domain (production)
-cloudflared tunnel create freesandmann
-cloudflared tunnel route dns freesandmann yourdomain.com
-cloudflared tunnel run freesandmann
-```
-
-## Customization
-
-- Edit site settings via admin panel (no code changes needed)
-- Replace `static/logo.png` for custom branding
-- Modify `static/style.css` for visual changes
-- All configuration is stored in SQLite — no config files to edit
-
-## Fork for your own case
-
-1. Fork this repo
-2. Deploy with Docker
-3. Login as admin
-4. Set your Bitcoin address and tell your story
+1. Fork the repo
+2. `docker compose up -d`
+3. Login as admin → set your Bitcoin address and story
+4. Optionally create a lawyer account for dual-approval publishing
 5. Share the link
+
+No code changes required for basic use. All configuration is in the admin panel.
 
 ## Tech Stack
 
-Flask + SQLite + Pico CSS + python-qrcode. Zero JavaScript frameworks. Zero build steps. Zero node_modules.
+Flask + SQLite + Pico CSS 2.x + Jinja2 + Vanilla JS.
+Zero npm, zero webpack, zero JS frameworks. Six Python dependencies.
 
 ## License
 

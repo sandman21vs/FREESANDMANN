@@ -73,3 +73,7 @@ operable program or batch file.
 [2026-03-27 15:46:16.923][WARN] 未能自动检测到 Arduino CLI
 [2026-03-27 15:46:16.923][ERROR] 获取板卡列表失败: CliNotReadyError: Arduino CLI 未配置或路径无效，请先执行 "Arduino: Configure CLI Path"
 [2026-03-27 15:46:16.923][INFO] 加载了 0 个平台，共 0 个板卡
+[2026-03-27 16:53:50.365][FATAL] [Global] 未处理的 Promise Rejection: command '_aiEdits.clearAiContributions' not found
+  Stack: Error: command '_aiEdits.clearAiContributions' not found
+    at EJe._tryExecuteCommand (vscode-file://vscode-app/c:/Users/Vinicius%20Soriano/AppData/Local/Programs/Microsoft%20VS%20Code/cfbea10c5f/resources/app/out/vs/workbench/workbench.desktop.main.js:1751:4829)
+    at EJe.executeCommand (vscode-file://vscode-app/c:/Users/Vinicius%20Soriano/AppData/Local/Programs/Microsoft%20VS%20Code/cfbea10c5f/resources/app/out/vs/workbench/workbench.desktop.main.js:1751:4729)
