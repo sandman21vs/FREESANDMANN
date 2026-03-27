@@ -345,3 +345,22 @@ progress::-moz-progress-bar {
     font-size: 1.2rem;
     margin-top: 1rem;
 }
+
+.invoice-form select {
+    max-width: 140px;
+    margin-bottom: 0;
+}
+
+.invoice-type-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-label-lightning {
+    color: var(--btc-orange);
+}
+
+.invoice-label-liquid {
+    color: #00b4e6;
+}

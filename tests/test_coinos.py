@@ -273,6 +273,63 @@ class TestCreateInvoiceRoute:
         assert data["hash"] == "testhash123"
         assert data["bolt11"] == "lnbc1000n1testinvoice"
 
+    def test_liquid_invoice(self, client, monkeypatch):
+        models.set_config("coinos_enabled", "1")
+        models.set_config("coinos_api_key", "test-token")
+
+        def mock_urlopen(req, **kwargs):
+            return MockResponse({
+                "hash": "lq1qqtestliquidaddr",
+                "text": "liquidnetwork:lq1qqtestliquidaddr?amount=NaN",
+                "amount": 5000,
+                "type": "liquid",
+                "received": 0,
+            })
+
+        monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+        client.get("/donate")
+        with client.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = client.post("/donate/create-invoice",
+            data=json.dumps({"amount_sats": 5000, "type": "liquid"}),
+            content_type="application/json",
+            headers={"X-CSRFToken": csrf})
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["ok"] is True
+        assert data["type"] == "liquid"
+
+    def test_invalid_type(self, client, monkeypatch):
+        self._setup_coinos(monkeypatch)
+
+        client.get("/donate")
+        with client.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = client.post("/donate/create-invoice",
+            data=json.dumps({"amount_sats": 1000, "type": "invalid"}),
+            content_type="application/json",
+            headers={"X-CSRFToken": csrf})
+
+        assert resp.status_code == 400
+
+    def test_large_amount_allowed(self, client, monkeypatch):
+        self._setup_coinos(monkeypatch)
+
+        client.get("/donate")
+        with client.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = client.post("/donate/create-invoice",
+            data=json.dumps({"amount_sats": 10000000}),
+            content_type="application/json",
+            headers={"X-CSRFToken": csrf})
+
+        assert resp.status_code == 200
+
     def test_disabled(self, client, monkeypatch):
         models.set_config("coinos_enabled", "0")
 
@@ -296,7 +353,7 @@ class TestCreateInvoiceRoute:
         with client.session_transaction() as sess:
             csrf = sess.get("csrf_token", "")
 
-        for bad_amount in [0, -1, 20000000, "abc"]:
+        for bad_amount in [0, -1, 200000000, "abc"]:
             resp = client.post("/donate/create-invoice",
                 data=json.dumps({"amount_sats": bad_amount}),
                 content_type="application/json",

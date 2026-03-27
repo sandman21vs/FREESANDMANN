@@ -31,6 +31,39 @@
 <section>
     <h2>How to Donate</h2>
     {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'medium') }}
+
+    {% if cfg.get('coinos_enabled') == '1' %}
+    <div id="invoice-pay-home">
+        <h3>Pay with Lightning or Liquid</h3>
+        <div class="preset-amounts">
+            <button class="preset-btn" onclick="setAmount(1000)">1,000 sats</button>
+            <button class="preset-btn" onclick="setAmount(5000)">5,000 sats</button>
+            <button class="preset-btn" onclick="setAmount(10000)">10,000 sats</button>
+            <button class="preset-btn" onclick="setAmount(50000)">50,000 sats</button>
+            <button class="preset-btn" onclick="setAmount(100000)">100,000 sats</button>
+            <button class="preset-btn" onclick="setAmount(1000000)">1M sats</button>
+            <button class="preset-btn" onclick="setAmount(10000000)">10M sats</button>
+        </div>
+        <div class="invoice-form">
+            <input type="number" id="sats-amount" min="1" max="100000000"
+                   placeholder="Custom amount in sats">
+            <select id="invoice-type">
+                <option value="lightning">Lightning</option>
+                <option value="liquid">Liquid</option>
+            </select>
+            <button id="create-invoice-btn" onclick="createInvoice()">Generate Invoice</button>
+        </div>
+        <div id="invoice-result" style="display:none;">
+            <div id="invoice-type-label" class="invoice-type-label"></div>
+            <img id="invoice-qr" alt="Invoice QR" class="qr-img qr-large">
+            <div class="address-box">
+                <code class="address-text" id="invoice-bolt11" style="word-break:break-all;font-size:0.75em;"></code>
+                <button onclick="copyAddr('invoice-bolt11', this)" class="copy-btn">Copy</button>
+            </div>
+            <div id="invoice-status" class="invoice-waiting">Waiting for payment...</div>
+        </div>
+    </div>
+    {% endif %}
 </section>
 
 {% if pinned %}
@@ -61,4 +94,86 @@
 {% endif %}
 
 {{ share_buttons(request.url_root, cfg.get('site_title', 'Free Sandmann') ~ ' — ' ~ cfg.get('site_tagline', '')) }}
+{% endblock %}
+
+{% block scripts %}
+{% if cfg.get('coinos_enabled') == '1' %}
+<script>
+const csrfToken = "{{ session.csrf_token }}";
+let pollTimer = null;
+
+function setAmount(sats) {
+    document.getElementById('sats-amount').value = sats;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function createInvoice() {
+    const amount = parseInt(document.getElementById('sats-amount').value);
+    if (!amount || amount < 1 || amount > 100000000) {
+        alert('Enter a valid amount (1 - 100,000,000 sats)');
+        return;
+    }
+
+    const invoiceType = document.getElementById('invoice-type').value;
+    const btn = document.getElementById('create-invoice-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+    fetch('/donate/create-invoice', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({amount_sats: amount, type: invoiceType})
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.textContent = 'Generate Invoice';
+
+        if (!data.ok) {
+            alert(data.error || 'Failed to create invoice');
+            return;
+        }
+
+        const resultDiv = document.getElementById('invoice-result');
+        resultDiv.style.display = 'block';
+
+        const label = document.getElementById('invoice-type-label');
+        label.textContent = data.type === 'liquid' ? 'Liquid Network' : 'Lightning Network';
+        label.className = 'invoice-type-label invoice-label-' + data.type;
+
+        document.getElementById('invoice-qr').src =
+            '/donate/invoice-qr?bolt11=' + encodeURIComponent(data.bolt11);
+        document.getElementById('invoice-bolt11').textContent = data.bolt11;
+
+        const status = document.getElementById('invoice-status');
+        status.textContent = 'Waiting for payment...';
+        status.className = 'invoice-waiting';
+
+        pollTimer = setInterval(function() {
+            fetch('/donate/check-invoice/' + encodeURIComponent(data.hash))
+            .then(r => r.json())
+            .then(s => {
+                if (s.paid) {
+                    clearInterval(pollTimer);
+                    pollTimer = null;
+                    status.textContent = 'Payment received! Thank you!';
+                    status.className = 'invoice-paid';
+                }
+            });
+        }, 3000);
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Generate Invoice';
+        alert('Network error. Please try again.');
+    });
+}
+</script>
+{% endif %}
 {% endblock %}

@@ -1,4 +1,4 @@
-"""Cliente da API Coinos.io para receber pagamentos Lightning."""
+"""Cliente da API Coinos.io para receber pagamentos Lightning e Liquid."""
 import json
 import re
 import urllib.request
@@ -27,16 +27,18 @@ def _coinos_request(method, path, body=None):
         return None
 
 
-def create_invoice(amount_sats):
+def create_invoice(amount_sats, invoice_type="lightning"):
     if models.get_config("coinos_enabled") != "1":
         return None
     if not amount_sats or amount_sats < 1:
+        return None
+    if invoice_type not in ("lightning", "liquid"):
         return None
 
     result = _coinos_request("POST", "/invoice", {
         "invoice": {
             "amount": amount_sats,
-            "type": "lightning",
+            "type": invoice_type,
         }
     })
     return result

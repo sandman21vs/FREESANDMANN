@@ -134,12 +134,12 @@ def qr_code(qr_type):
     return response
 
 
-# ── Lightning invoice routes ─────────────────────────────────────────
+# ── Invoice routes (Lightning + Liquid) ──────────────────────────────
 
 @app.route("/donate/create-invoice", methods=["POST"])
 def create_invoice():
     if models.get_config("coinos_enabled") != "1":
-        return jsonify({"ok": False, "error": "Lightning invoices not enabled"}), 400
+        return jsonify({"ok": False, "error": "Invoices not enabled"}), 400
 
     data = request.get_json(silent=True)
     if not data or "amount_sats" not in data:
@@ -150,10 +150,14 @@ def create_invoice():
     except (ValueError, TypeError):
         return jsonify({"ok": False, "error": "Invalid amount"}), 400
 
-    if amount < 1 or amount > 10_000_000:
-        return jsonify({"ok": False, "error": "Amount must be between 1 and 10,000,000 sats"}), 400
+    if amount < 1 or amount > 100_000_000:
+        return jsonify({"ok": False, "error": "Amount must be between 1 and 100,000,000 sats"}), 400
 
-    result = coinos.create_invoice(amount)
+    invoice_type = data.get("type", "lightning")
+    if invoice_type not in ("lightning", "liquid"):
+        return jsonify({"ok": False, "error": "Type must be lightning or liquid"}), 400
+
+    result = coinos.create_invoice(amount, invoice_type)
     if not result:
         return jsonify({"ok": False, "error": "Failed to create invoice"}), 500
 
@@ -162,6 +166,7 @@ def create_invoice():
         "hash": result.get("hash", ""),
         "bolt11": result.get("text", ""),
         "amount_sats": amount,
+        "type": invoice_type,
     })
 
 
