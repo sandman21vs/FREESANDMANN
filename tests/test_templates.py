@@ -128,6 +128,8 @@ class TestAdminTemplates:
         resp = admin_session.get("/admin/")
         assert resp.status_code == 200
         assert b"Dashboard" in resp.data or b"dashboard" in resp.data
+        assert b"bo-sidebar" in resp.data
+        assert b"Pending Articles" in resp.data
 
     def test_settings_renders(self, admin_session):
         """Settings renderiza sem erro."""

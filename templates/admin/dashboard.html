@@ -1,35 +1,68 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
+{% from "components/bo_components.html" import page_header, stat_card %}
 
 {% block title %}Dashboard &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
-<h1>Dashboard</h1>
+{{ page_header(
+    "Dashboard",
+    "Keep an eye on fundraising, review queue, and the operational health of the campaign.",
+    url_for('admin_article_new'),
+    "New Article"
+) }}
 
-<article>
-    <h2>Fundraising</h2>
-    <p><strong>Raised:</strong> {{ "%.8f"|format(cfg['raised_btc']|float) }} / {{ "%.8f"|format(cfg['goal_btc']|float) }} BTC</p>
-    <p>
-        On-chain: {{ "%.8f"|format(cfg['raised_onchain_btc']|float) }} BTC &mdash;
-        Lightning: {{ "%.8f"|format(cfg['raised_lightning_btc']|float) }} BTC &mdash;
-        Manual adjustment: {{ "%.8f"|format(cfg['raised_btc_manual_adjustment']|float) }} BTC
-    </p>
-    <p><strong>Last balance check:</strong> {{ cfg['last_balance_check'] or 'Never' }}</p>
-    <form method="POST" action="{{ url_for('admin_refresh_balance') }}" style="display:inline">
+<div class="bo-stats">
+    {{ stat_card("%.4f"|format(cfg['raised_btc']|float) ~ " BTC", "Raised", "#f7931a") }}
+    {{ stat_card("%.4f"|format(cfg['goal_btc']|float) ~ " BTC", "Goal") }}
+    {{ stat_card(pending_count, "Pending Articles", "#d29922") }}
+    {{ stat_card(active_lawyers_count, "Active Lawyers", "#2ea043") }}
+</div>
+
+{% if alerts %}
+<div class="bo-alerts">
+    {% for alert in alerts %}
+    <div class="bo-alert bo-alert-{{ alert.level }}">{{ alert.message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="bo-quick-actions">
+    <a href="{{ url_for('admin_article_new') }}" role="button">New Article</a>
+    <a href="{{ url_for('admin_articles', filter='pending') }}" role="button" class="secondary">Review Pending ({{ pending_count }})</a>
+    <form method="POST" action="{{ url_for('admin_refresh_balance') }}">
         <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-        <button type="submit">Refresh Balance Now</button>
+        <button type="submit" class="secondary">Refresh Balance</button>
     </form>
-    <p><strong>Supporters:</strong> {{ cfg['supporters_count'] }}</p>
-    <p><strong>Articles:</strong> {{ articles|length }} &mdash; <strong>Media links:</strong> {{ media_links|length }}</p>
-</article>
+</div>
 
-<nav>
-    <ul>
-        <li><a href="{{ url_for('admin_settings') }}">Settings</a></li>
-        <li><a href="{{ url_for('admin_articles') }}">Articles</a></li>
-        <li><a href="{{ url_for('admin_media_links') }}">Media Links</a></li>
-        <li><a href="{{ url_for('admin_lawyers') }}">{{ t('manage_lawyers') }}</a></li>
-        <li><a href="{{ url_for('admin_change_password') }}">Change Password</a></li>
-        <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
-    </ul>
-</nav>
+<article class="bo-card">
+    <div class="bo-card-header">
+        <div>
+            <h2 class="bo-card-title">Balance Breakdown</h2>
+            <p class="bo-muted">Supporters: {{ cfg['supporters_count'] }} &middot; Articles: {{ articles|length }} &middot; Media Links: {{ media_links|length }}</p>
+        </div>
+    </div>
+    <div class="bo-balance-list">
+        <div class="bo-balance-row">
+            <span>On-chain</span>
+            <strong>{{ "%.8f"|format(cfg['raised_onchain_btc']|float) }} BTC</strong>
+        </div>
+        <div class="bo-balance-row">
+            <span>Lightning</span>
+            <strong>{{ "%.8f"|format(cfg['raised_lightning_btc']|float) }} BTC</strong>
+        </div>
+        <div class="bo-balance-row">
+            <span>Manual adjustment</span>
+            <strong>{{ "%.8f"|format(cfg['raised_btc_manual_adjustment']|float) }} BTC</strong>
+        </div>
+        <div class="bo-balance-row">
+            <span>Total raised</span>
+            <strong>{{ "%.8f"|format(cfg['raised_btc']|float) }} BTC</strong>
+        </div>
+        <div class="bo-balance-row">
+            <span>Last balance check</span>
+            <strong>{{ cfg['last_balance_check'] or 'Never' }}</strong>
+        </div>
+    </div>
+</article>
 {% endblock %}

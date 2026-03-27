@@ -58,9 +58,39 @@ def change_admin_password(new_password, confirm_password):
 
 
 def get_admin_dashboard_context():
+    articles = models.get_articles(published_only=False)
+    media_links = models.get_media_links()
+    lawyers = models.get_all_lawyers()
+    cfg = models.get_all_config()
+
+    alerts = []
+    if cfg.get("coinos_enabled") != "1":
+        alerts.append({
+            "level": "warning",
+            "message": "Coinos Lightning invoices are currently disabled.",
+        })
+    if not cfg.get("hero_image_url"):
+        alerts.append({
+            "level": "info",
+            "message": "No hero image is configured for the homepage.",
+        })
+    if not cfg.get("og_image_url"):
+        alerts.append({
+            "level": "info",
+            "message": "No Open Graph image is configured for social sharing.",
+        })
+    if not cfg.get("wallet_explorer_url"):
+        alerts.append({
+            "level": "info",
+            "message": "No wallet explorer URL is configured for transparency links.",
+        })
+
     return {
-        "articles": models.get_articles(published_only=False),
-        "media_links": models.get_media_links(),
+        "articles": articles,
+        "media_links": media_links,
+        "pending_count": len([a for a in articles if a["approval_status"] in ("pending", "draft")]),
+        "active_lawyers_count": len([l for l in lawyers if l["active"]]),
+        "alerts": alerts,
     }
 
 
