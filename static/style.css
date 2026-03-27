@@ -663,3 +663,430 @@ progress::-moz-progress-bar {
         gap: 1.25rem;
     }
 }
+
+/* ============================
+   Backoffice
+   ============================ */
+.bo-topbar {
+    border-bottom: 1px solid var(--pico-border-color, var(--text-secondary));
+    background: var(--bg-card);
+}
+
+.bo-topbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    min-height: 4rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.bo-topbar-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.bo-topbar-title strong {
+    line-height: 1.1;
+}
+
+.bo-topbar-title small,
+.bo-sidebar-note,
+.bo-muted,
+.bo-card-meta,
+.bo-page-header p,
+.bo-empty-state p,
+.bo-section-nav a {
+    color: var(--text-secondary);
+}
+
+.bo-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.bo-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 4rem);
+    gap: 0;
+}
+
+.bo-sidebar {
+    background: var(--bg-card);
+    border-right: 1px solid var(--pico-border-color, var(--text-secondary));
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.bo-sidebar-section + .bo-sidebar-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--pico-border-color, var(--text-secondary));
+}
+
+.bo-sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.bo-sidebar-nav a {
+    display: block;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.bo-sidebar-nav a:hover {
+    background: var(--bg-dark);
+}
+
+.bo-sidebar-nav a.active {
+    background: var(--btc-orange);
+    color: white;
+    font-weight: 600;
+}
+
+.bo-main {
+    padding: 1.5rem 2rem;
+    max-width: 1000px;
+    width: 100%;
+}
+
+.bo-main-shell {
+    width: 100%;
+}
+
+.bo-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.bo-page-header h1 {
+    margin: 0;
+    font-size: 1.65rem;
+}
+
+.bo-page-header p {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    max-width: 56rem;
+}
+
+.bo-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.bo-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--pico-border-color, var(--text-secondary));
+    border-radius: 0.75rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.bo-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    display: block;
+    line-height: 1.1;
+}
+
+.bo-stat-label {
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--text-secondary);
+}
+
+.bo-alerts {
+    margin-bottom: 1.5rem;
+}
+
+.bo-alert {
+    padding: 0.8rem 1rem;
+    border-radius: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.92rem;
+    border-left: 4px solid;
+}
+
+.bo-alert-warning {
+    border-color: #d29922;
+    background: color-mix(in srgb, #d29922 14%, transparent);
+}
+
+.bo-alert-info {
+    border-color: #1f6feb;
+    background: color-mix(in srgb, #1f6feb 14%, transparent);
+}
+
+.bo-alert-success {
+    border-color: var(--success-green);
+    background: color-mix(in srgb, var(--success-green) 12%, transparent);
+}
+
+.bo-quick-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.bo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--pico-border-color, var(--text-secondary));
+    border-radius: 0.75rem;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.85rem;
+}
+
+.bo-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.bo-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.bo-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.bo-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.bo-card-actions a,
+.bo-card-actions button {
+    font-size: 0.88rem;
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 0;
+}
+
+.bo-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.bo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.bo-badge-draft {
+    background: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+    color: var(--text-primary);
+}
+
+.bo-badge-pending {
+    background: #d29922;
+    color: white;
+}
+
+.bo-badge-approved {
+    background: #1f6feb;
+    color: white;
+}
+
+.bo-badge-published {
+    background: var(--success-green);
+    color: white;
+}
+
+.bo-badge-active {
+    background: var(--success-green);
+    color: white;
+}
+
+.bo-badge-inactive {
+    background: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+    color: var(--text-primary);
+}
+
+.bo-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--pico-border-color, var(--text-secondary));
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+.bo-tab {
+    padding: 0.55rem 1rem;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.92rem;
+    white-space: nowrap;
+}
+
+.bo-tab:hover {
+    color: var(--text-primary);
+}
+
+.bo-tab-active {
+    color: var(--btc-orange);
+    border-bottom-color: var(--btc-orange);
+    font-weight: 700;
+}
+
+.bo-tab-count {
+    background: var(--bg-dark);
+    padding: 0.08rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    margin-left: 0.35rem;
+}
+
+.bo-section-nav {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.bo-section-nav a {
+    text-decoration: none;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: var(--bg-card);
+    border: 1px solid var(--pico-border-color, var(--text-secondary));
+}
+
+.bo-section-nav a:hover {
+    color: var(--text-primary);
+    border-color: var(--btc-orange);
+}
+
+.bo-expandable {
+    margin-bottom: 1rem;
+}
+
+.bo-expandable summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.bo-empty-state {
+    background: var(--bg-card);
+    border: 1px dashed var(--pico-border-color, var(--text-secondary));
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.bo-empty-state h2,
+.bo-empty-state h3,
+.bo-empty-state p:last-child {
+    margin-bottom: 0;
+}
+
+.bo-balance-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.bo-balance-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.bo-balance-row strong {
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .bo-topbar-inner {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .bo-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .bo-sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--pico-border-color, var(--text-secondary));
+        padding: 0.85rem 1rem;
+    }
+
+    .bo-sidebar-section + .bo-sidebar-section {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+    }
+
+    .bo-sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .bo-sidebar-nav a {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.88rem;
+    }
+
+    .bo-main {
+        padding: 1rem;
+    }
+
+    .bo-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bo-page-header {
+        align-items: stretch;
+    }
+
+    .bo-card-header,
+    .bo-balance-row {
+        flex-direction: column;
+    }
+}
