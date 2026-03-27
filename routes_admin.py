@@ -6,7 +6,6 @@ from service_admin import (
     approve_admin_article,
     attempt_admin_login,
     change_admin_password,
-    create_admin_article,
     create_lawyer_account,
     create_media_link,
     get_admin_dashboard_context,
@@ -16,8 +15,8 @@ from service_admin import (
     reset_lawyer_account_password,
     toggle_lawyer_activation,
     unpublish_admin_article,
-    update_admin_article,
 )
+from service_editorial import create_article_for_role, update_article_for_role
 
 
 def register_admin_routes(app):
@@ -99,7 +98,7 @@ def register_admin_routes(app):
     @login_required
     def admin_article_new():
         if request.method == "POST":
-            result = create_admin_article(request.form)
+            result = create_article_for_role(request.form, role="admin")
             if not result["ok"]:
                 flash(result["message"], "error")
                 return render_template("admin/article_form.html", article=None)
@@ -116,7 +115,7 @@ def register_admin_routes(app):
             abort(404)
 
         if request.method == "POST":
-            result = update_admin_article(article_id, request.form)
+            result = update_article_for_role(article_id, request.form, role="admin")
             if result.get("status") == "not_found":
                 abort(404)
             if not result["ok"]:

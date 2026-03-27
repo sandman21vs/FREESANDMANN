@@ -287,6 +287,24 @@ class TestLawyerArticleCreation:
         assert updated["title"] == "Edited By Lawyer"
         assert updated["published"] == 0
 
+    def test_lawyer_edit_preserves_existing_pinned_flag(self, lawyer_session):
+        """Edicao por advogado preserva pinned existente."""
+        slug = models.create_article("Pinned Original", "Original body", 0, 1, created_by="lawyer", approval_status="pending")
+        article = models.get_article_by_slug(slug)
+
+        with lawyer_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = lawyer_session.post(f"/advogado/articles/{article['id']}/edit", data={
+            "title": "Pinned Original Edited",
+            "body_md": "Updated body",
+            "csrf_token": csrf,
+        })
+        assert resp.status_code == 302
+
+        updated = models.get_article_by_id(article["id"])
+        assert updated["pinned"] == 1
+
     def test_lawyer_cannot_set_published(self, lawyer_session):
         """Mesmo com published no form, advogado nao publica."""
         with lawyer_session.session_transaction() as sess:

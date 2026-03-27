@@ -4,6 +4,7 @@ from flask import abort, flash, redirect, render_template, request, session, url
 
 import models
 from app_auth import lawyer_required
+from service_editorial import create_article_for_role, update_article_for_role
 
 logger = logging.getLogger(__name__)
 
@@ -79,22 +80,15 @@ def register_lawyer_routes(app):
     @lawyer_required
     def lawyer_article_new():
         if request.method == "POST":
-            title = request.form.get("title", "").strip()
-            if not title:
-                flash("Title is required.", "error")
-                return render_template("advogado/article_form.html", article=None)
-
-            body_md = request.form.get("body_md", "")
-            title_en = request.form.get("title_en", "")
-            body_md_en = request.form.get("body_md_en", "")
-            title_de = request.form.get("title_de", "")
-            body_md_de = request.form.get("body_md_de", "")
-            models.create_article(
-                title, body_md, 0, 0,
-                title_en, body_md_en, title_de, body_md_de,
-                created_by="lawyer", approval_status="pending",
+            result = create_article_for_role(
+                request.form,
+                role="lawyer",
+                display_name=session.get("lawyer_display_name"),
             )
-            flash("Article submitted for review.", "success")
+            if not result["ok"]:
+                flash(result["message"], "error")
+                return render_template("advogado/article_form.html", article=None)
+            flash(result["message"], "success")
             return redirect(url_for("lawyer_dashboard"))
 
         return render_template("advogado/article_form.html", article=None)
@@ -107,22 +101,13 @@ def register_lawyer_routes(app):
             abort(404)
 
         if request.method == "POST":
-            title = request.form.get("title", "").strip()
-            if not title:
-                flash("Title is required.", "error")
-                return render_template("advogado/article_form.html", article=art)
-
-            body_md = request.form.get("body_md", "")
-            title_en = request.form.get("title_en", "")
-            body_md_en = request.form.get("body_md_en", "")
-            title_de = request.form.get("title_de", "")
-            body_md_de = request.form.get("body_md_de", "")
-            models.update_article(
-                article_id, title, body_md, 0, art.get("pinned", 0),
-                title_en, body_md_en, title_de, body_md_de,
-                clear_approvals=True,
-            )
-            flash("Article updated and submitted for review.", "success")
+            result = update_article_for_role(article_id, request.form, role="lawyer")
+            if result.get("status") == "not_found":
+                abort(404)
+            if not result["ok"]:
+                flash(result["message"], "error")
+                return render_template("advogado/article_form.html", article=result.get("article", art))
+            flash(result["message"], "success")
             return redirect(url_for("lawyer_dashboard"))
 
         approvals = models.get_article_approvals(article_id)
