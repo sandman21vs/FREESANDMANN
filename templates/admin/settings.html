@@ -1,10 +1,9 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
 
 {% block title %}Settings &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
 <h1>Site Settings</h1>
-<a href="{{ url_for('admin_dashboard') }}">&larr; Back to Dashboard</a>
 
 <form method="POST" action="{{ url_for('admin_settings') }}">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">

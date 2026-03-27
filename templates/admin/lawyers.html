@@ -1,10 +1,9 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
 
 {% block title %}{{ t('manage_lawyers') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
 <h1>{{ t('manage_lawyers') }}</h1>
-<a href="{{ url_for('admin_dashboard') }}">&larr; Dashboard</a>
 
 <h2>{{ t('create_lawyer') }}</h2>
 <form method="POST" action="{{ url_for('admin_lawyers') }}">

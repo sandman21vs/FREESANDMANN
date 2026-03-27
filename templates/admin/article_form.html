@@ -1,11 +1,10 @@
-{% extends "base.html" %}
+{% extends "base_admin.html" %}
 {% from "components/article_form_fields.html" import article_form_fields with context %}
 
 {% block title %}{{ "Edit Article" if article else "New Article" }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
 <h1>{{ "Edit Article" if article else "New Article" }}</h1>
-<a href="{{ url_for('admin_articles') }}">&larr; Back to Articles</a>
 
 <form method="POST" action="{{ url_for('admin_article_edit', article_id=article.id) if article else url_for('admin_article_new') }}">
     {{ article_form_fields(article, show_publish_mode=true, show_pinned=true) }}

@@ -1,11 +1,10 @@
-{% extends "base.html" %}
+{% extends "base_lawyer.html" %}
 {% from "components/article_form_fields.html" import article_form_fields with context %}
 
 {% block title %}{{ "Edit Article" if article else "New Article" }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
 <h1>{{ "Edit Article" if article else "New Article" }}</h1>
-<a href="{{ url_for('lawyer_dashboard') }}">&larr; {{ t('lawyer_dashboard_title') }}</a>
 
 <p><em>{{ t('article_submitted_review') }}</em></p>
 

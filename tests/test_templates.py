@@ -122,6 +122,8 @@ class TestAdminTemplates:
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"csrf_token" in resp.data
+        assert b"bo-sidebar" not in resp.data
+        assert b"sticky-donate" in resp.data
 
     def test_dashboard_renders(self, admin_session):
         """Dashboard renderiza sem erro."""
@@ -136,6 +138,8 @@ class TestAdminTemplates:
         resp = admin_session.get("/admin/settings")
         assert resp.status_code == 200
         assert b"<form" in resp.data
+        assert b"bo-sidebar" in resp.data
+        assert b"sticky-donate" not in resp.data
 
     def test_articles_list_renders(self, admin_session):
         """Lista de artigos admin renderiza sem erro."""
@@ -180,12 +184,22 @@ class TestAdminTemplates:
         resp = admin_session.get("/admin/media-links")
         assert resp.status_code == 200
         assert b"<form" in resp.data
+        assert b"bo-sidebar" in resp.data
 
     def test_change_password_renders(self, admin_session):
         """Pagina de troca de senha renderiza sem erro."""
         resp = admin_session.get("/admin/change-password")
         assert resp.status_code == 200
         assert b"<form" in resp.data
+        assert b"bo-sidebar" in resp.data
+
+    def test_lawyer_change_password_uses_backoffice_shell(self, lawyer_session):
+        """Troca de senha do advogado deve usar o shell autenticado."""
+        resp = lawyer_session.get("/advogado/change-password")
+        assert resp.status_code == 200
+        assert b"<form" in resp.data
+        assert b"bo-sidebar" in resp.data
+        assert b"sticky-donate" not in resp.data
 
     def test_all_admin_forms_have_csrf(self, admin_session):
         """Todos os formularios admin devem ter campo csrf_token."""
