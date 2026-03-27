@@ -146,6 +146,8 @@ class TestAdminTemplates:
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"body_md" in resp.data
+        assert b'name="publish_mode"' in resp.data
+        assert b'name="pinned"' in resp.data
 
     def test_article_form_edit_renders(self, admin_session):
         """Formulario de editar artigo renderiza sem erro."""
@@ -154,6 +156,14 @@ class TestAdminTemplates:
         resp = admin_session.get(f"/admin/articles/{article['id']}/edit")
         assert resp.status_code == 200
         assert b"For Edit" in resp.data
+
+    def test_lawyer_article_form_hides_admin_only_controls(self, lawyer_session):
+        """Formulario do advogado nao deve expor publish_mode nem pinned."""
+        resp = lawyer_session.get("/advogado/articles/new")
+        assert resp.status_code == 200
+        assert b"<form" in resp.data
+        assert b'name="publish_mode"' not in resp.data
+        assert b'name="pinned"' not in resp.data
 
     def test_media_links_renders(self, admin_session):
         """Pagina de media links renderiza sem erro."""
