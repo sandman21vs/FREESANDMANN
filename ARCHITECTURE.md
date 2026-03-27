@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-27 — 260 tests passing.
+Last verified: 2026-03-27 — 262 tests passing.
 
 ---
 
@@ -35,7 +35,7 @@ FREESANDMANN/
 ├── app_hooks.py        # Language, CSRF, and template context hooks
 ├── routes_public.py    # Public pages + thin donation/QR route handlers + error handlers
 ├── routes_admin.py     # Thin admin route handlers
-├── routes_lawyer.py    # Lawyer portal routes
+├── routes_lawyer.py    # Thin lawyer portal route handlers
 ├── db.py               # Shared SQLite connection helper
 ├── model_config.py     # Config storage + admin settings validation
 ├── model_auth.py       # Admin/lawyer auth + rate limiting
@@ -45,8 +45,9 @@ FREESANDMANN/
 ├── coinos_client.py    # Low-level Coinos.io API client + balance sync
 ├── coinos.py           # Compatibility facade for Coinos helpers
 ├── service_donations.py # Donation flow validation + webhook handling
+├── service_editorial.py # Shared article workflow for admin + lawyer roles
 ├── service_qr.py       # QR-code response helpers
-├── service_admin.py    # Admin workflow helpers: auth, settings, content, lawyers
+├── service_admin.py    # Admin workflow helpers: auth, settings, media, lawyers
 ├── config.py           # Defaults + env vars
 ├── init_db.py          # Schema creation + seeding
 ├── i18n.py             # PT/EN/DE translation loader
@@ -69,6 +70,7 @@ FREESANDMANN/
 │   ├── error.html      # 404 / 403
 │   │
 │   ├── components/
+│   │   ├── article_form_fields.html  # Shared article form macro for admin + lawyer
 │   │   ├── embed.html
 │   │   ├── invoice_widget.html  # Shared Coinos invoice markup + data attrs
 │   │   ├── progress_bar.html
@@ -79,7 +81,7 @@ FREESANDMANN/
 │   │   ├── dashboard.html
 │   │   ├── settings.html
 │   │   ├── articles.html      # CRUD list with approval status column
-│   │   ├── article_form.html  # Create/edit with multilingual fields
+│   │   ├── article_form.html  # Create/edit shell using shared article form macro
 │   │   ├── media_links.html
 │   │   ├── change_password.html
 │   │   └── lawyers.html       # Lawyer account management
@@ -87,7 +89,7 @@ FREESANDMANN/
 │   └── advogado/
 │       ├── login.html
 │       ├── dashboard.html
-│       ├── article_form.html  # Same form, lawyer-restricted fields
+│       ├── article_form.html  # Lawyer shell using shared article form macro
 │       └── change_password.html
 │
 ├── translations/
@@ -95,7 +97,7 @@ FREESANDMANN/
 │   ├── en.json         # 77 keys
 │   └── de.json         # 77 keys
 │
-├── tests/              # 260 tests via pytest
+├── tests/              # 262 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
@@ -397,7 +399,7 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 
 ## Observability
 
-- Module loggers in route/background modules, `model_auth.py`, `model_balance.py`, `coinos_client.py`, and `service_donations.py`
+- Module loggers in route/background modules, `model_auth.py`, `model_balance.py`, `coinos_client.py`, `service_admin.py`, and `service_donations.py`
 - External API failures are logged with stack traces instead of failing silently
 - Logs include: login success/failure, rate limiting, invoice creation, Coinos webhooks, balance updates, and cleanup of expired login attempts
 - Operational view: `docker compose logs -f`
@@ -442,7 +444,7 @@ python app.py              # dev server on :8000
 ```
 
 ```bash
-python -m pytest tests/ -v        # run all 260 tests
+python -m pytest tests/ -v        # run all 262 tests
 python -m pytest tests/ -q        # quiet summary
 python -m pytest tests/test_i18n.py -v   # single file
 ```

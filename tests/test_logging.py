@@ -6,12 +6,14 @@ import models
 
 def test_onchain_balance_failure_is_logged(temp_database, monkeypatch, caplog):
     """Falha na API do mempool.space deve gerar log de exceção."""
+    import model_balance
+
     models.set_config("btc_address", "bc1qtest1234567890")
 
     def fake_urlopen(*args, **kwargs):
         raise OSError("network down")
 
-    monkeypatch.setattr("models.urllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr(model_balance.urllib.request, "urlopen", fake_urlopen)
 
     with caplog.at_level(logging.ERROR):
         models.check_onchain_balance()

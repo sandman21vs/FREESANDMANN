@@ -13,7 +13,7 @@ A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork i
 - **Markdown articles** with auto-embed for YouTube and Twitter/X
 - **Mobile-first** responsive design — hamburger menu, sticky donate button
 - **Docker** deployment, one command to start
-- **260 automated tests**
+- **262 automated tests**
 
 ## Quick Start
 

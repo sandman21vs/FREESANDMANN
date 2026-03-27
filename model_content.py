@@ -170,7 +170,7 @@ def _auto_embed(html):
     return html
 
 
-def _render_markdown(text):
+def render_markdown(text):
     html = markdown_lib.markdown(
         text,
         extensions=["extra", "nl2br", "sane_lists"],
@@ -247,9 +247,9 @@ def create_article(
     approval_status=None,
 ):
     slug = _make_slug(title)
-    body_html = _render_markdown(body_md)
-    body_html_en = _render_markdown(body_md_en) if body_md_en else ""
-    body_html_de = _render_markdown(body_md_de) if body_md_de else ""
+    body_html = render_markdown(body_md)
+    body_html_en = render_markdown(body_md_en) if body_md_en else ""
+    body_html_de = render_markdown(body_md_de) if body_md_de else ""
 
     if created_by == "lawyer":
         published = 0
@@ -301,9 +301,9 @@ def update_article(
     clear_approvals=True,
 ):
     slug = _make_slug(title)
-    body_html = _render_markdown(body_md)
-    body_html_en = _render_markdown(body_md_en) if body_md_en else ""
-    body_html_de = _render_markdown(body_md_de) if body_md_de else ""
+    body_html = render_markdown(body_md)
+    body_html_en = render_markdown(body_md_en) if body_md_en else ""
+    body_html_de = render_markdown(body_md_de) if body_md_de else ""
 
     conn = get_db()
     existing = conn.execute(

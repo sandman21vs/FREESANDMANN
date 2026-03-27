@@ -39,9 +39,6 @@ from model_config import (
     validate_settings_form,
 )
 from model_content import (
-    _auto_embed,
-    _make_slug,
-    _render_markdown,
     add_media_link,
     approve_article,
     clear_article_approvals,
@@ -61,10 +58,6 @@ from model_content import (
     update_article,
 )
 
-import model_balance as _model_balance
-
-urllib = _model_balance.urllib
-
 __all__ = [
     "LOGIN_CLEANUP_MINUTES",
     "LOGIN_WINDOW_MINUTES",
@@ -73,9 +66,6 @@ __all__ = [
     "SETTINGS_INTEGER_FIELDS",
     "SETTINGS_TEXT_FIELDS",
     "SETTINGS_URL_FIELDS",
-    "_auto_embed",
-    "_make_slug",
-    "_render_markdown",
     "activate_lawyer",
     "add_media_link",
     "approve_article",
@@ -117,5 +107,4 @@ __all__ = [
     "validate_settings_form",
     "verify_lawyer_password",
     "verify_password",
-    "urllib",
 ]
