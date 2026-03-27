@@ -1,58 +1,67 @@
 {% extends "base_admin.html" %}
+{% from "components/bo_components.html" import page_header, status_badge with context %}
 
 {% block title %}{{ t('manage_lawyers') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
-<h1>{{ t('manage_lawyers') }}</h1>
+{{ page_header(
+    t('manage_lawyers'),
+    "Create reviewer accounts, activate access, and rotate temporary passwords from one place.",
+    "#new-lawyer-form",
+    "+ New Lawyer"
+) }}
 
-<h2>{{ t('create_lawyer') }}</h2>
-<form method="POST" action="{{ url_for('admin_lawyers') }}">
-    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-    <label>{{ t('lawyer_username') }}
-        <input type="text" name="username" placeholder="drsilva" required>
-    </label>
-    <label>{{ t('lawyer_display_name') }}
-        <input type="text" name="display_name" placeholder="Dr. Silva" required>
-    </label>
-    <label>{{ t('temporary_password') }}
-        <input type="password" name="temp_password" placeholder="Min 8 characters" required>
-    </label>
-    <button type="submit">{{ t('create_lawyer') }}</button>
-</form>
+<details class="bo-expandable bo-card" id="new-lawyer-form" {% if not lawyers %}open{% endif %}>
+    <summary>{{ t('create_lawyer') }}</summary>
+    <form method="POST" action="{{ url_for('admin_lawyers') }}">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <label>{{ t('lawyer_username') }}
+            <input type="text" name="username" placeholder="drsilva" required>
+        </label>
+        <label>{{ t('lawyer_display_name') }}
+            <input type="text" name="display_name" placeholder="Dr. Silva" required>
+        </label>
+        <label>{{ t('temporary_password') }}
+            <input type="password" name="temp_password" placeholder="Min 8 characters" required>
+        </label>
+        <button type="submit">{{ t('create_lawyer') }}</button>
+    </form>
+</details>
 
 {% if lawyers %}
-<h2>Lawyers</h2>
-<div class="admin-table">
-<table>
-    <thead>
-        <tr>
-            <th>{{ t('lawyer_username') }}</th>
-            <th>{{ t('lawyer_display_name') }}</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for l in lawyers %}
-        <tr>
-            <td>{{ l.username }}</td>
-            <td>{{ l.display_name }}</td>
-            <td>{{ 'Active' if l.active else 'Inactive' }}</td>
-            <td class="admin-actions">
-                <form method="POST" action="{{ url_for('admin_lawyer_toggle', lawyer_id=l.id) }}" style="display:inline">
+    {% for lawyer in lawyers %}
+    <article class="bo-card">
+        <div class="bo-card-header">
+            <div class="bo-card-stack">
+                <h2 class="bo-card-title">{{ lawyer.display_name }}</h2>
+                <div class="bo-card-meta">
+                    <span>@{{ lawyer.username }}</span>
+                    {{ status_badge('active' if lawyer.active else 'inactive', 'Active' if lawyer.active else 'Inactive') }}
+                </div>
+            </div>
+        </div>
+        <div class="bo-card-actions">
+            <form method="POST" action="{{ url_for('admin_lawyer_toggle', lawyer_id=lawyer.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <button type="submit">{{ 'Deactivate' if lawyer.active else 'Activate' }}</button>
+            </form>
+            <details class="bo-expandable">
+                <summary>Reset Password</summary>
+                <form method="POST" action="{{ url_for('admin_lawyer_reset_password', lawyer_id=lawyer.id) }}">
                     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                    <button type="submit">{{ 'Deactivate' if l.active else 'Activate' }}</button>
+                    <label>{{ t('temporary_password') }}
+                        <input type="password" name="temp_password" placeholder="New temp password" required>
+                    </label>
+                    <button type="submit" class="secondary">Reset Password</button>
                 </form>
-                <form method="POST" action="{{ url_for('admin_lawyer_reset_password', lawyer_id=l.id) }}" style="display:inline">
-                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                    <input type="password" name="temp_password" placeholder="New temp password" style="width:auto;display:inline-block">
-                    <button type="submit">Reset Password</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </details>
+        </div>
+    </article>
+    {% endfor %}
+{% else %}
+<div class="bo-empty-state">
+    <h2>No lawyers yet</h2>
+    <p>Create the first lawyer account to start the approval workflow.</p>
 </div>
 {% endif %}
 {% endblock %}
