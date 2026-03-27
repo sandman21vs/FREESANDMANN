@@ -198,6 +198,101 @@ class TestAdminSettings:
         resp = client.get("/admin/settings")
         assert resp.status_code == 302
 
+    def test_settings_reject_invalid_goal_btc_and_preserve_form_state(self, admin_session):
+        """Goal invalida deve ser rejeitada sem sobrescrever config salva."""
+        original_goal = models.get_config("goal_btc")
+
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "site_title": "Keep This Title",
+            "goal_btc": "abc",
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"Goal (BTC) must be a valid number." in resp.data
+        assert b"Keep This Title" in resp.data
+        assert models.get_config("goal_btc") == original_goal
+
+    def test_settings_require_coinos_token_when_enabled(self, admin_session):
+        """Coinos nao deve ser habilitado sem API token."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "site_title": "Test",
+            "coinos_enabled": "1",
+            "coinos_api_key": "",
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"Coinos API token is required when Coinos invoices are enabled." in resp.data
+        assert models.get_config("coinos_enabled") == "0"
+
+    def test_settings_require_liquid_address_when_enabled(self, admin_session):
+        """Liquid habilitado sem endereco deve ser rejeitado."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "site_title": "Test",
+            "liquid_enabled": "1",
+            "liquid_address": "",
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"Liquid address is required when Liquid Network is enabled." in resp.data
+        assert models.get_config("liquid_enabled") == "0"
+
+    def test_settings_normalize_trimmed_values(self, admin_session):
+        """Valores validos devem ser normalizados antes de salvar."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "site_title": "  New Title  ",
+            "goal_btc": " 5 ",
+            "raised_btc_manual_adjustment": " ",
+            "supporters_count": " 0010 ",
+            "hero_image_url": "/static/hero.png",
+            "csrf_token": csrf,
+        })
+
+        assert resp.status_code == 302
+        assert models.get_config("site_title") == "New Title"
+        assert models.get_config("goal_btc") == "5.0"
+        assert models.get_config("raised_btc_manual_adjustment") == "0.0"
+        assert models.get_config("supporters_count") == "10"
+        assert models.get_config("hero_image_url") == "/static/hero.png"
+
+    def test_settings_reject_invalid_public_url(self, admin_session):
+        """URLs publicas inseguras devem ser rejeitadas."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/settings", data={
+            "site_title": "Test",
+            "hero_image_url": "javascript:alert(1)",
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"Hero Image URL must be a valid http(s) URL or site-relative path." in resp.data
+        assert models.get_config("hero_image_url") == ""
+
+        resp = admin_session.post("/admin/settings", data={
+            "site_title": "Test",
+            "hero_image_url": "//evil.example/asset.png",
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"Hero Image URL must be a valid http(s) URL or site-relative path." in resp.data
+
 
 class TestAdminArticles:
     def test_articles_list_returns_200(self, admin_session):

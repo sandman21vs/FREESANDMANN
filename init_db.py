@@ -1,8 +1,19 @@
+import logging
 import os
 import sqlite3
 
 import config
 from werkzeug.security import generate_password_hash
+
+logger = logging.getLogger(__name__)
+
+
+def _add_column_if_missing(conn, table_name, column_name, column_type):
+    try:
+        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}")
+    except sqlite3.OperationalError as exc:
+        if "duplicate column name" not in str(exc).lower():
+            raise
 
 
 def init_db():
@@ -42,6 +53,14 @@ def init_db():
         )
     """)
 
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS login_attempts (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip           TEXT NOT NULL,
+            attempted_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
     # Adicionar colunas multilíngues aos artigos (se não existirem)
     for col, col_type in [
         ("title_en", "TEXT NOT NULL DEFAULT ''"),
@@ -51,10 +70,7 @@ def init_db():
         ("body_md_de", "TEXT NOT NULL DEFAULT ''"),
         ("body_html_de", "TEXT NOT NULL DEFAULT ''"),
     ]:
-        try:
-            conn.execute(f"ALTER TABLE articles ADD COLUMN {col} {col_type}")
-        except Exception:
-            pass  # coluna já existe
+        _add_column_if_missing(conn, "articles", col, col_type)
 
     # Colunas de workflow de aprovação
     for col, col_type in [
@@ -62,10 +78,7 @@ def init_db():
         ("created_by", "TEXT NOT NULL DEFAULT 'admin'"),
         ("approved_by_display", "TEXT NOT NULL DEFAULT ''"),
     ]:
-        try:
-            conn.execute(f"ALTER TABLE articles ADD COLUMN {col} {col_type}")
-        except Exception:
-            pass
+        _add_column_if_missing(conn, "articles", col, col_type)
 
     # Tabela de advogados
     conn.execute("""
@@ -111,8 +124,12 @@ def init_db():
 
     conn.commit()
     conn.close()
-    print("Database initialized successfully.")
+    logger.info("Database initialized successfully path=%s", config.DATABASE_PATH)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    )
     init_db()

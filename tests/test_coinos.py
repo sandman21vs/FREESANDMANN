@@ -525,6 +525,26 @@ class TestCoinosWebhook:
         assert resp.status_code == 200
         assert len(called) == 0
 
+    def test_webhook_invalid_received_rejected(self, client, monkeypatch):
+        models.set_config("coinos_enabled", "1")
+        models.set_config("coinos_api_key", "test-token")
+
+        called = []
+
+        def mock_urlopen(req, **kwargs):
+            called.append(True)
+            return MockResponse({})
+
+        monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+
+        resp = client.post("/donate/webhook/coinos",
+            data=json.dumps({"received": "not-a-number"}),
+            content_type="application/json")
+
+        assert resp.status_code == 400
+        assert resp.get_json()["ok"] is False
+        assert len(called) == 0
+
 
 class TestAdminSettingsSavesCoinos:
     def test_saves_coinos_fields(self, admin_session):

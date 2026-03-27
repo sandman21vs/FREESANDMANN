@@ -40,8 +40,7 @@ def app(temp_database):
     importlib.reload(config)
     importlib.reload(models)
 
-    from app import app as flask_app, _login_attempts
-    _login_attempts.clear()
+    from app import app as flask_app
     flask_app.config["TESTING"] = True
     flask_app.config["SECRET_KEY"] = "test-secret-key"
     # Desabilitar CSRF para facilitar testes (testar CSRF separadamente)
