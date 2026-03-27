@@ -114,6 +114,42 @@ class TestPublicTemplates:
         resp = client.get("/")
         assert b"og:title" in resp.data
 
+    def test_index_uses_translated_config_copy_for_selected_language(self, client):
+        """Homepage deve usar os textos localizados do config com fallback por idioma."""
+        models.set_config("site_title", "Titulo PT")
+        models.set_config("site_description", "Descricao PT")
+        models.set_config("site_tagline", "Slogan PT")
+        models.set_config("deadline_text", "Prazo PT")
+        models.set_config("transparency_text", "Texto PT")
+        models.set_config("site_title_en", "English Title")
+        models.set_config("site_description_en", "English Description")
+        models.set_config("site_tagline_en", "English Tagline")
+        models.set_config("deadline_text_en", "English Deadline")
+        models.set_config("transparency_text_en", "English transparency")
+
+        with client.session_transaction() as sess:
+            sess["lang"] = "en"
+
+        resp = client.get("/")
+        assert resp.status_code == 200
+        assert b"English Title" in resp.data
+        assert b"English Description" in resp.data
+        assert b"English Tagline" in resp.data
+        assert b"English Deadline" in resp.data
+        assert b"English transparency" in resp.data
+
+    def test_index_falls_back_to_portuguese_when_translation_is_missing(self, client):
+        """Quando EN/DE estiver vazio, o site deve cair no texto base."""
+        models.set_config("site_title", "Titulo Base")
+        models.set_config("site_title_de", "")
+
+        with client.session_transaction() as sess:
+            sess["lang"] = "de"
+
+        resp = client.get("/")
+        assert resp.status_code == 200
+        assert "Titulo Base".encode() in resp.data
+
 
 class TestAdminTemplates:
     def test_login_renders(self, client):
@@ -142,6 +178,8 @@ class TestAdminTemplates:
         assert b"sticky-donate" not in resp.data
         assert b'href="#section-general"' in resp.data
         assert b"bo-sticky-save" in resp.data
+        assert b'name="site_title_en"' in resp.data
+        assert b'name="transparency_text_de"' in resp.data
 
     def test_articles_list_renders(self, admin_session):
         """Lista de artigos admin renderiza sem erro."""

@@ -4,16 +4,17 @@ from flask import abort, g, request, session
 
 import i18n
 import models
+from model_config import get_localized_config
 from model_content import render_markdown
 
 CSRF_EXEMPT = {"/donate/webhook/coinos"}
 
 
 def build_template_context():
-    cfg = models.get_all_config()
+    lang = g.get("lang", "pt")
+    cfg = get_localized_config(models.get_all_config(), lang)
     if cfg.get("transparency_text"):
         cfg["transparency_html"] = render_markdown(cfg["transparency_text"])
-    lang = g.get("lang", "pt")
 
     def t(key):
         return i18n.t(key, lang)

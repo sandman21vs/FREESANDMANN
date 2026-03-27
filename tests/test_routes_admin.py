@@ -172,6 +172,13 @@ class TestAdminSettings:
             "site_title": "New Title",
             "site_description": "New Desc",
             "site_tagline": "New Tag",
+            "site_title_en": "New Title EN",
+            "site_description_en": "New Desc EN",
+            "site_tagline_en": "New Tag EN",
+            "site_title_de": "Neuer Titel",
+            "goal_description_en": "New Goal EN",
+            "deadline_text_en": "Court date April 16",
+            "transparency_text_en": "Lawyer fees EN",
             "btc_address": "bc1qnewtestaddress",
             "lightning_address": "lnurl1test",
             "goal_btc": "5.0",
@@ -190,6 +197,8 @@ class TestAdminSettings:
 
         # Verificar que valores foram salvos
         assert models.get_config("site_title") == "New Title"
+        assert models.get_config("site_title_en") == "New Title EN"
+        assert models.get_config("site_title_de") == "Neuer Titel"
         assert models.get_config("btc_address") == "bc1qnewtestaddress"
         assert models.get_config("goal_btc") == "5.0"
 
@@ -207,6 +216,7 @@ class TestAdminSettings:
 
         resp = admin_session.post("/admin/settings", data={
             "site_title": "Keep This Title",
+            "site_title_en": "Keep This Title EN",
             "goal_btc": "abc",
             "csrf_token": csrf,
         }, follow_redirects=True)
@@ -214,6 +224,7 @@ class TestAdminSettings:
         assert resp.status_code == 200
         assert b"Goal (BTC) must be a valid number." in resp.data
         assert b"Keep This Title" in resp.data
+        assert b"Keep This Title EN" in resp.data
         assert models.get_config("goal_btc") == original_goal
 
     def test_settings_require_coinos_token_when_enabled(self, admin_session):

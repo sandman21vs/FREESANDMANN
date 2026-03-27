@@ -34,3 +34,14 @@ DEFAULTS = {
     "liquid_enabled": "0",
     "liquid_address": "",
 }
+
+for field in (
+    "site_title",
+    "site_description",
+    "site_tagline",
+    "goal_description",
+    "deadline_text",
+    "transparency_text",
+):
+    DEFAULTS[f"{field}_en"] = ""
+    DEFAULTS[f"{field}_de"] = ""

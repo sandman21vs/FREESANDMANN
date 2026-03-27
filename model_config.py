@@ -1,7 +1,19 @@
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlparse
 
+import config
 from db import get_db
+
+TRANSLATABLE_SETTINGS_FIELDS = (
+    "site_title",
+    "site_description",
+    "site_tagline",
+    "goal_description",
+    "deadline_text",
+    "transparency_text",
+)
+
+TRANSLATABLE_SETTINGS_LANGS = ("en", "de")
 
 SETTINGS_TEXT_FIELDS = (
     "site_title",
@@ -18,6 +30,10 @@ SETTINGS_TEXT_FIELDS = (
     "coinos_api_key",
     "coinos_webhook_secret",
     "liquid_address",
+) + tuple(
+    f"{field}_{lang}"
+    for field in TRANSLATABLE_SETTINGS_FIELDS
+    for lang in TRANSLATABLE_SETTINGS_LANGS
 )
 
 SETTINGS_URL_FIELDS = {
@@ -62,10 +78,24 @@ def get_config(key, default=""):
 
 
 def get_all_config():
+    cfg = dict(config.DEFAULTS)
     conn = get_db()
     rows = conn.execute("SELECT key, value FROM config").fetchall()
     conn.close()
-    return {row["key"]: row["value"] for row in rows}
+    cfg.update({row["key"]: row["value"] for row in rows})
+    return cfg
+
+
+def get_localized_config(current_cfg, lang):
+    cfg = dict(current_cfg)
+    if lang not in TRANSLATABLE_SETTINGS_LANGS:
+        return cfg
+
+    for field in TRANSLATABLE_SETTINGS_FIELDS:
+        translated = _normalize_text(cfg.get(f"{field}_{lang}", ""))
+        if translated:
+            cfg[field] = translated
+    return cfg
 
 
 def set_config(key, value):

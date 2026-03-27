@@ -41,6 +41,36 @@
         <label>Deadline / Urgency Text
             <input type="text" name="deadline_text" value="{{ cfg['deadline_text'] }}" placeholder="e.g. Court date April 15">
         </label>
+        <details class="bo-expandable">
+            <summary>English Translation (optional)</summary>
+            <label>Site Title (EN)
+                <input type="text" name="site_title_en" value="{{ cfg.get('site_title_en', '') }}">
+            </label>
+            <label>Site Description (EN)
+                <textarea name="site_description_en">{{ cfg.get('site_description_en', '') }}</textarea>
+            </label>
+            <label>Site Tagline (EN)
+                <input type="text" name="site_tagline_en" value="{{ cfg.get('site_tagline_en', '') }}">
+            </label>
+            <label>Deadline / Urgency Text (EN)
+                <input type="text" name="deadline_text_en" value="{{ cfg.get('deadline_text_en', '') }}" placeholder="e.g. Court date April 15">
+            </label>
+        </details>
+        <details class="bo-expandable">
+            <summary>Deutsche Übersetzung (optional)</summary>
+            <label>Site Title (DE)
+                <input type="text" name="site_title_de" value="{{ cfg.get('site_title_de', '') }}">
+            </label>
+            <label>Site Description (DE)
+                <textarea name="site_description_de">{{ cfg.get('site_description_de', '') }}</textarea>
+            </label>
+            <label>Site Tagline (DE)
+                <input type="text" name="site_tagline_de" value="{{ cfg.get('site_tagline_de', '') }}">
+            </label>
+            <label>Deadline / Urgency Text (DE)
+                <input type="text" name="deadline_text_de" value="{{ cfg.get('deadline_text_de', '') }}" placeholder="z. B. Gerichtstermin am 15. April">
+            </label>
+        </details>
     </fieldset>
 
     <fieldset id="section-bitcoin">
@@ -115,6 +145,18 @@
             <input type="text" name="supporters_count" value="{{ cfg['supporters_count'] }}">
         </label>
         <small>On-chain balance is updated automatically from mempool.space. Current: {{ cfg['raised_onchain_btc'] }} BTC</small>
+        <details class="bo-expandable">
+            <summary>English Translation (optional)</summary>
+            <label>Goal Description (EN)
+                <input type="text" name="goal_description_en" value="{{ cfg.get('goal_description_en', '') }}">
+            </label>
+        </details>
+        <details class="bo-expandable">
+            <summary>Deutsche Übersetzung (optional)</summary>
+            <label>Goal Description (DE)
+                <input type="text" name="goal_description_de" value="{{ cfg.get('goal_description_de', '') }}">
+            </label>
+        </details>
     </fieldset>
 
     <fieldset id="section-transparency">
@@ -122,6 +164,18 @@
         <label>Transparency Text (supports Markdown)
             <textarea name="transparency_text" rows="8">{{ cfg['transparency_text'] }}</textarea>
         </label>
+        <details class="bo-expandable">
+            <summary>English Translation (optional)</summary>
+            <label>Transparency Text (EN, supports Markdown)
+                <textarea name="transparency_text_en" rows="8">{{ cfg.get('transparency_text_en', '') }}</textarea>
+            </label>
+        </details>
+        <details class="bo-expandable">
+            <summary>Deutsche Übersetzung (optional)</summary>
+            <label>Transparency Text (DE, supports Markdown)
+                <textarea name="transparency_text_de" rows="8">{{ cfg.get('transparency_text_de', '') }}</textarea>
+            </label>
+        </details>
     </fieldset>
 
     <div class="bo-card bo-sticky-save">
