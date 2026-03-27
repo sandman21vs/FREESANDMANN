@@ -552,7 +552,7 @@ Esses sao apenas chaves novas na tabela `config` (key-value), nao precisam de mi
 │  Estou sendo acusado    │
 │  injustamente de ...    │
 │  Preciso de ajuda para  │
-│  pagar minha defesa.    │
+│   minha defesa.    │
 │                         │
 │  [ AJUDE AGORA 🟠 ]    │  ← CTA principal
 │                         │
