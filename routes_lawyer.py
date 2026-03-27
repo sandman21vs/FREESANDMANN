@@ -4,6 +4,7 @@ from flask import abort, flash, redirect, render_template, request, session, url
 
 import models
 from app_auth import lawyer_required
+from model_content import get_approved_article_ids_by_reviewer
 from service_editorial import create_article_for_role, update_article_for_role
 
 logger = logging.getLogger(__name__)
@@ -74,7 +75,28 @@ def register_lawyer_routes(app):
     @lawyer_required
     def lawyer_dashboard():
         articles = models.get_articles(published_only=False)
-        return render_template("advogado/dashboard.html", articles=articles)
+        lawyer_display_name = session.get("lawyer_display_name", "")
+        lawyer_approved_ids = get_approved_article_ids_by_reviewer(lawyer_display_name, "lawyer")
+        awaiting_articles = [
+            article
+            for article in articles
+            if article["approval_status"] in ("pending", "draft") and article["id"] not in lawyer_approved_ids
+        ]
+        history_articles = [
+            article
+            for article in articles
+            if article["id"] in lawyer_approved_ids or article["approval_status"] == "published"
+        ]
+        return render_template(
+            "advogado/dashboard.html",
+            articles=articles,
+            awaiting_articles=awaiting_articles,
+            history_articles=history_articles,
+            lawyer_approved_ids=lawyer_approved_ids,
+            awaiting_count=len(awaiting_articles),
+            approved_by_me_count=len(lawyer_approved_ids),
+            published_count=len([article for article in articles if article["approval_status"] == "published"]),
+        )
 
     @app.route("/advogado/articles/new", methods=["GET", "POST"])
     @lawyer_required

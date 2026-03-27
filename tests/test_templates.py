@@ -167,6 +167,14 @@ class TestAdminTemplates:
         assert b'name="publish_mode"' not in resp.data
         assert b'name="pinned"' not in resp.data
 
+    def test_lawyer_dashboard_renders_task_queue_layout(self, lawyer_session):
+        """Dashboard do advogado deve usar o shell novo e separar fila de historico."""
+        resp = lawyer_session.get("/advogado/")
+        assert resp.status_code == 200
+        assert b"bo-sidebar" in resp.data
+        assert b"History" in resp.data
+        assert b"Awaiting Review" in resp.data
+
     def test_media_links_renders(self, admin_session):
         """Pagina de media links renderiza sem erro."""
         resp = admin_session.get("/admin/media-links")

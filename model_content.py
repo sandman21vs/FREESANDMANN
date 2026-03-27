@@ -91,6 +91,16 @@ def get_article_approvals(article_id):
     return [dict(row) for row in rows]
 
 
+def get_approved_article_ids_by_reviewer(approved_by_name, role):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT article_id FROM article_approvals WHERE approved_by = ? AND role = ?",
+        (approved_by_name, role),
+    ).fetchall()
+    conn.close()
+    return {row["article_id"] for row in rows}
+
+
 def clear_article_approvals(article_id):
     conn = get_db()
     conn.execute("DELETE FROM article_approvals WHERE article_id = ?", (article_id,))
