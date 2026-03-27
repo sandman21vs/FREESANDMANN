@@ -59,7 +59,8 @@
       "Bash(python3 -c \"import sys,json; items=json.load\\(sys.stdin\\); [print\\(i[''''name'''']\\) for i in items]\")",
       "Bash(pytest tests/test_i18n.py::TestLanguageDetection::test_default_lang_pt -xvs)",
       "Bash(pytest tests/ -q)",
-      "Bash(pytest tests/test_i18n.py -v)"
+      "Bash(pytest tests/test_i18n.py -v)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

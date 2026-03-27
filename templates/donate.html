@@ -26,10 +26,10 @@
     </div>
     <div class="invoice-form">
         <input type="number" id="sats-amount" min="1" max="100000000"
-               placeholder="Custom amount in sats">
+               placeholder="{{ t('custom_amount_placeholder') }}">
         <select id="invoice-type">
-            <option value="lightning">Lightning</option>
-            <option value="liquid">Liquid</option>
+            <option value="lightning">{{ t('lightning_network') }}</option>
+            <option value="liquid">{{ t('liquid_network') }}</option>
         </select>
         <button id="create-invoice-btn" onclick="createInvoice()">{{ t('generate_invoice') }}</button>
     </div>
@@ -49,19 +49,18 @@
     <h2>{{ t('first_time') }}</h2>
     <ol>
         <li>
-            <strong>Download a wallet</strong><br>
+            <strong>{{ t('download_wallet') }}</strong><br>
             <a href="https://muun.com/" target="_blank" rel="noopener">Muun</a>,
             <a href="https://phoenix.acinq.co/" target="_blank" rel="noopener">Phoenix</a>, or
             <a href="https://bluewallet.io/" target="_blank" rel="noopener">Blue Wallet</a>
         </li>
         <li>
-            <strong>Scan the QR code or copy the address</strong><br>
-            Use the QR code scanner in your wallet or paste the address manually.
+            <strong>{{ t('scan_qr') }}</strong><br>
+            {{ t('scan_qr_detail') }}
         </li>
         <li>
-            <strong>Confirm the transaction</strong><br>
-            Enter the amount and confirm. On-chain transactions may take 10-60 minutes.
-            Lightning and Liquid are instant.
+            <strong>{{ t('confirm_transaction') }}</strong><br>
+            {{ t('confirm_transaction_detail') }}
         </li>
     </ol>
 </section>
@@ -126,7 +125,7 @@ function createInvoice() {
         resultDiv.style.display = 'block';
 
         const label = document.getElementById('invoice-type-label');
-        label.textContent = data.type === 'liquid' ? 'Liquid Network' : 'Lightning Network';
+        label.textContent = data.type === 'liquid' ? "{{ t('liquid_network') }}" : "{{ t('lightning_network') }}";
         label.className = 'invoice-type-label invoice-label-' + data.type;
 
         document.getElementById('invoice-qr').src =

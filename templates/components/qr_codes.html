@@ -2,11 +2,11 @@
 <div class="qr-grid">
     {% if btc_address %}
     <div class="qr-card">
-        <h3>Bitcoin On-Chain</h3>
+        <h3>{{ t('bitcoin_onchain') }}</h3>
         <img src="{{ url_for('qr_code', qr_type='btc', v=btc_address[-8:]) }}" alt="Bitcoin QR Code" loading="lazy" class="qr-img qr-{{ size }}">
         <div class="address-box">
             <code class="address-text" id="btc-addr">{{ btc_address }}</code>
-            <button onclick="copyAddr('btc-addr', this)" class="copy-btn" title="Copy address">{{ t('copy') }}</button>
+            <button onclick="copyAddr('btc-addr', this)" class="copy-btn" title="{{ t('copy_address') }}">{{ t('copy') }}</button>
         </div>
         <a href="bitcoin:{{ btc_address }}" class="wallet-link">{{ t('open_wallet') }}</a>
     </div>
@@ -14,11 +14,11 @@
 
     {% if lightning_address %}
     <div class="qr-card">
-        <h3>Lightning Network</h3>
+        <h3>{{ t('lightning_network') }}</h3>
         <img src="{{ url_for('qr_code', qr_type='lightning', v=lightning_address[-8:]) }}" alt="Lightning QR Code" loading="lazy" class="qr-img qr-{{ size }}">
         <div class="address-box">
             <code class="address-text" id="ln-addr">{{ lightning_address }}</code>
-            <button onclick="copyAddr('ln-addr', this)" class="copy-btn" title="Copy address">{{ t('copy') }}</button>
+            <button onclick="copyAddr('ln-addr', this)" class="copy-btn" title="{{ t('copy_address') }}">{{ t('copy') }}</button>
         </div>
         <a href="lightning:{{ lightning_address }}" class="wallet-link">{{ t('open_wallet') }}</a>
     </div>
@@ -26,11 +26,11 @@
 
     {% if liquid_address %}
     <div class="qr-card">
-        <h3>Liquid Network</h3>
+        <h3>{{ t('liquid_network') }}</h3>
         <img src="{{ url_for('qr_code', qr_type='liquid', v=liquid_address[-8:]) }}" alt="Liquid QR Code" loading="lazy" class="qr-img qr-{{ size }}">
         <div class="address-box">
             <code class="address-text" id="lq-addr">{{ liquid_address }}</code>
-            <button onclick="copyAddr('lq-addr', this)" class="copy-btn" title="Copy address">{{ t('copy') }}</button>
+            <button onclick="copyAddr('lq-addr', this)" class="copy-btn" title="{{ t('copy_address') }}">{{ t('copy') }}</button>
         </div>
         <a href="liquidnetwork:{{ liquid_address }}" class="wallet-link">{{ t('open_wallet') }}</a>
     </div>

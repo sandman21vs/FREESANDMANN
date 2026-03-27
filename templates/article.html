@@ -12,5 +12,5 @@
 
 {{ share_buttons(request.url, article.title) }}
 
-<p><a href="{{ url_for('updates') }}">&larr; Back to updates</a></p>
+<p><a href="{{ url_for('updates') }}">&larr; {{ t('back_to_updates') }}</a></p>
 {% endblock %}

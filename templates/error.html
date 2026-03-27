@@ -5,5 +5,5 @@
 {% block content %}
 <h1>{{ code }}</h1>
 <p>{{ message }}</p>
-<p><a href="{{ url_for('index') }}">&larr; Go back home</a></p>
+<p><a href="{{ url_for('index') }}">&larr; {{ t('go_back_home') }}</a></p>
 {% endblock %}

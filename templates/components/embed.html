@@ -1,10 +1,10 @@
 {% macro share_buttons(url, text) %}
 <div class="share-section">
-    <strong>Share:</strong>
+    <strong>{{ t('share') }}</strong>
     <a href="https://twitter.com/intent/tweet?text={{ text|urlencode }}&url={{ url|urlencode }}" target="_blank" rel="noopener" class="share-btn">Twitter</a>
     <a href="https://t.me/share/url?url={{ url|urlencode }}&text={{ text|urlencode }}" target="_blank" rel="noopener" class="share-btn">Telegram</a>
     <a href="https://wa.me/?text={{ (text ~ ' ' ~ url)|urlencode }}" target="_blank" rel="noopener" class="share-btn">WhatsApp</a>
-    <button onclick="copyAddr('share-url', this)" class="share-btn copy-btn">Copy Link</button>
+    <button onclick="copyAddr('share-url', this)" class="share-btn copy-btn">{{ t('copy_link') }}</button>
     <code id="share-url" style="display:none">{{ url }}</code>
 </div>
 {% endmacro %}

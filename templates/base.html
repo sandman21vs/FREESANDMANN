@@ -72,7 +72,7 @@
         </button>
         <div id="pref-panel" class="pref-panel" style="display:none;">
             <div class="pref-section">
-                <small>Language</small>
+                <small>{{ t('widget_language') }}</small>
                 <div class="pref-lang-btns">
                     <a href="/set-lang/pt" class="pref-lang {% if lang == 'pt' %}active{% endif %}">PT</a>
                     <a href="/set-lang/en" class="pref-lang {% if lang == 'en' %}active{% endif %}">EN</a>
@@ -80,18 +80,22 @@
                 </div>
             </div>
             <div class="pref-section">
-                <small>Theme</small>
-                <button id="theme-toggle" class="pref-theme-btn">☀️ Light</button>
+                <small>{{ t('widget_theme') }}</small>
+                <button id="theme-toggle" class="pref-theme-btn">{{ t('widget_theme_light') }}</button>
             </div>
         </div>
     </div>
 
     <script>
     // Theme toggle
+    var themeI18n = {
+        light: "{{ t('widget_theme_light') }}",
+        dark: "{{ t('widget_theme_dark') }}"
+    };
     function applyTheme(t) {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem('theme', t);
-        document.getElementById('theme-toggle').textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+        document.getElementById('theme-toggle').textContent = t === 'dark' ? themeI18n.light : themeI18n.dark;
     }
 
     var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
