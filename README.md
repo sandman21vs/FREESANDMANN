@@ -1,17 +1,17 @@
 # Free Sandmann — Legal Defense Campaign Engine
 
-A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork it, configure through the admin panel, start accepting donations — on-chain directly to your wallet, Lightning/Liquid optionally via Coinos.io (no KYC, zero fees).
+A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork it, configure through the admin panel, start accepting donations — on-chain directly to your wallet, Lightning/Liquid optionally via Coinos.io (no KYC, zero fees). Everything is configured through the admin panel — no code changes needed for basic use.
 
 ## Features
 
 - **Bitcoin donations**: on-chain (QR + address copy) and Lightning/Liquid via Coinos.io
 - **Automatic balance tracking**: mempool.space API for on-chain, Coinos webhook for Lightning/Liquid
 - **Multilingual**: PT / EN / DE with browser `Accept-Language` detection, per-session override, and localized campaign copy from admin settings
-- **Content approval workflow**: dual-sign before publishing (admin + lawyer/professional)
-- **Admin panel**: dedicated backoffice shell with dashboard, alerts, editorial queue, settings, media links, lawyer account management
-- **Lawyer portal** (`/advogado/`): dedicated reviewer shell with task queue and approval history
-- **Markdown articles** with auto-embed for YouTube and Twitter/X
-- **Mobile-first** responsive design — hamburger menu, sticky donate button
+- **Articles require approval from both admin and lawyer before publishing**: admin can override when needed
+- **Admin panel**: dashboard, settings, editorial queue, media links, lawyer account management
+- **Lawyer portal** (`/advogado/`): reviewer dashboard with task queue and approval history
+- **Write articles in Markdown**: YouTube and Twitter/X links auto-embed
+- **Mobile-first** responsive design
 - **Docker** deployment, one command to start
 - **268 automated tests**
 
@@ -24,41 +24,112 @@ cp .env.example .env        # set SECRET_KEY
 docker compose up -d
 ```
 
-Visit `http://localhost:4040` (mapped from container port 8000)
+Visit `http://localhost:4040` in your browser.
 
-## Admin Access
+> Default admin: username `FREE`, password `FREE`.
+> After login you will be required to change it.
 
-1. Navigate to `/admin/login`
-2. Login: username `FREE`, password `FREE`
-3. Change password (enforced on first login, min 8 chars, cannot be "FREE")
-4. Configure Bitcoin addresses, goal, and campaign copy in Settings, including optional EN/DE versions for public texts
+## Initial Setup
 
-## Fork for Your Own Case
+1. Go to `/admin/login` and sign in with `FREE / FREE`.
+2. Change the default password when prompted.
+3. Open **Settings** and configure at minimum:
+   - **Site Title** and **Site Description**: shown on the homepage and social previews
+   - **Bitcoin On-Chain Address**: your direct donation address
+   - **Goal (BTC)**: the fundraising target shown in the progress bar
+4. Optional but recommended:
+   - **Hero Image URL** and **OG Image URL**
+   - **Deadline / Urgency Text**
+   - **Transparency Text** in Markdown
+   - **Wallet Explorer URL** for public transparency
+5. If you want the public site copy in English and German too, fill the optional `EN` and `DE` fields in Settings.
+6. If you want the approval workflow, create a lawyer account in `/admin/lawyers`.
 
-1. Fork the repo
-2. `docker compose up -d`
-3. Login as admin → set your Bitcoin address and story
-4. Optionally create a lawyer account for dual-approval publishing
-5. Share the link
+All day-to-day configuration happens in the admin panel. The only file you usually need to edit manually is `.env` for `SECRET_KEY` and, optionally, `ADMIN_USERNAME`.
 
-No code changes required for basic use. All configuration is in the admin panel.
+### Accepting Lightning and Liquid donations
 
-## Exposing to the Internet (Cloudflare Tunnel)
+<details>
+<summary>Coinos setup (optional)</summary>
 
-For production, use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) to expose your site with HTTPS — no port forwarding needed:
+1. Create a free account at `coinos.io`.
+2. Get your read-only API token from `coinos.io/docs`.
+3. In **Admin → Settings**:
+   - enable **Coinos Lightning invoices**
+   - paste the API token
+   - optionally enable **Coinos for on-chain**
+   - optionally enable **Liquid Network** and add a Liquid address
+4. Lightning balance updates via Coinos webhook.
+5. On-chain balance updates every 5 minutes via mempool.space.
+
+</details>
+
+## How It Works
+
+### Roles
+
+- **Admin**: full access to settings, content, media links, lawyer accounts, balance refresh, approvals, and publishing
+- **Lawyer**: optional reviewer role that can log in at `/advogado/login`, create articles, edit articles, and approve content
+
+### Publishing workflow
+
+```text
+Article created -> Pending
+  -> Lawyer approves + Admin approves -> Approved
+  -> Admin clicks Publish -> Published
+
+Alternative: Admin Override -> Published directly
+```
+
+Editing a published article clears existing approvals and sends it back to `Pending`.
+
+### Balance tracking
+
+- **On-chain**: checked automatically every 5 minutes via mempool.space
+- **Lightning / Liquid**: updated when the Coinos webhook fires
+- **Manual trigger**: use the **Refresh Balance** button in the admin dashboard
+- **Formula**: `Total = on-chain + lightning + manual adjustment`
+
+## Development
+
+<details>
+<summary>Run locally without Docker</summary>
 
 ```bash
-# Install cloudflared, then:
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python init_db.py
+python app.py              # dev server on :8000
+
+python -m pytest tests/ -q
+```
+
+</details>
+
+## Deployment
+
+Any reverse proxy works here (`nginx`, `Caddy`, Cloudflare Tunnel, etc.). Cloudflare Tunnel is a convenient option because it requires no open ports.
+
+<details>
+<summary>Cloudflare Tunnel example</summary>
+
+```bash
 cloudflared tunnel login
 cloudflared tunnel create freesandmann
 cloudflared tunnel route dns freesandmann yourdomain.com
 cloudflared tunnel run --url http://localhost:4040 freesandmann
 ```
 
+</details>
+
 ## Tech Stack
 
-Flask + SQLite + Pico CSS 2.x + Jinja2 + Vanilla JS.
-Zero npm, zero webpack, zero JS frameworks. Six Python dependencies.
+Flask · SQLite · Pico CSS · Jinja2 · vanilla JS · 6 Python dependencies · zero npm
+
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the detailed technical reference.
 
 ## License
 
