@@ -11,6 +11,10 @@ TRANSLATABLE_SETTINGS_FIELDS = (
     "goal_description",
     "deadline_text",
     "transparency_text",
+    "profile_heading",
+    "profile_summary_md",
+    "profile_long_bio_md",
+    "profile_commitment_md",
 )
 
 TRANSLATABLE_SETTINGS_LANGS = ("en", "de")
@@ -30,6 +34,12 @@ SETTINGS_TEXT_FIELDS = (
     "coinos_api_key",
     "coinos_webhook_secret",
     "liquid_address",
+    "profile_display_name",
+    "profile_heading",
+    "profile_summary_md",
+    "profile_long_bio_md",
+    "profile_commitment_md",
+    "profile_avatar_url",
 ) + tuple(
     f"{field}_{lang}"
     for field in TRANSLATABLE_SETTINGS_FIELDS
@@ -40,6 +50,7 @@ SETTINGS_URL_FIELDS = {
     "hero_image_url": "Hero Image URL",
     "og_image_url": "OG Image URL",
     "wallet_explorer_url": "Wallet Explorer URL",
+    "profile_avatar_url": "Profile Avatar URL",
 }
 
 SETTINGS_DECIMAL_FIELDS = {
@@ -181,13 +192,16 @@ def validate_settings_form(form_data, current_cfg=None):
     coinos_enabled = "1" if form_data.get("coinos_enabled") else "0"
     coinos_onchain = "1" if form_data.get("coinos_onchain") else "0"
     liquid_enabled = "1" if form_data.get("liquid_enabled") else "0"
+    profile_enabled = "1" if form_data.get("profile_enabled") else "0"
 
     form_cfg["coinos_enabled"] = coinos_enabled
     form_cfg["coinos_onchain"] = coinos_onchain
     form_cfg["liquid_enabled"] = liquid_enabled
+    form_cfg["profile_enabled"] = profile_enabled
     normalized["coinos_enabled"] = coinos_enabled
     normalized["coinos_onchain"] = coinos_onchain
     normalized["liquid_enabled"] = liquid_enabled
+    normalized["profile_enabled"] = profile_enabled
 
     for field in SETTINGS_TEXT_FIELDS:
         value = _normalize_text(_form_value_or_current(form_data, current_cfg, field))

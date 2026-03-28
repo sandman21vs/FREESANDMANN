@@ -35,6 +35,7 @@ from model_config import (
     SETTINGS_URL_FIELDS,
     get_all_config,
     get_config,
+    get_localized_config,
     set_config,
     validate_settings_form,
 )
@@ -57,6 +58,16 @@ from model_content import (
     unpublish_article,
     update_article,
 )
+from model_profile import (
+    VALID_CATEGORIES,
+    add_profile_link,
+    delete_profile_link,
+    get_featured_profile_links,
+    get_profile_link_by_id,
+    get_profile_links,
+    get_profile_links_grouped,
+    update_profile_link,
+)
 
 __all__ = [
     "LOGIN_CLEANUP_MINUTES",
@@ -68,6 +79,7 @@ __all__ = [
     "SETTINGS_URL_FIELDS",
     "activate_lawyer",
     "add_media_link",
+    "add_profile_link",
     "approve_article",
     "change_lawyer_password",
     "change_password",
@@ -90,9 +102,14 @@ __all__ = [
     "get_articles_for_lang",
     "get_config",
     "get_db",
+    "get_featured_profile_links",
     "get_lawyer_by_id",
     "get_lawyer_by_username",
     "get_media_links",
+    "get_localized_config",
+    "get_profile_link_by_id",
+    "get_profile_links",
+    "get_profile_links_grouped",
     "is_rate_limited",
     "lawyer_must_change_password",
     "must_change_password",
@@ -103,8 +120,10 @@ __all__ = [
     "revoke_approval",
     "set_config",
     "unpublish_article",
+    "update_profile_link",
     "update_article",
     "validate_settings_form",
+    "VALID_CATEGORIES",
     "verify_lawyer_password",
     "verify_password",
 ]
