@@ -27,13 +27,13 @@ docker compose up -d
 Visit `http://localhost:4040` in your browser.
 
 > Default admin: username `FREE`, password `FREE`.
-> After login you will be required to change it.
+> On first access, click **Admin** in the footer — the setup wizard will guide you.
 
 ## Initial Setup
 
-1. Go to `/login` and sign in with `FREE / FREE` as admin.
-2. Change the default password when prompted.
-3. Open **Settings** and configure at minimum:
+1. Click **Admin** in the site footer (or go to `/admin/login`). On a fresh install the setup wizard starts automatically.
+2. Set a secure admin password, campaign title, and optionally a Bitcoin address and goal.
+3. After the wizard, open **Settings** to configure the remaining options:
    - **Site Title** and **Site Description**: shown on the homepage and social previews
    - **Bitcoin On-Chain Address**: your direct donation address
    - **Goal (BTC)**: the fundraising target shown in the progress bar

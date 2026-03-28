@@ -20,5 +20,6 @@ gallery: []
 path: ""
 defaultUsername: ""
 defaultPassword: ""
+torOnly: false
 submitter: sandman21vs
 submission: ""

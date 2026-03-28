@@ -1,21 +1,40 @@
-name: Publish Docker Image
+name: CI & Publish
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+    branches: [master]
   workflow_dispatch:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -q
+
   docker:
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -36,8 +55,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/bastion
           tags: |
-            type=ref,event=tag
-            type=raw,value=latest
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/master' }}
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v6
@@ -47,3 +67,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
