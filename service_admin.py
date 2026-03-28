@@ -184,18 +184,20 @@ def process_admin_settings(form_data, current_cfg=None):
             models.set_config("coinos_cached_ln_address", ln_addr)
             logger.info("Cached Coinos LN address: %s", ln_addr)
             cached_any = True
-        elif not models.get_config("coinos_cached_ln_address"):
-            models.set_config("coinos_cached_ln_address", "")
 
         btc_addr = coinos.get_fresh_onchain_address()
         if btc_addr:
             models.set_config("coinos_cached_btc_address", btc_addr)
             logger.info("Cached Coinos BTC address suffix: %s", btc_addr[-8:])
             cached_any = True
-        elif not models.get_config("coinos_cached_btc_address"):
-            models.set_config("coinos_cached_btc_address", "")
 
-        if not cached_any and not models.get_config("coinos_cached_ln_address"):
+        liquid_addr = coinos.get_fresh_liquid_address()
+        if liquid_addr:
+            models.set_config("coinos_cached_liquid_address", liquid_addr)
+            logger.info("Cached Coinos Liquid address suffix: %s", liquid_addr[-8:])
+            cached_any = True
+
+        if not cached_any:
             warnings.append(
                 "Could not reach Coinos API to cache addresses for the public site. "
                 "Check your API key. QR codes will not appear until addresses are cached."
@@ -204,6 +206,7 @@ def process_admin_settings(form_data, current_cfg=None):
     if normalized_cfg.get("coinos_show_addresses") != "1" or not normalized_cfg.get("coinos_api_key"):
         models.set_config("coinos_cached_btc_address", "")
         models.set_config("coinos_cached_ln_address", "")
+        models.set_config("coinos_cached_liquid_address", "")
 
     models.recalculate_raised_btc()
     logger.info(

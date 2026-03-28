@@ -107,6 +107,21 @@ def get_fresh_onchain_address():
     return None
 
 
+def get_fresh_liquid_address():
+    """Generate a fresh Coinos Liquid address (creates a 0-amount liquid invoice)."""
+    if not models.get_config("coinos_api_key"):
+        return None
+    result = _coinos_request(
+        "POST",
+        "/invoice",
+        {"invoice": {"amount": 0, "type": "liquid"}},
+    )
+    if result and "hash" in result:
+        logger.info("Coinos Liquid address generated address_suffix=%s", result["hash"][-8:])
+        return result["hash"]
+    return None
+
+
 def get_account_username():
     """Fetch the Coinos account username for LN address derivation."""
     if not models.get_config("coinos_api_key"):

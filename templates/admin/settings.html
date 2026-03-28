@@ -112,11 +112,12 @@
                 checked=(cfg['coinos_show_addresses'] == '1'),
                 hint="Display your Coinos account addresses (LN and on-chain) as QR codes on the landing page and donate page. When off, only manually entered addresses above are shown."
             ) }}
-            {% if cfg['coinos_show_addresses'] == '1' and (cfg['coinos_cached_ln_address'] or cfg['coinos_cached_btc_address']) %}
+            {% if cfg['coinos_show_addresses'] == '1' and (cfg['coinos_cached_ln_address'] or cfg['coinos_cached_btc_address'] or cfg['coinos_cached_liquid_address']) %}
             <div class="bo-info-note">
                 <strong>Coinos addresses currently shown:</strong><br>
                 {% if cfg['coinos_cached_ln_address'] %}Lightning: {{ cfg['coinos_cached_ln_address'] }}<br>{% endif %}
-                {% if cfg['coinos_cached_btc_address'] %}On-chain: {{ cfg['coinos_cached_btc_address'] }}{% endif %}
+                {% if cfg['coinos_cached_btc_address'] %}On-chain: {{ cfg['coinos_cached_btc_address'] }}<br>{% endif %}
+                {% if cfg['coinos_cached_liquid_address'] %}Liquid: {{ cfg['coinos_cached_liquid_address'] }}{% endif %}
             </div>
             {% endif %}
             {{ toggle_field("coinos_enabled", "Lightning Invoices via Coinos",

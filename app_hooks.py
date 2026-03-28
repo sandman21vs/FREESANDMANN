@@ -19,10 +19,13 @@ def _enrich_cfg_with_fallback_addresses(cfg):
         # Use cached Coinos addresses, falling back to manual
         cached_ln = cfg.get("coinos_cached_ln_address", "")
         cached_btc = cfg.get("coinos_cached_btc_address", "")
+        cached_liquid = cfg.get("coinos_cached_liquid_address", "")
         if cached_ln:
             cfg["lightning_address"] = cached_ln
         if cached_btc:
             cfg["btc_address"] = cached_btc
+        if cached_liquid:
+            cfg["liquid_address"] = cached_liquid
     # If coinos_show_addresses is OFF, manual addresses are used as-is.
     # No API calls, no HTTP requests — pure SQLite reads.
     return cfg

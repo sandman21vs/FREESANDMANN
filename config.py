@@ -37,6 +37,7 @@ DEFAULTS = {
     "coinos_show_addresses": "0",
     "coinos_cached_btc_address": "",
     "coinos_cached_ln_address": "",
+    "coinos_cached_liquid_address": "",
 }
 
 for field in (

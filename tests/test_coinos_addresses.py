@@ -20,13 +20,17 @@ class MockResponse:
         pass
 
 
-def _mock_coinos_api(monkeypatch, username="testuser", btc_hash="bc1qcoinosgenerated"):
-    """Mock Coinos API to return predictable username and BTC address."""
+def _mock_coinos_api(monkeypatch, username="testuser", btc_hash="bc1qcoinosgenerated", liquid_hash="lq1qqcoinosliquid"):
+    """Mock Coinos API to return predictable username, BTC and Liquid addresses."""
     def mock_urlopen(req, **kwargs):
         url = req.full_url
         if "/me" in url:
             return MockResponse({"username": username})
         if "/invoice" in url:
+            body = json.loads(req.data) if req.data else {}
+            inv_type = body.get("invoice", {}).get("type", "bitcoin")
+            if inv_type == "liquid":
+                return MockResponse({"hash": liquid_hash, "amount": 0, "type": "liquid"})
             return MockResponse({"hash": btc_hash, "amount": 0, "type": "bitcoin"})
         return MockResponse({})
 
@@ -116,6 +120,30 @@ class TestGetAccountUsername:
         assert result == "hal"
 
 
+class TestGetFreshLiquidAddress:
+    def test_returns_address_with_api_key(self, temp_database, monkeypatch):
+        models.set_config("coinos_api_key", "test-token")
+        _mock_coinos_api(monkeypatch, liquid_hash="lq1qqfreshaddr")
+
+        import importlib
+        import coinos_client
+        importlib.reload(coinos_client)
+
+        result = coinos_client.get_fresh_liquid_address()
+        assert result == "lq1qqfreshaddr"
+
+    def test_returns_none_without_api_key(self, temp_database, monkeypatch):
+        models.set_config("coinos_api_key", "")
+        _mock_coinos_api(monkeypatch)
+
+        import importlib
+        import coinos_client
+        importlib.reload(coinos_client)
+
+        result = coinos_client.get_fresh_liquid_address()
+        assert result is None
+
+
 # ── Validation tests ─────────────────────────────────────────────────
 
 
@@ -148,6 +176,10 @@ class TestCoinosShowAddressesValidation:
             if "/me" in url:
                 return MockResponse({"username": "testuser"})
             if "/invoice" in url:
+                body = json.loads(req.data) if req.data else {}
+                inv_type = body.get("invoice", {}).get("type", "bitcoin")
+                if inv_type == "liquid":
+                    return MockResponse({"hash": "lq1qqcached", "amount": 0})
                 return MockResponse({"hash": "bc1qcached", "amount": 0})
             return MockResponse({})
 
@@ -170,7 +202,7 @@ class TestCoinosShowAddressesValidation:
 
 class TestCoinosAddressCaching:
     def test_caches_addresses_on_save(self, admin_session, monkeypatch):
-        _mock_coinos_api(monkeypatch, username="alice", btc_hash="bc1qaliceaddr")
+        _mock_coinos_api(monkeypatch, username="alice", btc_hash="bc1qaliceaddr", liquid_hash="lq1qqalice")
 
         with admin_session.session_transaction() as sess:
             csrf = sess.get("csrf_token", "")
@@ -185,11 +217,13 @@ class TestCoinosAddressCaching:
         assert resp.status_code == 302
         assert models.get_config("coinos_cached_ln_address") == "alice@coinos.io"
         assert models.get_config("coinos_cached_btc_address") == "bc1qaliceaddr"
+        assert models.get_config("coinos_cached_liquid_address") == "lq1qqalice"
 
     def test_clears_cache_when_disabled(self, admin_session, monkeypatch):
         # Pre-populate cache
         models.set_config("coinos_cached_ln_address", "old@coinos.io")
         models.set_config("coinos_cached_btc_address", "bc1qoldaddr")
+        models.set_config("coinos_cached_liquid_address", "lq1qqoldaddr")
         _mock_coinos_api(monkeypatch)
 
         with admin_session.session_transaction() as sess:
@@ -205,6 +239,7 @@ class TestCoinosAddressCaching:
         assert resp.status_code == 302
         assert models.get_config("coinos_cached_btc_address") == ""
         assert models.get_config("coinos_cached_ln_address") == ""
+        assert models.get_config("coinos_cached_liquid_address") == ""
 
     def test_clears_cache_when_api_key_removed(self, admin_session, monkeypatch):
         models.set_config("coinos_cached_ln_address", "old@coinos.io")
@@ -234,8 +269,10 @@ class TestPublicSiteAddressEnrichment:
         models.set_config("coinos_show_addresses", "1")
         models.set_config("coinos_cached_ln_address", "bob@coinos.io")
         models.set_config("coinos_cached_btc_address", "bc1qcoinosbob")
+        models.set_config("coinos_cached_liquid_address", "lq1qqcoinosbob")
         models.set_config("lightning_address", "manual@ln.addr")
         models.set_config("btc_address", "bc1qmanual")
+        models.set_config("liquid_address", "lq1qqmanual")
         models.set_config("setup_complete", "1")
 
         resp = client.get("/donate")
@@ -243,21 +280,26 @@ class TestPublicSiteAddressEnrichment:
         # Coinos addresses override manual ones
         assert b"bob@coinos.io" in resp.data
         assert b"bc1qcoinosbob" in resp.data
+        assert b"lq1qqcoinosbob" in resp.data
         assert b"manual@ln.addr" not in resp.data
         assert b"bc1qmanual" not in resp.data
+        assert b"lq1qqmanual" not in resp.data
 
     def test_manual_addresses_shown_when_toggle_off(self, client):
         models.set_config("coinos_show_addresses", "0")
         models.set_config("coinos_cached_ln_address", "bob@coinos.io")
         models.set_config("coinos_cached_btc_address", "bc1qcoinosbob")
+        models.set_config("coinos_cached_liquid_address", "lq1qqcoinosbob")
         models.set_config("lightning_address", "manual@ln.addr")
         models.set_config("btc_address", "bc1qmanual")
+        models.set_config("liquid_address", "lq1qqmanual")
         models.set_config("setup_complete", "1")
 
         resp = client.get("/donate")
         assert resp.status_code == 200
         assert b"manual@ln.addr" in resp.data
         assert b"bc1qmanual" in resp.data
+        assert b"lq1qqmanual" in resp.data
         assert b"bob@coinos.io" not in resp.data
 
     def test_empty_cache_no_qr_shown(self, client):
@@ -291,12 +333,14 @@ class TestPublicSiteAddressEnrichment:
         models.set_config("coinos_show_addresses", "1")
         models.set_config("coinos_cached_ln_address", "home@coinos.io")
         models.set_config("coinos_cached_btc_address", "bc1qhomeaddr")
+        models.set_config("coinos_cached_liquid_address", "lq1qqhomeaddr")
         models.set_config("setup_complete", "1")
 
         resp = client.get("/")
         assert resp.status_code == 200
         assert b"home@coinos.io" in resp.data
         assert b"bc1qhomeaddr" in resp.data
+        assert b"lq1qqhomeaddr" in resp.data
 
 
 # ── Settings template tests ──────────────────────────────────────────
