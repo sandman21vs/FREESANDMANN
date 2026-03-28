@@ -1339,6 +1339,11 @@ progress::-moz-progress-bar {
     box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
 }
 
+.bo-i18n-badges {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
 @media (max-width: 768px) {
     .bo-topbar-inner {
         align-items: flex-start;

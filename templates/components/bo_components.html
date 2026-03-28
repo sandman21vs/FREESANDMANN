@@ -26,9 +26,9 @@
     <label class="bo-field-label" for="field-{{ name }}">{{ label }}</label>
     {% if hint %}<small class="bo-field-hint">{{ hint }}</small>{% endif %}
     {% if input_type == "textarea" %}
-    <textarea name="{{ name }}" id="field-{{ name }}" {% if readonly %}readonly class="bo-field-readonly"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>{{ value }}</textarea>
+    <textarea name="{{ name }}" id="field-{{ name }}" {% if readonly %}readonly{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} class="{% if readonly %}bo-field-readonly{% endif %}">{{ value }}</textarea>
     {% else %}
-    <input type="{{ input_type }}" name="{{ name }}" id="field-{{ name }}" value="{{ value }}" {% if readonly %}readonly class="bo-field-readonly"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>
+    <input type="{{ input_type }}" name="{{ name }}" id="field-{{ name }}" value="{{ value }}" {% if readonly %}readonly{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} class="{% if readonly %}bo-field-readonly{% endif %}">
     {% endif %}
 </div>
 {% endmacro %}
