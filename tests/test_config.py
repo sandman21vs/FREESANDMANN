@@ -14,6 +14,9 @@ def test_defaults_exist():
         "supporters_count", "hero_image_url", "deadline_text",
         "transparency_text", "og_image_url", "wallet_explorer_url",
         "coinos_api_key", "coinos_enabled",
+        "profile_enabled", "profile_display_name", "profile_heading",
+        "profile_summary_md", "profile_long_bio_md",
+        "profile_commitment_md", "profile_avatar_url",
     ]
     for key in required_keys:
         assert key in DEFAULTS, f"Missing key in DEFAULTS: {key}"

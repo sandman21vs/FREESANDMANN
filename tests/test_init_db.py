@@ -3,7 +3,7 @@ import sqlite3
 
 
 def test_tables_created(temp_database):
-    """As 3 tabelas devem existir apos init_db."""
+    """As tabelas principais devem existir apos init_db."""
     conn = sqlite3.connect(temp_database)
     cursor = conn.execute(
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
@@ -14,6 +14,7 @@ def test_tables_created(temp_database):
     assert "config" in tables, "Table 'config' not created"
     assert "articles" in tables, "Table 'articles' not created"
     assert "media_links" in tables, "Table 'media_links' not created"
+    assert "profile_links" in tables, "Table 'profile_links' not created"
 
 
 def test_defaults_seeded(temp_database):
@@ -52,6 +53,43 @@ def test_setup_complete_defaults_to_zero(temp_database):
 
     assert row is not None
     assert row[0] == "0"
+
+
+def test_profile_defaults_seeded(temp_database):
+    """Profile defaults devem existir com valores vazios/desabilitados."""
+    conn = sqlite3.connect(temp_database)
+    rows = conn.execute(
+        "SELECT key, value FROM config WHERE key LIKE 'profile_%'"
+    ).fetchall()
+    conn.close()
+
+    profile_cfg = {key: value for key, value in rows}
+    assert profile_cfg["profile_enabled"] == "0"
+    assert profile_cfg["profile_display_name"] == ""
+    assert profile_cfg["profile_heading"] == ""
+    assert profile_cfg["profile_summary_md"] == ""
+    assert profile_cfg["profile_long_bio_md"] == ""
+    assert profile_cfg["profile_commitment_md"] == ""
+    assert profile_cfg["profile_avatar_url"] == ""
+    assert profile_cfg["profile_heading_en"] == ""
+    assert profile_cfg["profile_heading_de"] == ""
+
+
+def test_get_all_config_includes_profile_defaults(temp_database):
+    """get_all_config deve expor as novas chaves profile_*."""
+    import models
+
+    cfg = models.get_all_config()
+
+    assert cfg["profile_enabled"] == "0"
+    assert cfg["profile_display_name"] == ""
+    assert cfg["profile_heading"] == ""
+    assert cfg["profile_summary_md"] == ""
+    assert cfg["profile_long_bio_md"] == ""
+    assert cfg["profile_commitment_md"] == ""
+    assert cfg["profile_avatar_url"] == ""
+    assert cfg["profile_heading_en"] == ""
+    assert cfg["profile_heading_de"] == ""
 
 
 def test_idempotent(temp_database):

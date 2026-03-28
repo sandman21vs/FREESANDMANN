@@ -34,6 +34,13 @@ DEFAULTS = {
     "coinos_webhook_secret": "",
     "liquid_enabled": "0",
     "liquid_address": "",
+    "profile_enabled": "0",
+    "profile_display_name": "",
+    "profile_heading": "",
+    "profile_summary_md": "",
+    "profile_long_bio_md": "",
+    "profile_commitment_md": "",
+    "profile_avatar_url": "",
 }
 
 for field in (
@@ -43,6 +50,10 @@ for field in (
     "goal_description",
     "deadline_text",
     "transparency_text",
+    "profile_heading",
+    "profile_summary_md",
+    "profile_long_bio_md",
+    "profile_commitment_md",
 ):
     DEFAULTS[f"{field}_en"] = ""
     DEFAULTS[f"{field}_de"] = ""

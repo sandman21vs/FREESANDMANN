@@ -106,6 +106,23 @@ def init_db():
         )
     """)
 
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS profile_links (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            title          TEXT NOT NULL,
+            title_en       TEXT NOT NULL DEFAULT '',
+            title_de       TEXT NOT NULL DEFAULT '',
+            url            TEXT NOT NULL,
+            category       TEXT NOT NULL DEFAULT 'other',
+            description    TEXT NOT NULL DEFAULT '',
+            description_en TEXT NOT NULL DEFAULT '',
+            description_de TEXT NOT NULL DEFAULT '',
+            sort_order     INTEGER NOT NULL DEFAULT 0,
+            featured       INTEGER NOT NULL DEFAULT 0,
+            created_at     TEXT DEFAULT (datetime('now'))
+        )
+    """)
+
     for key, value in config.DEFAULTS.items():
         conn.execute(
             "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
