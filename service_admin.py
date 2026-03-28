@@ -9,6 +9,41 @@ import models
 logger = logging.getLogger(__name__)
 
 
+def _build_setup_checklist(cfg, articles, lawyers):
+    return [
+        {
+            "label": "Password changed",
+            "done": cfg.get("admin_force_password_change") != "1",
+            "target": "change_password",
+        },
+        {
+            "label": "Campaign title set",
+            "done": cfg.get("site_title", "") not in ("", "Free Sandmann"),
+            "target": "settings_general",
+        },
+        {
+            "label": "Bitcoin address configured",
+            "done": bool(cfg.get("btc_address", "").strip()),
+            "target": "settings_bitcoin",
+        },
+        {
+            "label": "Fundraising goal defined",
+            "done": cfg.get("goal_btc", "0") not in ("0", "0.0", "1.0"),
+            "target": "settings_fundraising",
+        },
+        {
+            "label": "First article published",
+            "done": any(article["published"] for article in articles),
+            "target": "new_article",
+        },
+        {
+            "label": "Lawyer account created",
+            "done": len(lawyers) > 0,
+            "target": "lawyers",
+        },
+    ]
+
+
 def attempt_admin_login(username, password, ip):
     if models.is_rate_limited(ip):
         logger.warning("Admin login rate limited ip=%s", ip)
@@ -62,6 +97,7 @@ def get_admin_dashboard_context():
     media_links = models.get_media_links()
     lawyers = models.get_all_lawyers()
     cfg = models.get_all_config()
+    checklist = _build_setup_checklist(cfg, articles, lawyers)
 
     alerts = []
     if cfg.get("coinos_enabled") != "1":
@@ -91,6 +127,9 @@ def get_admin_dashboard_context():
         "pending_count": len([a for a in articles if a["approval_status"] in ("pending", "draft")]),
         "active_lawyers_count": len([l for l in lawyers if l["active"]]),
         "alerts": alerts,
+        "checklist": checklist,
+        "checklist_completed_count": len([item for item in checklist if item["done"]]),
+        "checklist_all_done": all(item["done"] for item in checklist),
     }
 
 

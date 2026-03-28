@@ -164,6 +164,33 @@ class TestAdminDashboard:
         resp = client.get("/admin/")
         assert resp.status_code == 302
 
+    def test_dashboard_checklist_unconfigured(self, admin_session):
+        """Dashboard deve exibir tarefas pendentes de setup quando faltar configuracao."""
+        resp = admin_session.get("/admin/")
+
+        assert resp.status_code == 200
+        assert b"Getting Started" in resp.data
+        assert b"Campaign title set" in resp.data
+        assert b"Bitcoin address configured" in resp.data
+        assert b"Fundraising goal defined" in resp.data
+        assert b"/admin/settings#section-bitcoin" in resp.data
+        assert resp.data.count(b"Complete this step") == 5
+
+    def test_dashboard_checklist_configured(self, admin_session):
+        """Checklist deve indicar tudo completo quando os itens centrais ja foram feitos."""
+        models.set_config("site_title", "Open Defense")
+        models.set_config("btc_address", "bc1qconfiguredaddress")
+        models.set_config("goal_btc", "5.0")
+        models.create_article("Published update", "Body")
+        models.create_lawyer("drsilva", "Dr. Silva", "TempPass123!")
+
+        resp = admin_session.get("/admin/")
+
+        assert resp.status_code == 200
+        assert b"Getting Started" in resp.data
+        assert b"All set!" in resp.data
+        assert b"All core setup tasks are complete." in resp.data
+
 
 class TestAdminSettings:
     def test_settings_returns_200(self, admin_session):

@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-28 — 282 tests passing.
+Last verified: 2026-03-28 — 285 tests passing.
 
 ---
 
@@ -59,7 +59,7 @@ FREESANDMANN/
 ├── .env.example
 │
 ├── static/
-│   ├── app.js          # Shared frontend behavior: theme, menu, clipboard, invoice polling
+│   ├── app.js          # Shared frontend behavior: theme, menu, clipboard, invoice polling, settings nav, toasts
 │   └── style.css       # Custom styles over Pico CSS
 │
 ├── templates/
@@ -83,7 +83,7 @@ FREESANDMANN/
 │   ├── admin/
 │   │   ├── login.html
 │   │   ├── setup_wizard.html # First-run setup for password + campaign essentials
-│   │   ├── dashboard.html     # Task-oriented dashboard with stats, alerts, quick actions
+│   │   ├── dashboard.html     # Task-oriented dashboard with stats, onboarding checklist, alerts, quick actions
 │   │   ├── settings.html
 │   │   ├── articles.html      # Card-based editorial queue with filters + badges
 │   │   ├── article_form.html  # Create/edit shell using shared article form macro
@@ -102,7 +102,7 @@ FREESANDMANN/
 │   ├── en.json         # 93 keys
 │   └── de.json         # 93 keys
 │
-├── tests/              # 282 tests via pytest
+├── tests/              # 285 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py

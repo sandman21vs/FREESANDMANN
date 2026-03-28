@@ -221,9 +221,98 @@
         });
     }
 
+    function initSettingsSectionNav() {
+        var sectionNav = document.querySelector(".bo-section-nav");
+        if (!sectionNav) {
+            return;
+        }
+
+        var links = Array.prototype.slice.call(sectionNav.querySelectorAll('a[href^="#"]'));
+        if (!links.length) {
+            return;
+        }
+
+        var sections = links.map(function(link) {
+            return document.querySelector(link.getAttribute("href"));
+        }).filter(Boolean);
+        if (!sections.length) {
+            return;
+        }
+
+        function setActiveSection(sectionId) {
+            links.forEach(function(link) {
+                link.classList.toggle("is-active", link.getAttribute("href") === "#" + sectionId);
+            });
+        }
+
+        var currentHash = window.location.hash.replace("#", "");
+        setActiveSection(currentHash || sections[0].id);
+
+        links.forEach(function(link) {
+            link.addEventListener("click", function() {
+                setActiveSection(link.getAttribute("href").replace("#", ""));
+            });
+        });
+
+        if (!("IntersectionObserver" in window)) {
+            return;
+        }
+
+        var observer = new IntersectionObserver(function(entries) {
+            var activeEntry = entries.filter(function(entry) {
+                return entry.isIntersecting;
+            }).sort(function(a, b) {
+                return a.boundingClientRect.top - b.boundingClientRect.top;
+            })[0];
+
+            if (activeEntry) {
+                setActiveSection(activeEntry.target.id);
+            }
+        }, {
+            rootMargin: "-20% 0px -65% 0px",
+            threshold: [0, 0.2, 1]
+        });
+
+        sections.forEach(function(section) {
+            observer.observe(section);
+        });
+    }
+
+    function hideFlashMessage(message) {
+        if (!message || message.classList.contains("is-hiding")) {
+            return;
+        }
+
+        message.classList.add("is-hiding");
+        window.setTimeout(function() {
+            message.remove();
+        }, 240);
+    }
+
+    function initFlashToasts() {
+        document.querySelectorAll(".bo-toast-stack .flash-msg").forEach(function(message) {
+            var dismissButton = message.querySelector(".flash-dismiss");
+            var delay = parseInt(message.dataset.autoDismiss || "5000", 10);
+
+            if (dismissButton) {
+                dismissButton.addEventListener("click", function() {
+                    hideFlashMessage(message);
+                });
+            }
+
+            if (delay > 0) {
+                window.setTimeout(function() {
+                    hideFlashMessage(message);
+                }, delay);
+            }
+        });
+    }
+
     initThemeControls();
     initPreferenceWidget();
     initHamburgerMenu();
     initCopyButtons();
     initInvoiceWidgets();
+    initSettingsSectionNav();
+    initFlashToasts();
 })();

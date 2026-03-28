@@ -177,6 +177,7 @@ class TestAdminTemplates:
         assert b"Dashboard" in resp.data or b"dashboard" in resp.data
         assert b"bo-sidebar" in resp.data
         assert b"Pending Articles" in resp.data
+        assert b"Getting Started" in resp.data
 
     def test_settings_renders(self, admin_session):
         """Settings renderiza sem erro."""
@@ -185,6 +186,7 @@ class TestAdminTemplates:
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
         assert b"sticky-donate" not in resp.data
+        assert b"bo-section-nav" in resp.data
         assert b'href="#section-general"' in resp.data
         assert b"bo-sticky-save" in resp.data
         assert b'name="site_title_en"' in resp.data
@@ -249,6 +251,19 @@ class TestAdminTemplates:
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
+
+    def test_admin_flash_messages_render_as_toasts(self, admin_session):
+        """Shell admin deve renderizar flashes dentro do container de toast."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/refresh-balance", data={
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"bo-toast-stack" in resp.data
+        assert b"flash-dismiss" in resp.data
 
     def test_lawyer_change_password_uses_backoffice_shell(self, lawyer_session):
         """Troca de senha do advogado deve usar o shell autenticado."""

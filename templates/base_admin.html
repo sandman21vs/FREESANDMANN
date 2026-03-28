@@ -62,9 +62,14 @@
             <div class="bo-main-shell">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                        {% for category, message in messages %}
-                            <article class="flash-msg flash-{{ category }}">{{ message }}</article>
-                        {% endfor %}
+                        <div class="bo-toast-stack" aria-live="polite" aria-label="Notifications">
+                            {% for category, message in messages %}
+                                <article class="flash-msg flash-{{ category }}" data-auto-dismiss="5000">
+                                    <span>{{ message }}</span>
+                                    <button type="button" class="flash-dismiss" aria-label="Dismiss notification">&times;</button>
+                                </article>
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 {% endwith %}
 
