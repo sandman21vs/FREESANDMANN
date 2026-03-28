@@ -1,5 +1,5 @@
 {% extends "base_lawyer.html" %}
-{% from "components/bo_components.html" import page_header, stat_card, status_badge, i18n_badge with context %}
+{% from "components/bo_components.html" import page_header, status_badge, i18n_badge with context %}
 
 {% block title %}{{ t('lawyer_dashboard_title') }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
@@ -11,23 +11,24 @@
     t('new_article')
 ) }}
 
-<div class="bo-stats">
-    {{ stat_card(awaiting_count, "Awaiting Review", "#d29922") }}
-    {{ stat_card(approved_by_me_count, "Approved by Me", "#1f6feb") }}
-    {{ stat_card(published_count, "Published", "#2ea043") }}
-</div>
-
-<section>
-    <div class="bo-page-header">
+{# Hero: Review Queue #}
+<article class="bo-card">
+    <div class="bo-card-header">
         <div>
-            <h2>{{ t('lawyer_articles_pending') }}</h2>
-            <p>Articles that still need your review or approval.</p>
+            <h2 class="bo-card-title">
+                {% if awaiting_count > 0 %}
+                    {{ awaiting_count }} {{ 'artigo aguardando' if awaiting_count == 1 else 'artigos aguardando' }} sua revisão
+                {% else %}
+                    Nenhum artigo pendente
+                {% endif %}
+            </h2>
+            <p class="bo-muted">{{ t('lawyer_articles_pending') }}</p>
         </div>
     </div>
 
     {% if awaiting_articles %}
         {% for article in awaiting_articles %}
-        <article class="bo-card">
+        <article class="bo-card" style="margin-top:var(--space-sm);">
             <div class="bo-card-header">
                 <div class="bo-card-stack">
                     <h3 class="bo-card-title">{{ article.title }}</h3>
@@ -49,13 +50,15 @@
         </article>
         {% endfor %}
     {% else %}
-    <div class="bo-empty-state">
+    <div class="bo-empty-state" style="margin-top:var(--space-sm);">
         <h3>Nothing waiting right now</h3>
         <p>No pending articles currently need your action.</p>
+        <a href="{{ url_for('lawyer_article_new') }}" role="button" class="secondary">{{ t('new_article') }}</a>
     </div>
     {% endif %}
-</section>
+</article>
 
+{# History section with sub-tabs #}
 <section>
     <div class="bo-page-header">
         <div>
@@ -65,30 +68,70 @@
     </div>
 
     {% if history_articles %}
-        {% for article in history_articles %}
-        <article class="bo-card">
-            <div class="bo-card-header">
-                <div class="bo-card-stack">
-                    <h3 class="bo-card-title">{{ article.title }}</h3>
-                    <div class="bo-card-meta">
-                        {{ status_badge(article.approval_status) }}
-                        {{ i18n_badge(article.title_en, article.body_md_en, article.title_de, article.body_md_de) }}
-                        <span>{{ t('approved_by') }}: {{ article.approved_by_display or '-' }}</span>
-                        <span>{{ article.created_at[:10] }}</span>
+    <nav class="bo-tabs" aria-label="History filters">
+        <a href="#" class="bo-tab bo-tab-active" data-tab-target="history-approved">Approved by me <span class="bo-tab-count">{{ approved_by_me_count }}</span></a>
+        <a href="#" class="bo-tab" data-tab-target="history-published">Published <span class="bo-tab-count">{{ published_count }}</span></a>
+    </nav>
+
+    <div class="bo-tab-panel" data-tab="history-approved">
+        {% set my_articles = history_articles | selectattr("id", "in", lawyer_approved_ids) | list %}
+        {% if my_articles %}
+            {% for article in my_articles %}
+            <article class="bo-card">
+                <div class="bo-card-header">
+                    <div class="bo-card-stack">
+                        <h3 class="bo-card-title">{{ article.title }}</h3>
+                        <div class="bo-card-meta">
+                            {{ status_badge(article.approval_status) }}
+                            {{ i18n_badge(article.title_en, article.body_md_en, article.title_de, article.body_md_de) }}
+                            <span>{{ article.created_at[:10] }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="bo-card-actions">
-                <a href="{{ url_for('lawyer_article_edit', article_id=article.id) }}" role="button" class="secondary">Edit</a>
-                {% if article.id in lawyer_approved_ids %}
-                <form method="POST" action="{{ url_for('lawyer_article_revoke', article_id=article.id) }}">
-                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                    <button type="submit" class="btn-danger" onclick="return confirm('Revoke your approval?')">{{ t('revoke') }}</button>
-                </form>
-                {% endif %}
-            </div>
-        </article>
-        {% endfor %}
+                <div class="bo-card-actions">
+                    <a href="{{ url_for('lawyer_article_edit', article_id=article.id) }}" role="button" class="secondary">Edit</a>
+                    <form method="POST" action="{{ url_for('lawyer_article_revoke', article_id=article.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <button type="submit" class="btn-danger" onclick="return confirm('Revoke your approval?')">{{ t('revoke') }}</button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        {% else %}
+        <div class="bo-empty-state">
+            <h3>No articles approved by you yet</h3>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="bo-tab-panel" data-tab="history-published" style="display:none">
+        {% set pub_articles = history_articles | selectattr("published") | list %}
+        {% if pub_articles %}
+            {% for article in pub_articles %}
+            <article class="bo-card">
+                <div class="bo-card-header">
+                    <div class="bo-card-stack">
+                        <h3 class="bo-card-title">{{ article.title }}</h3>
+                        <div class="bo-card-meta">
+                            {{ status_badge(article.approval_status) }}
+                            {{ i18n_badge(article.title_en, article.body_md_en, article.title_de, article.body_md_de) }}
+                            <span>{{ t('approved_by') }}: {{ article.approved_by_display or '-' }}</span>
+                            <span>{{ article.created_at[:10] }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bo-card-actions">
+                    <a href="{{ url_for('lawyer_article_edit', article_id=article.id) }}" role="button" class="secondary">Edit</a>
+                </div>
+            </article>
+            {% endfor %}
+        {% else %}
+        <div class="bo-empty-state">
+            <h3>No published articles yet</h3>
+        </div>
+        {% endif %}
+    </div>
+
     {% else %}
     <div class="bo-empty-state">
         <h3>No history yet</h3>
