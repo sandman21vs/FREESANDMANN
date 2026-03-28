@@ -1,5 +1,5 @@
 {% extends "base_admin.html" %}
-{% from "components/bo_components.html" import page_header %}
+{% from "components/bo_components.html" import page_header, text_field, toggle_field, section_title, save_bar, i18n_bar, i18n_text_field %}
 
 {% block title %}Settings &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
@@ -9,178 +9,147 @@
     "Edit public campaign content, payment settings, and transparency details from one place."
 ) }}
 
-<nav class="bo-section-nav" aria-label="Settings sections">
-    <a href="#section-general">General</a>
-    <a href="#section-bitcoin">Bitcoin</a>
-    <a href="#section-coinos">Coinos</a>
-    <a href="#section-liquid">Liquid</a>
-    <a href="#section-fundraising">Fundraising</a>
-    <a href="#section-transparency">Transparency</a>
-</nav>
-
 <form method="POST" action="{{ url_for('admin_settings') }}" class="bo-settings-form">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
-    <fieldset id="section-general">
-        <legend>General</legend>
-        <label>Site Title
-            <input type="text" name="site_title" value="{{ cfg['site_title'] }}">
-        </label>
-        <label>Site Description
-            <textarea name="site_description">{{ cfg['site_description'] }}</textarea>
-        </label>
-        <label>Site Tagline
-            <input type="text" name="site_tagline" value="{{ cfg['site_tagline'] }}">
-        </label>
-        <label>Hero Image URL
-            <input type="text" name="hero_image_url" value="{{ cfg['hero_image_url'] }}">
-        </label>
-        <label>OG Image URL (for social media previews)
-            <input type="text" name="og_image_url" value="{{ cfg['og_image_url'] }}">
-        </label>
-        <label>Deadline / Urgency Text
-            <input type="text" name="deadline_text" value="{{ cfg['deadline_text'] }}" placeholder="e.g. Court date April 15">
-        </label>
-        <details class="bo-expandable">
-            <summary>English Translation (optional)</summary>
-            <label>Site Title (EN)
-                <input type="text" name="site_title_en" value="{{ cfg.get('site_title_en', '') }}">
-            </label>
-            <label>Site Description (EN)
-                <textarea name="site_description_en">{{ cfg.get('site_description_en', '') }}</textarea>
-            </label>
-            <label>Site Tagline (EN)
-                <input type="text" name="site_tagline_en" value="{{ cfg.get('site_tagline_en', '') }}">
-            </label>
-            <label>Deadline / Urgency Text (EN)
-                <input type="text" name="deadline_text_en" value="{{ cfg.get('deadline_text_en', '') }}" placeholder="e.g. Court date April 15">
-            </label>
-        </details>
-        <details class="bo-expandable">
-            <summary>Deutsche Übersetzung (optional)</summary>
-            <label>Site Title (DE)
-                <input type="text" name="site_title_de" value="{{ cfg.get('site_title_de', '') }}">
-            </label>
-            <label>Site Description (DE)
-                <textarea name="site_description_de">{{ cfg.get('site_description_de', '') }}</textarea>
-            </label>
-            <label>Site Tagline (DE)
-                <input type="text" name="site_tagline_de" value="{{ cfg.get('site_tagline_de', '') }}">
-            </label>
-            <label>Deadline / Urgency Text (DE)
-                <input type="text" name="deadline_text_de" value="{{ cfg.get('deadline_text_de', '') }}" placeholder="z. B. Gerichtstermin am 15. April">
-            </label>
-        </details>
-    </fieldset>
+    {{ i18n_bar(
+        translatable_count=6,
+        values_en=[
+            cfg.get('site_title_en', ''),
+            cfg.get('site_description_en', ''),
+            cfg.get('site_tagline_en', ''),
+            cfg.get('deadline_text_en', ''),
+            cfg.get('goal_description_en', ''),
+            cfg.get('transparency_text_en', '')
+        ],
+        values_de=[
+            cfg.get('site_title_de', ''),
+            cfg.get('site_description_de', ''),
+            cfg.get('site_tagline_de', ''),
+            cfg.get('deadline_text_de', ''),
+            cfg.get('goal_description_de', ''),
+            cfg.get('transparency_text_de', '')
+        ]
+    ) }}
 
-    <fieldset id="section-bitcoin">
-        <legend>Bitcoin</legend>
-        <label>Bitcoin On-Chain Address {% if cfg['coinos_onchain'] == '1' %}&mdash; managed by Coinos{% endif %}
-            <input type="text" name="btc_address" value="{{ cfg['btc_address'] }}"
-                   {% if cfg['coinos_onchain'] == '1' %}readonly{% endif %}>
-        </label>
-        <label>Lightning Address / LNURL
-            <input type="text" name="lightning_address" value="{{ cfg['lightning_address'] }}">
-        </label>
-        <label>Wallet Explorer URL (for transparency)
-            <input type="text" name="wallet_explorer_url" value="{{ cfg['wallet_explorer_url'] }}">
-        </label>
-    </fieldset>
+    <nav class="bo-tabs" aria-label="Settings tabs">
+        <a href="#" class="bo-tab bo-tab-active" data-tab-target="general">General</a>
+        <a href="#" class="bo-tab" data-tab-target="bitcoin">Bitcoin &amp; Payments</a>
+        <a href="#" class="bo-tab" data-tab-target="campaign">Campaign</a>
+        <a href="#" class="bo-tab" data-tab-target="advanced">Advanced</a>
+    </nav>
 
-    <fieldset id="section-coinos">
-        <legend>Coinos Lightning API</legend>
-        <label>
-            <input type="checkbox" name="coinos_enabled" value="1"
-                   {% if cfg['coinos_enabled'] == '1' %}checked{% endif %}>
-            Enable Coinos Lightning invoices
-        </label>
-        <label>
-            <input type="checkbox" name="coinos_onchain" value="1"
-                   {% if cfg['coinos_onchain'] == '1' %}checked{% endif %}>
-            Use Coinos for on-chain address too (balance tracked via Coinos)
-        </label>
-        <label>Coinos Read-Only API Token
-            <input type="password" name="coinos_api_key"
-                   value="{{ cfg['coinos_api_key'] }}"
-                   placeholder="Paste your read-only token from coinos.io/docs">
-        </label>
-        <label>Webhook Secret (optional, for verifying callbacks)
-            <input type="text" name="coinos_webhook_secret"
-                   value="{{ cfg['coinos_webhook_secret'] }}"
-                   placeholder="A random string to verify webhook authenticity">
-        </label>
-        <small>Use the <strong>read-only</strong> token from coinos.io/docs. It can create invoices but cannot withdraw funds. Lightning balance will be auto-updated from your Coinos account. When an invoice is paid, Coinos sends a webhook to update the balance instantly. If "Use Coinos for on-chain" is enabled, a new Coinos BTC address will be generated and on-chain donations will also be tracked via Coinos.</small>
-    </fieldset>
-
-    <fieldset id="section-liquid">
-        <legend>Liquid Network</legend>
-        <label>
-            <input type="checkbox" name="liquid_enabled" value="1"
-                   {% if cfg['liquid_enabled'] == '1' %}checked{% endif %}>
-            Enable Liquid Network QR code
-        </label>
-        <label>Liquid Address
-            <input type="text" name="liquid_address" value="{{ cfg['liquid_address'] }}"
-                   placeholder="lq1qq... or VJL...">
-        </label>
-        <small>Enter a Liquid Network address to display a QR code for Liquid donations.</small>
-    </fieldset>
-
-    <fieldset id="section-fundraising">
-        <legend>Fundraising</legend>
-        <label>Goal (BTC)
-            <input type="text" name="goal_btc" value="{{ cfg['goal_btc'] }}">
-        </label>
-        <label>Goal Description
-            <input type="text" name="goal_description" value="{{ cfg['goal_description'] }}">
-        </label>
-        <label>Lightning Received (BTC) {% if cfg['coinos_enabled'] == '1' %}&mdash; auto-updated from Coinos{% else %}&mdash; update manually{% endif %}
-            <input type="text" name="raised_lightning_btc" value="{{ cfg['raised_lightning_btc'] }}"
-                   {% if cfg['coinos_enabled'] == '1' %}readonly{% endif %}>
-        </label>
-        <label>Manual Adjustment (BTC) — for off-system donations
-            <input type="text" name="raised_btc_manual_adjustment" value="{{ cfg['raised_btc_manual_adjustment'] }}">
-        </label>
-        <label>Supporters Count
-            <input type="text" name="supporters_count" value="{{ cfg['supporters_count'] }}">
-        </label>
-        <small>On-chain balance is updated automatically from mempool.space. Current: {{ cfg['raised_onchain_btc'] }} BTC</small>
-        <details class="bo-expandable">
-            <summary>English Translation (optional)</summary>
-            <label>Goal Description (EN)
-                <input type="text" name="goal_description_en" value="{{ cfg.get('goal_description_en', '') }}">
-            </label>
-        </details>
-        <details class="bo-expandable">
-            <summary>Deutsche Übersetzung (optional)</summary>
-            <label>Goal Description (DE)
-                <input type="text" name="goal_description_de" value="{{ cfg.get('goal_description_de', '') }}">
-            </label>
-        </details>
-    </fieldset>
-
-    <fieldset id="section-transparency">
-        <legend>Transparency</legend>
-        <label>Transparency Text (supports Markdown)
-            <textarea name="transparency_text" rows="8">{{ cfg['transparency_text'] }}</textarea>
-        </label>
-        <details class="bo-expandable">
-            <summary>English Translation (optional)</summary>
-            <label>Transparency Text (EN, supports Markdown)
-                <textarea name="transparency_text_en" rows="8">{{ cfg.get('transparency_text_en', '') }}</textarea>
-            </label>
-        </details>
-        <details class="bo-expandable">
-            <summary>Deutsche Übersetzung (optional)</summary>
-            <label>Transparency Text (DE, supports Markdown)
-                <textarea name="transparency_text_de" rows="8">{{ cfg.get('transparency_text_de', '') }}</textarea>
-            </label>
-        </details>
-    </fieldset>
-
-    <div class="bo-card bo-sticky-save">
-        <span class="bo-muted">Review your changes and save when you are ready.</span>
-        <button type="submit">Save Settings</button>
+    {# Tab: General #}
+    <div class="bo-tab-panel" data-tab="general">
+        {{ i18n_text_field("site_title", "Site Title",
+            value_pt=cfg['site_title'],
+            value_en=cfg.get('site_title_en', ''),
+            value_de=cfg.get('site_title_de', '')
+        ) }}
+        {{ i18n_text_field("site_description", "Site Description",
+            value_pt=cfg['site_description'],
+            value_en=cfg.get('site_description_en', ''),
+            value_de=cfg.get('site_description_de', ''),
+            input_type="textarea", rows=4
+        ) }}
+        {{ i18n_text_field("site_tagline", "Site Tagline",
+            value_pt=cfg['site_tagline'],
+            value_en=cfg.get('site_tagline_en', ''),
+            value_de=cfg.get('site_tagline_de', '')
+        ) }}
+        {{ i18n_text_field("deadline_text", "Deadline / Urgency Text",
+            value_pt=cfg['deadline_text'],
+            value_en=cfg.get('deadline_text_en', ''),
+            value_de=cfg.get('deadline_text_de', ''),
+            placeholder="e.g. Court date April 15"
+        ) }}
+        {{ text_field("hero_image_url", "Hero Image URL", value=cfg['hero_image_url']) }}
+        {{ text_field("og_image_url", "OG Image URL", hint="Used for social media previews.", value=cfg['og_image_url']) }}
     </div>
+
+    {# Tab: Bitcoin & Payments #}
+    <div class="bo-tab-panel" data-tab="bitcoin" style="display:none">
+        {{ section_title("On-Chain Bitcoin") }}
+        {{ text_field("btc_address", "Bitcoin On-Chain Address",
+            value=cfg['btc_address'],
+            hint="Managed by Coinos when on-chain mode is enabled." if cfg['coinos_onchain'] == '1' else "",
+            readonly=(cfg['coinos_onchain'] == '1')
+        ) }}
+        {{ text_field("lightning_address", "Lightning Address / LNURL", value=cfg['lightning_address']) }}
+        {{ text_field("wallet_explorer_url", "Wallet Explorer URL", hint="For transparency links on the public page.", value=cfg['wallet_explorer_url']) }}
+
+        {{ section_title("Coinos Lightning API") }}
+        {{ toggle_field("coinos_enabled", "Enable Coinos Lightning invoices",
+            checked=(cfg['coinos_enabled'] == '1'),
+            hint="Enables Lightning invoice generation via Coinos."
+        ) }}
+        <div class="bo-toggle-sub" data-depends="coinos_enabled">
+            {{ toggle_field("coinos_onchain", "Use Coinos for on-chain address",
+                checked=(cfg['coinos_onchain'] == '1'),
+                hint="Balance tracked via Coinos. A new BTC address will be generated."
+            ) }}
+            {{ text_field("coinos_api_key", "Coinos Read-Only API Token",
+                input_type="password",
+                value=cfg['coinos_api_key'],
+                hint="Use the read-only token from coinos.io/docs. It can create invoices but cannot withdraw funds.",
+                placeholder="Paste your read-only token from coinos.io/docs"
+            ) }}
+            {{ text_field("coinos_webhook_secret", "Webhook Secret",
+                value=cfg['coinos_webhook_secret'],
+                hint="Optional. A random string to verify webhook authenticity.",
+                placeholder="A random string to verify webhook authenticity"
+            ) }}
+        </div>
+
+        {{ section_title("Liquid Network") }}
+        {{ toggle_field("liquid_enabled", "Enable Liquid Network QR code",
+            checked=(cfg['liquid_enabled'] == '1'),
+            hint="Displays a QR code for Liquid Network donations."
+        ) }}
+        <div class="bo-toggle-sub" data-depends="liquid_enabled">
+            {{ text_field("liquid_address", "Liquid Address",
+                value=cfg['liquid_address'],
+                placeholder="lq1qq... or VJL..."
+            ) }}
+        </div>
+    </div>
+
+    {# Tab: Campaign #}
+    <div class="bo-tab-panel" data-tab="campaign" style="display:none">
+        {{ text_field("goal_btc", "Goal (BTC)", value=cfg['goal_btc']) }}
+        {{ i18n_text_field("goal_description", "Goal Description",
+            value_pt=cfg['goal_description'],
+            value_en=cfg.get('goal_description_en', ''),
+            value_de=cfg.get('goal_description_de', '')
+        ) }}
+        {{ text_field("raised_lightning_btc", "Lightning Received (BTC)",
+            value=cfg['raised_lightning_btc'],
+            hint="Auto-updated from Coinos." if cfg['coinos_enabled'] == '1' else "Update manually.",
+            readonly=(cfg['coinos_enabled'] == '1')
+        ) }}
+        {{ text_field("raised_btc_manual_adjustment", "Manual Adjustment (BTC)",
+            value=cfg['raised_btc_manual_adjustment'],
+            hint="For off-system donations not tracked automatically."
+        ) }}
+        {{ text_field("supporters_count", "Supporters Count", value=cfg['supporters_count']) }}
+        {{ text_field("raised_onchain_btc", "On-Chain Balance (BTC)",
+            value=cfg['raised_onchain_btc'],
+            hint="Auto-updated from mempool.space every 5 minutes.",
+            readonly=true
+        ) }}
+    </div>
+
+    {# Tab: Advanced #}
+    <div class="bo-tab-panel" data-tab="advanced" style="display:none">
+        {{ i18n_text_field("transparency_text", "Transparency Text",
+            value_pt=cfg['transparency_text'],
+            value_en=cfg.get('transparency_text_en', ''),
+            value_de=cfg.get('transparency_text_de', ''),
+            input_type="textarea", rows=8,
+            hint="Supports Markdown."
+        ) }}
+    </div>
+
+    {{ save_bar() }}
 </form>
 {% endblock %}
