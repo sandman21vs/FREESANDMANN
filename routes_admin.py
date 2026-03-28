@@ -105,8 +105,8 @@ def register_admin_routes(app):
                     flash(error, "error")
                 return render_template("admin/settings.html", cfg=result["cfg"]), 200
 
-            if result["warning"]:
-                flash(result["warning"], "warning")
+            for w in result.get("warnings", []):
+                flash(w, "warning")
             flash("Settings saved.", "success")
             return redirect(url_for("admin_settings"))
 

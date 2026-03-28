@@ -151,14 +151,21 @@ def process_admin_settings(form_data, current_cfg=None):
     for key, value in normalized_cfg.items():
         models.set_config(key, value)
 
-    warning = None
+    warnings = []
     if normalized_cfg["coinos_onchain"] == "1" and normalized_cfg["coinos_enabled"] == "1":
         onchain_addr = coinos.get_onchain_address()
         if onchain_addr:
             models.set_config("btc_address", onchain_addr)
             logger.info("Admin settings refreshed Coinos on-chain address address_suffix=%s", onchain_addr[-8:])
         else:
-            warning = "Coinos on-chain address could not be refreshed. Previous BTC address kept."
+            current_btc = models.get_config("btc_address")
+            if current_btc:
+                warnings.append("Could not reach Coinos API to refresh on-chain address. Previous address kept.")
+            else:
+                warnings.append(
+                    "Could not reach Coinos API to generate an on-chain address. "
+                    "Check your API key or disable 'On-Chain via Coinos' and enter a manual BTC address."
+                )
             logger.warning("Coinos on-chain address refresh failed during admin settings save")
 
     if normalized_cfg["coinos_enabled"] == "1" and not normalized_cfg.get("lightning_address"):
@@ -170,16 +177,29 @@ def process_admin_settings(form_data, current_cfg=None):
 
     # Cache Coinos addresses when show_addresses is enabled
     if normalized_cfg.get("coinos_show_addresses") == "1" and normalized_cfg.get("coinos_api_key"):
+        cached_any = False
         username = coinos.get_account_username()
         if username:
             ln_addr = f"{username}@coinos.io"
             models.set_config("coinos_cached_ln_address", ln_addr)
             logger.info("Cached Coinos LN address: %s", ln_addr)
+            cached_any = True
+        elif not models.get_config("coinos_cached_ln_address"):
+            models.set_config("coinos_cached_ln_address", "")
 
         btc_addr = coinos.get_fresh_onchain_address()
         if btc_addr:
             models.set_config("coinos_cached_btc_address", btc_addr)
             logger.info("Cached Coinos BTC address suffix: %s", btc_addr[-8:])
+            cached_any = True
+        elif not models.get_config("coinos_cached_btc_address"):
+            models.set_config("coinos_cached_btc_address", "")
+
+        if not cached_any and not models.get_config("coinos_cached_ln_address"):
+            warnings.append(
+                "Could not reach Coinos API to cache addresses for the public site. "
+                "Check your API key. QR codes will not appear until addresses are cached."
+            )
 
     if normalized_cfg.get("coinos_show_addresses") != "1" or not normalized_cfg.get("coinos_api_key"):
         models.set_config("coinos_cached_btc_address", "")
@@ -194,7 +214,7 @@ def process_admin_settings(form_data, current_cfg=None):
     )
     return {
         "ok": True,
-        "warning": warning,
+        "warnings": warnings,
     }
 
 def create_media_link(form_data):

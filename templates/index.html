@@ -29,7 +29,7 @@
 </section>
 {% endif %}
 
-{% if cfg.get('btc_address') or cfg.get('lightning_address') or cfg.get('liquid_address') or cfg.get('coinos_enabled') == '1' %}
+{% if cfg.get('btc_address') or cfg.get('lightning_address') or cfg.get('liquid_address') or cfg.get('coinos_enabled') == '1' or cfg.get('coinos_show_addresses') == '1' %}
 <section>
     <h2>{{ t('how_to_donate') }}</h2>
     {{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'medium', cfg.get('liquid_address', '')) }}
