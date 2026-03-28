@@ -61,7 +61,8 @@
       "Bash(pytest tests/ -q)",
       "Bash(pytest tests/test_i18n.py -v)",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(cat /home/msi/FREESANDMANN/docker-compose*.yml)"
+      "Bash(cat /home/msi/FREESANDMANN/docker-compose*.yml)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }
