@@ -17,6 +17,11 @@ class TestHomepage:
         resp = client.get("/")
         assert b"BTC" in resp.data
 
+    def test_index_contains_admin_footer_link(self, client):
+        """Homepage deve expor um link sutil para o login admin."""
+        resp = client.get("/")
+        assert b'/admin/login' in resp.data
+
 
 class TestDonate:
     def test_donate_returns_200(self, client):

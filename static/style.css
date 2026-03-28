@@ -643,6 +643,18 @@ progress::-moz-progress-bar {
     color: var(--btc-orange);
 }
 
+.footer-admin-link {
+    display: inline-block;
+    margin-top: 0.85rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.footer-admin-link:hover {
+    text-decoration: underline;
+}
+
 .footer-nav-list {
     list-style: none;
     padding: 0;
@@ -1041,6 +1053,24 @@ progress::-moz-progress-bar {
 
 .bo-settings-form fieldset {
     scroll-margin-top: 5rem;
+}
+
+.setup-wizard {
+    max-width: 44rem;
+    margin: 2rem auto;
+}
+
+.setup-wizard h1,
+.setup-wizard p:last-child {
+    margin-bottom: 0;
+}
+
+.setup-wizard fieldset + fieldset {
+    margin-top: 1rem;
+}
+
+.admin-login-alt {
+    margin-top: 0.75rem;
 }
 
 .bo-sticky-save {

@@ -17,11 +17,35 @@ from service_admin import (
     unpublish_admin_article,
 )
 from service_editorial import create_article_for_role, update_article_for_role
+from service_setup import process_setup_wizard
 
 
 def register_admin_routes(app):
+    @app.route("/admin/setup", methods=["GET", "POST"])
+    def admin_setup():
+        cfg = models.get_all_config()
+        if cfg.get("setup_complete") == "1":
+            return redirect(url_for("admin_login"))
+
+        if request.method == "POST":
+            result = process_setup_wizard(request.form)
+            if not result["ok"]:
+                for error in result["errors"]:
+                    flash(error, "error")
+                return render_template("admin/setup_wizard.html", cfg=result["cfg"]), 200
+
+            flash("Setup complete! You are now logged in.", "success")
+            session["admin"] = True
+            return redirect(url_for("admin_dashboard"))
+
+        return render_template("admin/setup_wizard.html", cfg=cfg)
+
     @app.route("/admin/login", methods=["GET", "POST"])
     def admin_login():
+        cfg = models.get_all_config()
+        if cfg.get("setup_complete") != "1":
+            return redirect(url_for("admin_setup"))
+
         if session.get("admin"):
             return redirect(url_for("admin_dashboard"))
 

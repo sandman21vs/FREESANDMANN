@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-27 — 268 tests passing.
+Last verified: 2026-03-28 — 282 tests passing.
 
 ---
 
@@ -48,6 +48,7 @@ FREESANDMANN/
 ├── service_editorial.py # Shared article workflow for admin + lawyer roles
 ├── service_qr.py       # QR-code response helpers
 ├── service_admin.py    # Admin workflow helpers: auth, settings, media, lawyers
+├── service_setup.py    # First-run setup wizard validation + config bootstrap
 ├── config.py           # Defaults + env vars
 ├── init_db.py          # Schema creation + seeding
 ├── i18n.py             # PT/EN/DE translation loader
@@ -81,6 +82,7 @@ FREESANDMANN/
 │   │
 │   ├── admin/
 │   │   ├── login.html
+│   │   ├── setup_wizard.html # First-run setup for password + campaign essentials
 │   │   ├── dashboard.html     # Task-oriented dashboard with stats, alerts, quick actions
 │   │   ├── settings.html
 │   │   ├── articles.html      # Card-based editorial queue with filters + badges
@@ -96,11 +98,11 @@ FREESANDMANN/
 │       └── change_password.html
 │
 ├── translations/
-│   ├── pt.json         # 77 keys
-│   ├── en.json         # 77 keys
-│   └── de.json         # 77 keys
+│   ├── pt.json         # 93 keys
+│   ├── en.json         # 93 keys
+│   └── de.json         # 93 keys
 │
-├── tests/              # 268 tests via pytest
+├── tests/              # 282 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
@@ -138,6 +140,7 @@ Admin writes go through validation/normalization before saving:
 | Key | Description |
 |-----|-------------|
 | `site_title` | Site name |
+| `setup_complete` | `"0"` until first-run wizard is completed; `"1"` afterwards |
 | `site_title_en` / `site_title_de` | Optional localized site title overrides |
 | `site_description` | SEO description / homepage intro |
 | `site_description_en` / `site_description_de` | Optional localized homepage/meta description |
@@ -271,11 +274,12 @@ CREATE TABLE login_attempts (
 | GET | `/donate/invoice-qr` | Generate QR for invoice string |
 | POST | `/donate/webhook/coinos` | Coinos payment webhook (no CSRF) |
 
-### Admin (`/admin/` — requires `session['admin'] = True`)
+### Admin (`/admin/` — setup wizard comes first; most routes require `session['admin'] = True`)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET/POST | `/admin/login` | Login (not linked publicly) |
+| GET/POST | `/admin/setup` | First-run setup wizard for password, campaign title, BTC address, and goal |
+| GET/POST | `/admin/login` | Login after setup is complete; subtly linked in the public footer |
 | GET | `/admin/logout` | Clear session |
 | GET | `/admin/` | Dashboard: stats, alerts, quick actions, balance breakdown |
 | GET/POST | `/admin/change-password` | Change admin password |

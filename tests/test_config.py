@@ -10,7 +10,7 @@ def test_defaults_exist():
         "goal_btc", "raised_onchain_btc", "raised_lightning_btc",
         "raised_btc_manual_adjustment", "raised_btc",
         "last_balance_check", "goal_description",
-        "admin_force_password_change",
+        "admin_force_password_change", "setup_complete",
         "supporters_count", "hero_image_url", "deadline_text",
         "transparency_text", "og_image_url", "wallet_explorer_url",
         "coinos_api_key", "coinos_enabled",

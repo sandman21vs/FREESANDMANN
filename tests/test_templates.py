@@ -154,12 +154,21 @@ class TestPublicTemplates:
 class TestAdminTemplates:
     def test_login_renders(self, client):
         """Login renderiza sem erro."""
+        models.set_config("setup_complete", "1")
         resp = client.get("/admin/login")
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"csrf_token" in resp.data
         assert b"bo-sidebar" not in resp.data
         assert b"sticky-donate" in resp.data
+        assert b"/advogado/login" in resp.data
+
+    def test_setup_wizard_renders(self, client):
+        """Wizard inicial deve renderizar no primeiro acesso."""
+        resp = client.get("/admin/setup")
+        assert resp.status_code == 200
+        assert b"Initial Setup" in resp.data
+        assert b"csrf_token" in resp.data
 
     def test_dashboard_renders(self, admin_session):
         """Dashboard renderiza sem erro."""
