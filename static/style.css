@@ -783,7 +783,8 @@ progress::-moz-progress-bar {
     text-decoration: none;
     color: var(--text-primary);
     font-size: 0.95rem;
-    transition: background 0.2s ease, color 0.2s ease;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
 }
 
 .bo-sidebar-nav a:hover {
