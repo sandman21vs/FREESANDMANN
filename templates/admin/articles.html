@@ -1,5 +1,5 @@
 {% extends "base_admin.html" %}
-{% from "components/bo_components.html" import page_header, status_badge with context %}
+{% from "components/bo_components.html" import page_header, status_badge, i18n_badge with context %}
 
 {% block title %}Articles &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
@@ -34,6 +34,7 @@
                 <h2 class="bo-card-title">{{ article.title }}</h2>
                 <div class="bo-card-meta">
                     {{ status_badge(article.approval_status or 'draft') }}
+                    {{ i18n_badge(article.title_en, article.body_md_en, article.title_de, article.body_md_de) }}
                     <span>{{ t('created_by_label') }}: {{ article.created_by }}</span>
                     <span>{{ article.created_at[:10] }}</span>
                     <span>{{ t('approved_by') }}: {{ article.approved_by_display or '-' }}</span>
