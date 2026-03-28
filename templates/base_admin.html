@@ -43,6 +43,7 @@
                         <li><a href="{{ url_for('admin_media_links') }}" class="{% if request.endpoint in ('admin_media_links', 'admin_media_link_delete') %}active{% endif %}">Media Links</a></li>
                         <li><a href="{{ url_for('admin_lawyers') }}" class="{% if request.endpoint in ('admin_lawyers', 'admin_lawyer_toggle', 'admin_lawyer_reset_password') %}active{% endif %}">{{ t('manage_lawyers') }}</a></li>
                         <li><a href="{{ url_for('admin_settings') }}" class="{% if request.endpoint == 'admin_settings' %}active{% endif %}">Settings</a></li>
+                        <li><a href="{{ url_for('admin_profile') }}" class="{% if request.endpoint in ('admin_profile', 'admin_profile_link_delete') %}active{% endif %}">Profile &amp; About</a></li>
                         <li><a href="{{ url_for('admin_change_password') }}" class="{% if request.endpoint == 'admin_change_password' %}active{% endif %}">Change Password</a></li>
                     </ul>
                 </nav>

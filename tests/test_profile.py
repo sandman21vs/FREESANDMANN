@@ -141,3 +141,91 @@ class TestProfileLinksModel:
             "press",
             "other",
         )
+
+
+class TestAdminProfileRoutes:
+    def test_admin_profile_requires_login(self, client):
+        """Profile admin page should require an authenticated admin session."""
+        models.set_config("setup_complete", "1")
+
+        resp = client.get("/admin/profile")
+
+        assert resp.status_code == 302
+        assert "/admin/login" in resp.headers["Location"]
+
+    def test_admin_profile_renders(self, admin_session):
+        """Profile admin page should render the settings and links sections."""
+        resp = admin_session.get("/admin/profile")
+
+        assert resp.status_code == 200
+        assert b"Profile Settings" in resp.data
+        assert b"Profile Links" in resp.data
+
+    def test_admin_can_save_profile_settings(self, admin_session):
+        """Admin should be able to save the profile settings independently."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post(
+            "/admin/profile",
+            data={
+                "action": "save_settings",
+                "profile_enabled": "1",
+                "profile_display_name": "Sandmann",
+                "profile_heading": "Quem sou eu?",
+                "profile_summary_md": "Resumo publico",
+                "profile_long_bio_md": "Biografia longa",
+                "profile_commitment_md": "Compromissos",
+                "profile_avatar_url": "https://example.com/avatar.png",
+                "csrf_token": csrf,
+            },
+        )
+
+        assert resp.status_code == 302
+        assert models.get_config("profile_enabled") == "1"
+        assert models.get_config("profile_display_name") == "Sandmann"
+        assert models.get_config("profile_avatar_url") == "https://example.com/avatar.png"
+
+    def test_admin_can_add_profile_link(self, admin_session):
+        """Admin should be able to add a new profile proof link."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post(
+            "/admin/profile",
+            data={
+                "action": "add_link",
+                "title": "GitHub Repo",
+                "url": "https://github.com/example/repo",
+                "category": "github",
+                "description": "Public project",
+                "sort_order": "2",
+                "featured": "1",
+                "csrf_token": csrf,
+            },
+        )
+
+        assert resp.status_code == 302
+        links = models.get_profile_links()
+        assert len(links) == 1
+        assert links[0]["title"] == "GitHub Repo"
+        assert links[0]["featured"] == 1
+
+    def test_admin_can_delete_profile_link(self, admin_session):
+        """Admin should be able to remove an existing profile link."""
+        models.add_profile_link(
+            title="Podcast",
+            url="https://example.com/podcast",
+            category="podcast",
+        )
+        link = models.get_profile_links()[0]
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post(
+            f"/admin/profile/links/{link['id']}/delete",
+            data={"csrf_token": csrf},
+        )
+
+        assert resp.status_code == 302
+        assert models.get_profile_links() == []

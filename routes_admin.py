@@ -18,6 +18,11 @@ from service_admin import (
 )
 from service_editorial import create_article_for_role, update_article_for_role
 from service_setup import process_setup_wizard
+from service_profile import (
+    add_profile_link_from_form,
+    process_profile_settings,
+    update_profile_link_from_form,
+)
 
 
 def register_admin_routes(app):
@@ -238,6 +243,60 @@ def register_admin_routes(app):
             abort(404)
         flash(result["message"], "success" if result["ok"] else "error")
         return redirect(url_for("admin_lawyers"))
+
+    @app.route("/admin/profile", methods=["GET", "POST"])
+    @login_required
+    def admin_profile():
+        current_cfg = models.get_all_config()
+        categories = models.VALID_CATEGORIES
+
+        if request.method == "POST":
+            action = request.form.get("action", "save_settings")
+
+            if action == "add_link":
+                result = add_profile_link_from_form(request.form)
+                flash(result["message"], "success" if result["ok"] else "error")
+                return redirect(url_for("admin_profile"))
+
+            if action == "update_link":
+                link_id = request.form.get("link_id", type=int)
+                if not link_id:
+                    flash("Link not found.", "error")
+                    return redirect(url_for("admin_profile"))
+
+                result = update_profile_link_from_form(link_id, request.form)
+                flash(result["message"], "success" if result["ok"] else "error")
+                return redirect(url_for("admin_profile"))
+
+            result = process_profile_settings(request.form, current_cfg)
+            if not result["ok"]:
+                for error in result["errors"]:
+                    flash(error, "error")
+                links = models.get_profile_links()
+                return render_template(
+                    "admin/profile.html",
+                    cfg=result["cfg"],
+                    links=links,
+                    categories=categories,
+                ), 200
+
+            flash("Profile settings saved.", "success")
+            return redirect(url_for("admin_profile"))
+
+        links = models.get_profile_links()
+        return render_template(
+            "admin/profile.html",
+            cfg=current_cfg,
+            links=links,
+            categories=categories,
+        )
+
+    @app.route("/admin/profile/links/<int:link_id>/delete", methods=["POST"])
+    @login_required
+    def admin_profile_link_delete(link_id):
+        models.delete_profile_link(link_id)
+        flash("Link deleted.", "success")
+        return redirect(url_for("admin_profile"))
 
     @app.route("/admin/articles/<int:article_id>/approve", methods=["POST"])
     @login_required

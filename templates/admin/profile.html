@@ -1,0 +1,239 @@
+{% extends "base_admin.html" %}
+{% from "components/bo_components.html" import page_header %}
+
+{% block title %}Profile &amp; About &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
+
+{% block content %}
+{{ page_header(
+    "Profile & Background",
+    "Configure the public about page, biography, and proof links for the campaign owner."
+) }}
+
+<nav class="bo-section-nav" aria-label="Profile sections">
+    <a href="#section-profile-settings">Profile Settings</a>
+    <a href="#section-profile-links">Profile Links</a>
+</nav>
+
+<form method="POST" action="{{ url_for('admin_profile') }}" class="bo-settings-form">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="hidden" name="action" value="save_settings">
+
+    <fieldset id="section-profile-settings">
+        <legend>Profile Settings</legend>
+        <label>
+            <input type="checkbox" name="profile_enabled" value="1"
+                   {% if cfg.get('profile_enabled') == '1' %}checked{% endif %}>
+            Enable public profile / about section
+        </label>
+        <label>Display Name
+            <input type="text" name="profile_display_name" value="{{ cfg.get('profile_display_name', '') }}">
+        </label>
+        <label>Profile Avatar URL
+            <input type="text" name="profile_avatar_url" value="{{ cfg.get('profile_avatar_url', '') }}" placeholder="https://...">
+        </label>
+        <label>Heading
+            <input type="text" name="profile_heading" value="{{ cfg.get('profile_heading', '') }}" placeholder="Who is behind this campaign?">
+        </label>
+        <label>Short Summary (supports Markdown)
+            <textarea name="profile_summary_md" rows="6">{{ cfg.get('profile_summary_md', '') }}</textarea>
+        </label>
+        <label>Long Biography (supports Markdown)
+            <textarea name="profile_long_bio_md" rows="10">{{ cfg.get('profile_long_bio_md', '') }}</textarea>
+        </label>
+        <label>Public Commitment (supports Markdown)
+            <textarea name="profile_commitment_md" rows="6">{{ cfg.get('profile_commitment_md', '') }}</textarea>
+        </label>
+
+        <details class="bo-expandable">
+            <summary>English Translation (optional)</summary>
+            <label>Heading (EN)
+                <input type="text" name="profile_heading_en" value="{{ cfg.get('profile_heading_en', '') }}">
+            </label>
+            <label>Short Summary (EN)
+                <textarea name="profile_summary_md_en" rows="6">{{ cfg.get('profile_summary_md_en', '') }}</textarea>
+            </label>
+            <label>Long Biography (EN)
+                <textarea name="profile_long_bio_md_en" rows="10">{{ cfg.get('profile_long_bio_md_en', '') }}</textarea>
+            </label>
+            <label>Public Commitment (EN)
+                <textarea name="profile_commitment_md_en" rows="6">{{ cfg.get('profile_commitment_md_en', '') }}</textarea>
+            </label>
+        </details>
+
+        <details class="bo-expandable">
+            <summary>Deutsche Übersetzung (optional)</summary>
+            <label>Heading (DE)
+                <input type="text" name="profile_heading_de" value="{{ cfg.get('profile_heading_de', '') }}">
+            </label>
+            <label>Short Summary (DE)
+                <textarea name="profile_summary_md_de" rows="6">{{ cfg.get('profile_summary_md_de', '') }}</textarea>
+            </label>
+            <label>Long Biography (DE)
+                <textarea name="profile_long_bio_md_de" rows="10">{{ cfg.get('profile_long_bio_md_de', '') }}</textarea>
+            </label>
+            <label>Public Commitment (DE)
+                <textarea name="profile_commitment_md_de" rows="6">{{ cfg.get('profile_commitment_md_de', '') }}</textarea>
+            </label>
+        </details>
+    </fieldset>
+
+    <div class="bo-card bo-sticky-save">
+        <span class="bo-muted">Save the profile content before publishing the public page.</span>
+        <button type="submit">Save Profile Settings</button>
+    </div>
+</form>
+
+<section id="section-profile-links">
+    <h2>Profile Links</h2>
+    <p class="bo-muted">Add podcasts, GitHub projects, talks, tutorials, and other proof links that reinforce the public profile.</p>
+
+    {% if links %}
+        {% for link in links %}
+        <article class="bo-card">
+            <div class="bo-card-header">
+                <div class="bo-card-stack">
+                    <h3 class="bo-card-title">{{ link.title }}</h3>
+                    <div class="bo-card-meta">
+                        <span>{{ link.category }}</span>
+                        <span>{% if link.featured %}Featured{% else %}Standard{% endif %}</span>
+                        <span>Order: {{ link.sort_order }}</span>
+                    </div>
+                </div>
+            </div>
+            <p><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a></p>
+            {% if link.description %}
+            <p>{{ link.description }}</p>
+            {% endif %}
+
+            <details class="bo-expandable">
+                <summary>Edit link</summary>
+                <form method="POST" action="{{ url_for('admin_profile') }}">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <input type="hidden" name="action" value="update_link">
+                    <input type="hidden" name="link_id" value="{{ link.id }}">
+
+                    <label>Title
+                        <input type="text" name="title" value="{{ link.title }}" required>
+                    </label>
+                    <label>URL
+                        <input type="url" name="url" value="{{ link.url }}" required>
+                    </label>
+                    <label>Category
+                        <select name="category">
+                            {% for category in categories %}
+                            <option value="{{ category }}" {% if link.category == category %}selected{% endif %}>{{ category|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Description
+                        <textarea name="description" rows="4">{{ link.description }}</textarea>
+                    </label>
+                    <label>Sort Order
+                        <input type="number" name="sort_order" value="{{ link.sort_order }}">
+                    </label>
+                    <label>
+                        <input type="checkbox" name="featured" value="1" {% if link.featured %}checked{% endif %}>
+                        Show in homepage teaser
+                    </label>
+
+                    <details class="bo-expandable">
+                        <summary>English Translation (optional)</summary>
+                        <label>Title (EN)
+                            <input type="text" name="title_en" value="{{ link.title_en }}">
+                        </label>
+                        <label>Description (EN)
+                            <textarea name="description_en" rows="3">{{ link.description_en }}</textarea>
+                        </label>
+                    </details>
+
+                    <details class="bo-expandable">
+                        <summary>Deutsche Übersetzung (optional)</summary>
+                        <label>Title (DE)
+                            <input type="text" name="title_de" value="{{ link.title_de }}">
+                        </label>
+                        <label>Description (DE)
+                            <textarea name="description_de" rows="3">{{ link.description_de }}</textarea>
+                        </label>
+                    </details>
+
+                    <button type="submit">Update Link</button>
+                </form>
+            </details>
+
+            <div class="bo-card-actions">
+                <a href="{{ link.url }}" target="_blank" rel="noopener" role="button" class="secondary">Open Link</a>
+                <form method="POST" action="{{ url_for('admin_profile_link_delete', link_id=link.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Delete this profile link?')">Delete</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+    <div class="bo-empty-state">
+        <h3>No profile links yet</h3>
+        <p>Add the first proof link below to start building the public profile page.</p>
+    </div>
+    {% endif %}
+
+    <article class="bo-card">
+        <h3>Add Link</h3>
+        <form method="POST" action="{{ url_for('admin_profile') }}">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <input type="hidden" name="action" value="add_link">
+
+            <label>Title
+                <input type="text" name="title" placeholder="Podcast episode, GitHub repo, talk..." required>
+            </label>
+            <label>URL
+                <input type="url" name="url" placeholder="https://..." required>
+            </label>
+            <label>Category
+                <select name="category">
+                    <option value="podcast">Podcast</option>
+                    <option value="github">GitHub</option>
+                    <option value="project">Project</option>
+                    <option value="crowdfunding">Crowdfunding</option>
+                    <option value="tutorial">Tutorial</option>
+                    <option value="talk">Talk</option>
+                    <option value="community">Community</option>
+                    <option value="press">Press</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label>Description
+                <textarea name="description" rows="4" placeholder="Short public context for this reference"></textarea>
+            </label>
+            <label>Sort Order
+                <input type="number" name="sort_order" value="0">
+            </label>
+            <label>
+                <input type="checkbox" name="featured" value="1">
+                Show in homepage teaser
+            </label>
+
+            <details class="bo-expandable">
+                <summary>English Translation (optional)</summary>
+                <label>Title (EN)
+                    <input type="text" name="title_en">
+                </label>
+                <label>Description (EN)
+                    <textarea name="description_en" rows="3"></textarea>
+                </label>
+            </details>
+
+            <details class="bo-expandable">
+                <summary>Deutsche Übersetzung (optional)</summary>
+                <label>Title (DE)
+                    <input type="text" name="title_de">
+                </label>
+                <label>Description (DE)
+                    <textarea name="description_de" rows="3"></textarea>
+                </label>
+            </details>
+
+            <button type="submit">Add Link</button>
+        </form>
+    </article>
+</section>
+{% endblock %}
