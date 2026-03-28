@@ -76,13 +76,15 @@
             readonly=(cfg['coinos_onchain'] == '1')
         ) }}
         {{ text_field("lightning_address", "Lightning Address",
-            value=cfg['lightning_address'],
-            hint="Coinos LN address is shown on the public site. This manual address is used when that option is off." if cfg['coinos_show_addresses'] == '1' else "An LN address like you@coinos.io or LNURL."
+            value=cfg['coinos_cached_ln_address'] if cfg['coinos_show_addresses'] == '1' and cfg['coinos_cached_ln_address'] else cfg['lightning_address'],
+            hint="Managed by Coinos — cached from your account." if cfg['coinos_show_addresses'] == '1' and cfg['coinos_cached_ln_address'] else ("Coinos LN address will be shown on the public site when that option is enabled." if cfg['coinos_show_addresses'] == '1' else "An LN address like you@coinos.io or LNURL."),
+            readonly=(cfg['coinos_show_addresses'] == '1' and cfg['coinos_cached_ln_address'] != '')
         ) }}
         {{ text_field("liquid_address", "Liquid Address",
-            value=cfg['liquid_address'],
-            hint="A Liquid Network address (lq1qq... or VJL...).",
-            placeholder="lq1qq... or VJL..."
+            value=cfg['coinos_cached_liquid_address'] if cfg['coinos_show_addresses'] == '1' and cfg['coinos_cached_liquid_address'] else cfg['liquid_address'],
+            hint="Managed by Coinos — cached from your account." if cfg['coinos_show_addresses'] == '1' and cfg['coinos_cached_liquid_address'] else "A Liquid Network address (lq1qq... or VJL...).",
+            placeholder="lq1qq... or VJL...",
+            readonly=(cfg['coinos_show_addresses'] == '1' and cfg['coinos_cached_liquid_address'] != '')
         ) }}
         {{ text_field("wallet_explorer_url", "Wallet Explorer URL",
             hint="Public link for transparency (e.g. mempool.space).",

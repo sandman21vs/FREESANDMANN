@@ -209,6 +209,13 @@ def validate_settings_form(form_data, current_cfg=None):
         form_cfg["btc_address"] = current_cfg.get("btc_address", "")
         normalized["btc_address"] = current_cfg.get("btc_address", "")
 
+    if coinos_show_addresses == "1":
+        # Preserve manual addresses; cached Coinos values are stored separately
+        form_cfg["lightning_address"] = current_cfg.get("lightning_address", "")
+        normalized["lightning_address"] = current_cfg.get("lightning_address", "")
+        form_cfg["liquid_address"] = current_cfg.get("liquid_address", "")
+        normalized["liquid_address"] = current_cfg.get("liquid_address", "")
+
     form_cfg["goal_btc"] = _normalize_text(_form_value_or_current(form_data, current_cfg, "goal_btc"))
     form_cfg["raised_btc_manual_adjustment"] = _normalize_text(
         _form_value_or_current(form_data, current_cfg, "raised_btc_manual_adjustment")
