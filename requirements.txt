@@ -3,4 +3,5 @@ gunicorn==23.0.0
 qrcode[pil]==8.0
 Pillow==11.1.0
 markdown==3.7
+nh3==0.3.4
 Werkzeug==3.1.3

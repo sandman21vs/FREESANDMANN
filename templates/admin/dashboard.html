@@ -1,15 +1,52 @@
 {% extends "base_admin.html" %}
 {% from "components/bo_components.html" import page_header %}
 
-{% block title %}Dashboard &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+{% block title %}Dashboard &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
 
 {% block content %}
+{% set checklist_links = {
+    "change_password": url_for('admin_change_password'),
+    "settings_general": url_for('admin_settings') ~ '#section-general',
+    "settings_bitcoin": url_for('admin_settings') ~ '#section-bitcoin',
+    "settings_fundraising": url_for('admin_settings') ~ '#section-fundraising',
+    "new_article": url_for('admin_article_new'),
+    "lawyers": url_for('admin_lawyers'),
+} %}
+
 {{ page_header(
     "Dashboard",
     "Campaign progress, review queue, and system status.",
     url_for('admin_article_new'),
     "New Article"
 ) }}
+
+{# Onboarding checklist #}
+{% if checklist is defined and not checklist_all_done %}
+<article class="bo-card bo-checklist-card">
+    <div class="bo-card-header">
+        <div>
+            <h2 class="bo-card-title">Getting Started</h2>
+            <p class="bo-muted">{{ checklist_completed_count }}/{{ checklist|length }} core setup tasks complete.</p>
+        </div>
+    </div>
+    <ol class="bo-checklist">
+        {% for item in checklist %}
+        <li class="bo-checklist-item {% if item.done %}is-done{% endif %}">
+            <span class="bo-checklist-icon" aria-hidden="true">{% if item.done %}&#10003;{% else %}{{ loop.index }}{% endif %}</span>
+            <div class="bo-checklist-body">
+                <strong>{{ item.label }}</strong>
+                {% if item.done %}
+                <span class="bo-checklist-status">Done</span>
+                {% else %}
+                <a href="{{ checklist_links[item.target] }}" class="bo-checklist-link">Complete this step</a>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ol>
+</article>
+{% endif %}
+
 
 {% if alerts %}
 <div class="bo-alerts">

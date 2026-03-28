@@ -1,6 +1,6 @@
-# FREESANDMANN
+# BASTION
 
-Plataforma self-hosted de arrecadacao via Bitcoin para defesa juridica.
+Projeto Bastion: plataforma self-hosted de arrecadacao via Bitcoin para defesa juridica.
 Stack: Flask + Jinja2 + SQLite, deploy em producao com Docker.
 
 ## Idioma

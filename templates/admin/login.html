@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Login &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+{% block title %}Admin Login &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
 
 {% block content %}
 <h1>Admin Login</h1>
@@ -14,4 +14,7 @@
     </label>
     <button type="submit">Login</button>
 </form>
+<p class="admin-login-alt">
+    <small><a href="{{ url_for('lawyer_login') }}">Lawyer portal &rarr;</a></small>
+</p>
 {% endblock %}

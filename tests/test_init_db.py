@@ -42,6 +42,18 @@ def test_admin_password_hash_created(temp_database):
     assert len(row[0]) > 20, "admin_password_hash looks too short to be a real hash"
 
 
+def test_setup_complete_defaults_to_zero(temp_database):
+    """setup_complete deve existir com valor inicial 0."""
+    conn = sqlite3.connect(temp_database)
+    row = conn.execute(
+        "SELECT value FROM config WHERE key = 'setup_complete'"
+    ).fetchone()
+    conn.close()
+
+    assert row is not None
+    assert row[0] == "0"
+
+
 def test_idempotent(temp_database):
     """Rodar init_db duas vezes nao deve dar erro nem duplicar dados."""
     from init_db import init_db

@@ -1,16 +1,12 @@
 services:
   bastion:
-    build: .
+    image: ghcr.io/sandman21vs/bastion:latest
     ports:
       - "4040:8000"
     volumes:
-      - bastion_data:/app/data
+      - ${APP_DATA_DIR:-./data}:/app/data
     environment:
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - SECRET_KEY=${APP_SEED:-change-me-in-production}
       - DATABASE_PATH=/app/data/freesandmann.db
       - ADMIN_USERNAME=${ADMIN_USERNAME:-FREE}
     restart: unless-stopped
-
-volumes:
-  bastion_data:
-    name: freesandmann_data

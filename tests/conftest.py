@@ -76,6 +76,7 @@ def admin_session(client):
     Tambem troca a senha padrao para nao precisar lidar com force_change.
     """
     import models
+    models.set_config("setup_complete", "1")
     # Trocar senha para evitar redirect de force_change
     models.change_password("testpassword123")
 
@@ -95,6 +96,8 @@ def admin_session(client):
 @pytest.fixture
 def csrf_token(client):
     """Retorna um CSRF token valido para o client."""
+    import models
+    models.set_config("setup_complete", "1")
     client.get("/")
     with client.session_transaction() as sess:
         return sess.get("csrf_token", "")

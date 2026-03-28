@@ -70,6 +70,7 @@ class TestRateLimitStorage:
 
     def test_rate_limit_is_shared_across_clients(self, app):
         """Dois clients diferentes devem compartilhar o mesmo lockout pelo banco."""
+        models.set_config("setup_complete", "1")
         shared_ip = "198.51.100.77"
         client_one = app.test_client()
         client_two = app.test_client()

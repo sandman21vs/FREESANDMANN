@@ -1,7 +1,7 @@
-# Free Sandmann — Architecture Reference
+# Bastion — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-27 — 268 tests passing.
+Last verified: 2026-03-28 — 286 tests passing.
 
 ---
 
@@ -28,7 +28,7 @@ JS in the project: theme toggle, hamburger menu, copy-to-clipboard, and Lightnin
 ## File Structure
 
 ```
-FREESANDMANN/
+project-root/
 ├── app.py              # Flask app assembly + bootstrap
 ├── app_auth.py         # Admin/lawyer auth decorators
 ├── app_background.py   # Background maintenance loop bootstrap
@@ -48,6 +48,7 @@ FREESANDMANN/
 ├── service_editorial.py # Shared article workflow for admin + lawyer roles
 ├── service_qr.py       # QR-code response helpers
 ├── service_admin.py    # Admin workflow helpers: auth, settings, media, lawyers
+├── service_setup.py    # First-run setup wizard validation + config bootstrap
 ├── config.py           # Defaults + env vars
 ├── init_db.py          # Schema creation + seeding
 ├── i18n.py             # PT/EN/DE translation loader
@@ -55,10 +56,13 @@ FREESANDMANN/
 ├── requirements.txt    # 6 Python dependencies
 ├── Dockerfile
 ├── docker-compose.yml
+├── umbrel-app.yml      # Umbrel App Store manifest draft for packaging/submission
 ├── .env.example
+├── .github/workflows/
+│   └── docker-publish.yml # Multi-arch image publish workflow for GHCR
 │
 ├── static/
-│   ├── app.js          # Shared frontend behavior: theme, menu, clipboard, invoice polling
+│   ├── app.js          # Shared frontend behavior: theme, menu, clipboard, invoice polling, settings nav, toasts
 │   └── style.css       # Custom styles over Pico CSS
 │
 ├── templates/
@@ -81,7 +85,8 @@ FREESANDMANN/
 │   │
 │   ├── admin/
 │   │   ├── login.html
-│   │   ├── dashboard.html     # Task-oriented dashboard with stats, alerts, quick actions
+│   │   ├── setup_wizard.html # First-run setup for password + campaign essentials
+│   │   ├── dashboard.html     # Task-oriented dashboard with stats, onboarding checklist, alerts, quick actions
 │   │   ├── settings.html
 │   │   ├── articles.html      # Card-based editorial queue with filters + badges
 │   │   ├── article_form.html  # Create/edit shell using shared article form macro
@@ -96,11 +101,11 @@ FREESANDMANN/
 │       └── change_password.html
 │
 ├── translations/
-│   ├── pt.json         # 77 keys
-│   ├── en.json         # 77 keys
-│   └── de.json         # 77 keys
+│   ├── pt.json         # 93 keys
+│   ├── en.json         # 93 keys
+│   └── de.json         # 93 keys
 │
-├── tests/              # 268 tests via pytest
+├── tests/              # 286 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
@@ -111,7 +116,7 @@ FREESANDMANN/
 │   └── ...
 │
 └── data/               # Docker volume mount
-    └── freesandmann.db # SQLite database (runtime)
+    └── freesandmann.db # SQLite database (runtime, legacy filename kept for upgrades)
 ```
 
 ---
@@ -138,6 +143,7 @@ Admin writes go through validation/normalization before saving:
 | Key | Description |
 |-----|-------------|
 | `site_title` | Site name |
+| `setup_complete` | `"0"` until first-run wizard is completed; `"1"` afterwards |
 | `site_title_en` / `site_title_de` | Optional localized site title overrides |
 | `site_description` | SEO description / homepage intro |
 | `site_description_en` / `site_description_de` | Optional localized homepage/meta description |
@@ -256,6 +262,7 @@ CREATE TABLE login_attempts (
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/` | Homepage: progress bar, hero, pinned articles, QR codes, media links |
+| GET | `/health` | Minimal healthcheck endpoint for Docker/Umbrel probing |
 | GET | `/donate` | Donation page: large QRs, Lightning invoice generator |
 | GET | `/updates` | All published articles |
 | GET | `/updates/<slug>` | Single article (shows approval badges) |
@@ -271,11 +278,12 @@ CREATE TABLE login_attempts (
 | GET | `/donate/invoice-qr` | Generate QR for invoice string |
 | POST | `/donate/webhook/coinos` | Coinos payment webhook (no CSRF) |
 
-### Admin (`/admin/` — requires `session['admin'] = True`)
+### Admin (`/admin/` — setup wizard comes first; most routes require `session['admin'] = True`)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET/POST | `/admin/login` | Login (not linked publicly) |
+| GET/POST | `/admin/setup` | First-run setup wizard for password, campaign title, BTC address, and goal |
+| GET/POST | `/admin/login` | Login after setup is complete; subtly linked in the public footer |
 | GET | `/admin/logout` | Clear session |
 | GET | `/admin/` | Dashboard: stats, alerts, quick actions, balance breakdown |
 | GET/POST | `/admin/change-password` | Change admin password |
@@ -442,7 +450,7 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SECRET_KEY` | `change-me-in-production` | Flask session signing key |
-| `DATABASE_PATH` | `data/freesandmann.db` | SQLite file path |
+| `DATABASE_PATH` | `data/freesandmann.db` | SQLite file path (legacy filename kept for compatibility) |
 | `ADMIN_USERNAME` | `FREE` | Admin login username |
 
 All other configuration (Bitcoin addresses, goal, Coinos keys, etc.) lives in the `config` table and is editable via the admin panel.
@@ -481,6 +489,9 @@ python -m pytest tests/test_i18n.py -v   # single file
 ```
 
 Tests use a temporary SQLite file fixture (`conftest.py`, via pytest `tmp_path`) — they never touch `data/freesandmann.db`.
+
+The public product name is **Bastion**. Legacy `freesandmann` identifiers remain
+in Docker volume/database paths until a dedicated data migration is introduced.
 
 ---
 

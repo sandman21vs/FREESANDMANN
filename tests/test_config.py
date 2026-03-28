@@ -10,7 +10,7 @@ def test_defaults_exist():
         "goal_btc", "raised_onchain_btc", "raised_lightning_btc",
         "raised_btc_manual_adjustment", "raised_btc",
         "last_balance_check", "goal_description",
-        "admin_force_password_change",
+        "admin_force_password_change", "setup_complete",
         "supporters_count", "hero_image_url", "deadline_text",
         "transparency_text", "og_image_url", "wallet_explorer_url",
         "coinos_api_key", "coinos_enabled",
@@ -26,7 +26,7 @@ def test_secret_key_exists():
 
 
 def test_database_path_exists():
-    """DATABASE_PATH deve existir e conter 'freesandmann'."""
+    """DATABASE_PATH deve existir e manter o nome legado para upgrades."""
     from config import DATABASE_PATH
     assert DATABASE_PATH, "DATABASE_PATH is empty"
     assert "freesandmann" in DATABASE_PATH or "test" in DATABASE_PATH

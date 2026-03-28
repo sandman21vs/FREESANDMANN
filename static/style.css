@@ -316,6 +316,26 @@ progress::-moz-progress-bar {
 .flash-error { border-left: 4px solid var(--danger-red); }
 .flash-warning { border-left: 4px solid var(--btc-orange); }
 
+.flash-dismiss {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.flash-dismiss:hover {
+    opacity: 1;
+}
+
+.flash-msg.is-hiding {
+    animation: toastFadeOut 0.24s ease forwards;
+}
+
 /* Embed containers */
 .embed-container {
     position: relative;
@@ -678,6 +698,18 @@ progress::-moz-progress-bar {
     color: var(--btc-orange);
 }
 
+.footer-admin-link {
+    display: inline-block;
+    margin-top: 0.85rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.footer-admin-link:hover {
+    text-decoration: underline;
+}
+
 .footer-nav-list {
     list-style: none;
     padding: 0;
@@ -1027,6 +1059,14 @@ progress::-moz-progress-bar {
     gap: 0.5rem;
     flex-wrap: wrap;
     margin-bottom: 1rem;
+    position: sticky;
+    top: 1rem;
+    z-index: 10;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--bg-dark) 80%, transparent);
+    border: 1px solid var(--pico-border-color, var(--text-secondary));
+    backdrop-filter: blur(8px);
 }
 
 .bo-section-nav a {
@@ -1039,6 +1079,12 @@ progress::-moz-progress-bar {
 
 .bo-section-nav a:hover {
     color: var(--text-primary);
+    border-color: var(--btc-orange);
+}
+
+.bo-section-nav a.is-active {
+    color: white;
+    background: var(--btc-orange);
     border-color: var(--btc-orange);
 }
 
@@ -1081,8 +1127,122 @@ progress::-moz-progress-bar {
     color: var(--text-primary);
 }
 
-.bo-settings-form fieldset {
-    scroll-margin-top: 5rem;
+.bo-settings-form fieldset[id] {
+    scroll-margin-top: 6.75rem;
+}
+
+.bo-checklist-card {
+    margin-bottom: 1.5rem;
+}
+
+.bo-checklist-card-done {
+    border-color: color-mix(in srgb, var(--success-green) 45%, var(--pico-border-color, var(--text-secondary)));
+}
+
+.bo-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.bo-checklist-item {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 0.85rem 0.9rem;
+    border-radius: 0.75rem;
+    background: var(--bg-dark);
+}
+
+.bo-checklist-item.is-done {
+    background: color-mix(in srgb, var(--success-green) 12%, var(--bg-card));
+}
+
+.bo-checklist-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    background: color-mix(in srgb, var(--btc-orange) 18%, transparent);
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.bo-checklist-item.is-done .bo-checklist-icon {
+    background: var(--success-green);
+    color: white;
+}
+
+.bo-checklist-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.bo-checklist-status,
+.bo-checklist-link {
+    font-size: 0.9rem;
+}
+
+.bo-checklist-status {
+    color: var(--success-green);
+    font-weight: 600;
+}
+
+.bo-checklist-link {
+    text-decoration: none;
+}
+
+.bo-checklist-summary {
+    margin: 0;
+}
+
+.bo-toast-stack {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: min(26rem, calc(100vw - 2rem));
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.bo-toast-stack .flash-msg {
+    margin-bottom: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid var(--pico-border-color, var(--text-secondary));
+    background: var(--bg-card);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    pointer-events: auto;
+    animation: toastSlideIn 0.24s ease;
+}
+
+.setup-wizard {
+    max-width: 44rem;
+    margin: 2rem auto;
+}
+
+.setup-wizard h1,
+.setup-wizard p:last-child {
+    margin-bottom: 0;
+}
+
+.setup-wizard fieldset + fieldset {
+    margin-top: 1rem;
+}
+
+.admin-login-alt {
+    margin-top: 0.75rem;
 }
 
 /* ============================
@@ -1391,12 +1551,45 @@ progress::-moz-progress-bar {
     }
 
     .bo-card-header,
-    .bo-balance-row {
+    .bo-balance-row,
+    .bo-checklist-item {
         flex-direction: column;
     }
 
     .bo-sticky-save {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .bo-section-nav {
+        top: 0.75rem;
+    }
+
+    .bo-toast-stack {
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes toastFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-6px);
     }
 }

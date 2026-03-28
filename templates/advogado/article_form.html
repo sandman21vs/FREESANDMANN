@@ -1,7 +1,7 @@
 {% extends "base_lawyer.html" %}
 {% from "components/article_form_fields.html" import article_form_fields with context %}
 
-{% block title %}{{ "Edit Article" if article else "New Article" }} &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
+{% block title %}{{ "Edit Article" if article else "New Article" }} &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
 
 {% block content %}
 <h1>{{ "Edit Article" if article else "New Article" }}</h1>

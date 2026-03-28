@@ -324,6 +324,36 @@
         });
     }
 
+    function hideFlashMessage(message) {
+        if (!message || message.classList.contains("is-hiding")) {
+            return;
+        }
+
+        message.classList.add("is-hiding");
+        window.setTimeout(function() {
+            message.remove();
+        }, 240);
+    }
+
+    function initFlashToasts() {
+        document.querySelectorAll(".bo-toast-stack .flash-msg").forEach(function(message) {
+            var dismissButton = message.querySelector(".flash-dismiss");
+            var delay = parseInt(message.dataset.autoDismiss || "5000", 10);
+
+            if (dismissButton) {
+                dismissButton.addEventListener("click", function() {
+                    hideFlashMessage(message);
+                });
+            }
+
+            if (delay > 0) {
+                window.setTimeout(function() {
+                    hideFlashMessage(message);
+                }, delay);
+            }
+        });
+    }
+
     initThemeControls();
     initPreferenceWidget();
     initHamburgerMenu();
@@ -333,4 +363,5 @@
     initSaveBarDirtyState();
     initSettingsTabs();
     initToggleDependents();
+    initFlashToasts();
 })();

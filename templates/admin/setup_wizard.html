@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('setup_title') }} &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
+
+{% block content %}
+<article class="setup-wizard">
+    <h1>{{ t('setup_heading') }}</h1>
+    <p>{{ t('setup_intro') }}</p>
+
+    <form method="POST" action="{{ url_for('admin_setup') }}">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+        <fieldset>
+            <legend>{{ t('setup_password_legend') }}</legend>
+            <p>{{ t('setup_password_help') }}</p>
+            <label>{{ t('setup_password_new') }}
+                <input type="password" name="admin_password" required minlength="8">
+            </label>
+            <label>{{ t('setup_password_confirm') }}
+                <input type="password" name="admin_password_confirm" required>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>{{ t('setup_campaign_legend') }}</legend>
+            <label>{{ t('setup_campaign_title') }}
+                <input type="text" name="site_title" value="{{ cfg.get('site_title', '') }}" required>
+            </label>
+            <label>{{ t('setup_campaign_description') }}
+                <textarea name="site_description">{{ cfg.get('site_description', '') }}</textarea>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>{{ t('setup_donations_legend') }}</legend>
+            <label>{{ t('setup_btc_address') }}
+                <input
+                    type="text"
+                    name="btc_address"
+                    value="{{ cfg.get('btc_address', '') }}"
+                    placeholder="bc1q..."
+                >
+            </label>
+            <label>{{ t('setup_goal_btc') }}
+                <input type="text" name="goal_btc" value="{{ cfg.get('goal_btc', '1.0') }}">
+            </label>
+            <small>{{ t('setup_later_settings') }}</small>
+        </fieldset>
+
+        <button type="submit">{{ t('setup_complete_cta') }}</button>
+    </form>
+</article>
+{% endblock %}

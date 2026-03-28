@@ -1,4 +1,4 @@
-# Free Sandmann — Legal Defense Campaign Engine
+# Bastion — Legal Defense Campaign Engine
 
 A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork it, configure through the admin panel, start accepting donations — on-chain directly to your wallet, Lightning/Liquid optionally via Coinos.io (no KYC, zero fees). Everything is configured through the admin panel — no code changes needed for basic use.
 
@@ -13,13 +13,13 @@ A self-hostable Bitcoin fundraising platform for legal defense campaigns. Fork i
 - **Write articles in Markdown**: YouTube and Twitter/X links auto-embed
 - **Mobile-first** responsive design
 - **Docker** deployment, one command to start
-- **268 automated tests**
+- **286 automated tests**
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/sandman21vs/FREESANDMANN.git
-cd FREESANDMANN
+git clone <your-fork-or-repo-url> bastion
+cd bastion
 cp .env.example .env        # set SECRET_KEY
 docker compose up -d
 ```
@@ -27,13 +27,13 @@ docker compose up -d
 Visit `http://localhost:4040` in your browser.
 
 > Default admin: username `FREE`, password `FREE`.
-> After login you will be required to change it.
+> On first access, click **Admin** in the footer — the setup wizard will guide you.
 
 ## Initial Setup
 
-1. Go to `/admin/login` and sign in with `FREE / FREE`.
-2. Change the default password when prompted.
-3. Open **Settings** and configure at minimum:
+1. Click **Admin** in the site footer (or go to `/admin/login`). On a fresh install the setup wizard starts automatically.
+2. Set a secure admin password, campaign title, and optionally a Bitcoin address and goal.
+3. After the wizard, open **Settings** to configure the remaining options:
    - **Site Title** and **Site Description**: shown on the homepage and social previews
    - **Bitcoin On-Chain Address**: your direct donation address
    - **Goal (BTC)**: the fundraising target shown in the progress bar
@@ -116,9 +116,9 @@ Any reverse proxy works here (`nginx`, `Caddy`, Cloudflare Tunnel, etc.). Cloudf
 
 ```bash
 cloudflared tunnel login
-cloudflared tunnel create freesandmann
-cloudflared tunnel route dns freesandmann yourdomain.com
-cloudflared tunnel run --url http://localhost:4040 freesandmann
+cloudflared tunnel create bastion
+cloudflared tunnel route dns bastion yourdomain.com
+cloudflared tunnel run --url http://localhost:4040 bastion
 ```
 
 </details>
@@ -130,6 +130,12 @@ Flask · SQLite · Pico CSS · Jinja2 · vanilla JS · 6 Python dependencies · 
 ## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the detailed technical reference.
+
+## Rebranding note
+
+The product name is now **Bastion**. Some internal compatibility paths still use
+legacy `freesandmann` identifiers so existing Docker volumes and SQLite files do
+not break during upgrades.
 
 ## License
 

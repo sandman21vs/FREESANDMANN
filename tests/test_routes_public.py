@@ -10,12 +10,17 @@ class TestHomepage:
     def test_index_contains_site_title(self, client):
         """Homepage deve conter o titulo do site."""
         resp = client.get("/")
-        assert b"Free Sandmann" in resp.data
+        assert b"Bastion" in resp.data
 
     def test_index_contains_progress(self, client):
         """Homepage deve conter elementos da barra de progresso."""
         resp = client.get("/")
         assert b"BTC" in resp.data
+
+    def test_index_contains_admin_footer_link(self, client):
+        """Homepage deve expor um link sutil para o login admin."""
+        resp = client.get("/")
+        assert b'/admin/login' in resp.data
 
 
 class TestDonate:
@@ -28,6 +33,14 @@ class TestDonate:
         """Pagina de doacao deve mencionar Bitcoin."""
         resp = client.get("/donate")
         assert b"Bitcoin" in resp.data or b"bitcoin" in resp.data
+
+
+class TestHealth:
+    def test_health_returns_ok_json(self, client):
+        """Healthcheck deve responder JSON minimo com status ok."""
+        resp = client.get("/health")
+        assert resp.status_code == 200
+        assert resp.get_json() == {"status": "ok"}
 
 
 class TestUpdates:

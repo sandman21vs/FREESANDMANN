@@ -154,12 +154,21 @@ class TestPublicTemplates:
 class TestAdminTemplates:
     def test_login_renders(self, client):
         """Login renderiza sem erro."""
+        models.set_config("setup_complete", "1")
         resp = client.get("/admin/login")
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"csrf_token" in resp.data
         assert b"bo-sidebar" not in resp.data
         assert b"sticky-donate" in resp.data
+        assert b"/advogado/login" in resp.data
+
+    def test_setup_wizard_renders(self, client):
+        """Wizard inicial deve renderizar no primeiro acesso."""
+        resp = client.get("/admin/setup")
+        assert resp.status_code == 200
+        assert b"Initial Setup" in resp.data
+        assert b"csrf_token" in resp.data
 
     def test_dashboard_renders(self, admin_session):
         """Dashboard renderiza sem erro."""
@@ -168,6 +177,7 @@ class TestAdminTemplates:
         assert b"Dashboard" in resp.data or b"dashboard" in resp.data
         assert b"bo-sidebar" in resp.data
         assert b"Pending Articles" in resp.data
+        assert b"Getting Started" in resp.data
 
     def test_settings_renders(self, admin_session):
         """Settings renderiza sem erro."""
@@ -176,7 +186,8 @@ class TestAdminTemplates:
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
         assert b"sticky-donate" not in resp.data
-        assert b'href="#section-general"' in resp.data
+        assert b"bo-tabs" in resp.data
+        assert b"bo-tab-panel" in resp.data
         assert b"bo-sticky-save" in resp.data
         assert b'name="site_title_en"' in resp.data
         assert b'name="transparency_text_de"' in resp.data
@@ -240,6 +251,19 @@ class TestAdminTemplates:
         assert resp.status_code == 200
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
+
+    def test_admin_flash_messages_render_as_toasts(self, admin_session):
+        """Shell admin deve renderizar flashes dentro do container de toast."""
+        with admin_session.session_transaction() as sess:
+            csrf = sess.get("csrf_token", "")
+
+        resp = admin_session.post("/admin/refresh-balance", data={
+            "csrf_token": csrf,
+        }, follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b"bo-toast-stack" in resp.data
+        assert b"flash-dismiss" in resp.data
 
     def test_lawyer_change_password_uses_backoffice_shell(self, lawyer_session):
         """Troca de senha do advogado deve usar o shell autenticado."""

@@ -2,8 +2,74 @@ import re
 from datetime import datetime, timezone
 
 import markdown as markdown_lib
+import nh3
 
 from db import get_db
+
+SAFE_MARKDOWN_TAGS = {
+    "p",
+    "a",
+    "strong",
+    "em",
+    "ul",
+    "ol",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "code",
+    "pre",
+    "br",
+    "hr",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "img",
+    "div",
+    "span",
+    "details",
+    "summary",
+    "sup",
+    "sub",
+    "del",
+    "ins",
+    "abbr",
+}
+SAFE_MARKDOWN_ATTRIBUTES = {
+    "*": {"class", "id", "title"},
+    "a": {"href", "title"},
+    "img": {"src", "alt", "title"},
+}
+SAFE_MARKDOWN_URL_SCHEMES = {"http", "https", "mailto"}
+
+
+def _allow_anchor_href(value):
+    lowered = value.lower()
+    return lowered.startswith(("http://", "https://", "mailto:"))
+
+
+def _allow_image_src(value):
+    lowered = value.lower()
+    return (
+        lowered.startswith(("http://", "https://"))
+        or lowered.startswith("/")
+        and not lowered.startswith("//")
+    )
+
+
+def _sanitize_markdown_attribute(tag, attribute, value):
+    if tag == "a" and attribute == "href":
+        return value if _allow_anchor_href(value) else None
+    if tag == "img" and attribute == "src":
+        return value if _allow_image_src(value) else None
+    return value
 
 
 def approve_article(article_id, approved_by_name, role):
@@ -184,6 +250,13 @@ def render_markdown(text):
     html = markdown_lib.markdown(
         text,
         extensions=["extra", "nl2br", "sane_lists"],
+    )
+    html = nh3.clean(
+        html,
+        tags=SAFE_MARKDOWN_TAGS,
+        attributes=SAFE_MARKDOWN_ATTRIBUTES,
+        attribute_filter=_sanitize_markdown_attribute,
+        url_schemes=SAFE_MARKDOWN_URL_SCHEMES,
     )
     return _auto_embed(html)
 
