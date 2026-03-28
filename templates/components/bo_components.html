@@ -20,3 +20,104 @@
     {% endif %}
 </div>
 {% endmacro %}
+
+{% macro text_field(name, label, value="", hint="", readonly=false, input_type="text", placeholder="") %}
+<div class="bo-field">
+    <label class="bo-field-label" for="field-{{ name }}">{{ label }}</label>
+    {% if hint %}<small class="bo-field-hint">{{ hint }}</small>{% endif %}
+    {% if input_type == "textarea" %}
+    <textarea name="{{ name }}" id="field-{{ name }}" {% if readonly %}readonly class="bo-field-readonly"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>{{ value }}</textarea>
+    {% else %}
+    <input type="{{ input_type }}" name="{{ name }}" id="field-{{ name }}" value="{{ value }}" {% if readonly %}readonly class="bo-field-readonly"{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro toggle_field(name, label, checked=false, hint="", disabled=false) %}
+<div class="bo-toggle-row">
+    <label class="bo-toggle">
+        <input type="checkbox" name="{{ name }}" value="1" {% if checked %}checked{% endif %} {% if disabled %}disabled{% endif %}>
+        <span class="bo-toggle-track"><span class="bo-toggle-thumb"></span></span>
+    </label>
+    <div class="bo-toggle-text">
+        <span class="bo-toggle-label">{{ label }}</span>
+        {% if hint %}<small class="bo-field-hint">{{ hint }}</small>{% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro section_title(title, subtitle="") %}
+<div class="bo-section-title">
+    <h3>{{ title }}</h3>
+    {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro empty_state(title, description="", action_url="", action_label="") %}
+<div class="bo-empty-state">
+    <h3>{{ title }}</h3>
+    {% if description %}<p>{{ description }}</p>{% endif %}
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}" role="button" class="secondary">{{ action_label }}</a>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro save_bar(message="Review your changes and save when ready.") %}
+<div class="bo-card bo-sticky-save" id="save-bar">
+    <span class="bo-muted" id="save-bar-text">{{ message }}</span>
+    <button type="submit" id="save-bar-btn">Save Settings</button>
+</div>
+{% endmacro %}
+
+{% macro i18n_bar(translatable_count=0, values_en=[], values_de=[]) %}
+{% set en_filled = values_en | select("truthy") | list | length %}
+{% set de_filled = values_de | select("truthy") | list | length %}
+<div class="i18n-bar" id="i18n-bar">
+    <button type="button" class="i18n-lang-btn active" data-lang="pt">PT (principal)</button>
+    <button type="button" class="i18n-lang-btn" data-lang="en">EN <span class="i18n-coverage">{{ en_filled }}/{{ translatable_count }}</span></button>
+    <button type="button" class="i18n-lang-btn" data-lang="de">DE <span class="i18n-coverage">{{ de_filled }}/{{ translatable_count }}</span></button>
+</div>
+{% endmacro %}
+
+{% macro i18n_text_field(name, label, value_pt="", value_en="", value_de="", hint="", input_type="text", placeholder="", rows=6) %}
+<div class="i18n-group">
+    {# PT mode: normal editable field #}
+    <div class="i18n-field" data-lang="pt">
+        <label class="bo-field-label" for="field-{{ name }}">{{ label }}</label>
+        {% if hint %}<small class="bo-field-hint">{{ hint }}</small>{% endif %}
+        {% if input_type == "textarea" %}
+        <textarea name="{{ name }}" id="field-{{ name }}" rows="{{ rows }}" {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>{{ value_pt }}</textarea>
+        {% else %}
+        <input type="text" name="{{ name }}" id="field-{{ name }}" value="{{ value_pt }}" {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}>
+        {% endif %}
+    </div>
+    {# EN mode: PT reference + editable EN #}
+    <div class="i18n-field" data-lang="en">
+        <label class="bo-field-label">{{ label }} (EN)</label>
+        <div class="i18n-ref">PT: {{ value_pt[:120] if value_pt else '(empty)' }}</div>
+        {% if input_type == "textarea" %}
+        <textarea name="{{ name }}_en" rows="{{ rows }}">{{ value_en }}</textarea>
+        {% else %}
+        <input type="text" name="{{ name }}_en" value="{{ value_en }}">
+        {% endif %}
+    </div>
+    {# DE mode: PT reference + editable DE #}
+    <div class="i18n-field" data-lang="de">
+        <label class="bo-field-label">{{ label }} (DE)</label>
+        <div class="i18n-ref">PT: {{ value_pt[:120] if value_pt else '(empty)' }}</div>
+        {% if input_type == "textarea" %}
+        <textarea name="{{ name }}_de" rows="{{ rows }}">{{ value_de }}</textarea>
+        {% else %}
+        <input type="text" name="{{ name }}_de" value="{{ value_de }}">
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro i18n_badge(title_en, body_en, title_de, body_de) %}
+<span class="bo-i18n-badges">
+    <span class="bo-badge {% if title_en and body_en %}bo-badge-approved{% else %}bo-badge-draft{% endif %}">EN {% if title_en and body_en %}&#10003;{% else %}&#10007;{% endif %}</span>
+    <span class="bo-badge {% if title_de and body_de %}bo-badge-approved{% else %}bo-badge-draft{% endif %}">DE {% if title_de and body_de %}&#10003;{% else %}&#10007;{% endif %}</span>
+</span>
+{% endmacro %}

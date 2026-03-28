@@ -221,9 +221,116 @@
         });
     }
 
+    function initI18nBar() {
+        var bar = document.getElementById("i18n-bar");
+        if (!bar) return;
+
+        var form = bar.closest("form") || bar.parentElement;
+        var buttons = bar.querySelectorAll(".i18n-lang-btn");
+
+        buttons.forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                var lang = btn.dataset.lang;
+
+                // Update button states
+                buttons.forEach(function(b) { b.classList.remove("active"); });
+                btn.classList.add("active");
+
+                // Switch form mode
+                form.classList.remove("i18n-mode-en", "i18n-mode-de");
+                if (lang !== "pt") {
+                    form.classList.add("i18n-mode-" + lang);
+                }
+            });
+        });
+    }
+
+    function initSaveBarDirtyState() {
+        var form = document.querySelector(".bo-settings-form");
+        if (!form) return;
+
+        var saveText = document.getElementById("save-bar-text");
+        var saveBtn = document.getElementById("save-bar-btn");
+        if (!saveText || !saveBtn) return;
+
+        var initial = new FormData(form);
+        var initialMap = {};
+        initial.forEach(function(value, key) { initialMap[key] = value; });
+
+        function checkDirty() {
+            var current = new FormData(form);
+            var dirty = false;
+            current.forEach(function(value, key) {
+                if (key === "csrf_token") return;
+                if (initialMap[key] !== value) dirty = true;
+            });
+            // Check removed keys (unchecked checkboxes)
+            Object.keys(initialMap).forEach(function(key) {
+                if (key === "csrf_token") return;
+                if (!current.has(key)) dirty = true;
+            });
+
+            if (dirty) {
+                saveText.textContent = "You have unsaved changes.";
+                saveText.style.color = "var(--btc-orange)";
+                saveBtn.disabled = false;
+            } else {
+                saveText.textContent = "No changes.";
+                saveText.style.color = "";
+                saveBtn.disabled = true;
+            }
+        }
+
+        form.addEventListener("input", checkDirty);
+        form.addEventListener("change", checkDirty);
+        // Initial state
+        checkDirty();
+    }
+
+    function initSettingsTabs() {
+        var tabButtons = document.querySelectorAll(".bo-tab[data-tab-target]");
+        var tabPanels = document.querySelectorAll(".bo-tab-panel");
+        if (!tabButtons.length) return;
+
+        tabButtons.forEach(function(btn) {
+            btn.addEventListener("click", function(e) {
+                e.preventDefault();
+                var target = btn.dataset.tabTarget;
+
+                tabButtons.forEach(function(b) { b.classList.remove("bo-tab-active"); });
+                btn.classList.add("bo-tab-active");
+
+                tabPanels.forEach(function(p) {
+                    p.style.display = p.dataset.tab === target ? "block" : "none";
+                });
+            });
+        });
+    }
+
+    function initToggleDependents() {
+        document.querySelectorAll(".bo-toggle-row input[type='checkbox']").forEach(function(toggle) {
+            var name = toggle.name;
+            var deps = document.querySelectorAll('[data-depends="' + name + '"]');
+            if (!deps.length) return;
+
+            function update() {
+                deps.forEach(function(dep) {
+                    dep.style.display = toggle.checked ? "block" : "none";
+                });
+            }
+
+            toggle.addEventListener("change", update);
+            update();
+        });
+    }
+
     initThemeControls();
     initPreferenceWidget();
     initHamburgerMenu();
     initCopyButtons();
     initInvoiceWidgets();
+    initI18nBar();
+    initSaveBarDirtyState();
+    initSettingsTabs();
+    initToggleDependents();
 })();
