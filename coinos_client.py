@@ -122,13 +122,47 @@ def get_fresh_liquid_address():
     return None
 
 
+def _coinos_public_request(path):
+    """Fetch from a public (no-auth) Coinos API endpoint."""
+    url = f"{COINOS_API_BASE}{path}"
+    req = urllib.request.Request(url, method="GET")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read())
+    except Exception:
+        logger.exception("Coinos public API request failed path=%s", path)
+        return None
+
+
 def get_account_username():
-    """Fetch the Coinos account username for LN address derivation."""
+    """Fetch the Coinos account username for LN address derivation.
+
+    Tries /me first (works with full tokens), then falls back to
+    creating a 0-amount invoice to get the uid and looking it up
+    via the public /users/<uid> endpoint (works with read-only tokens).
+    """
     if not models.get_config("coinos_api_key"):
         return None
+
+    # Try /me first (full-access tokens)
     result = _coinos_request("GET", "/me")
     if result and "username" in result:
         return result["username"]
+
+    # Fallback: create a dummy invoice to get uid, then public lookup
+    invoice = _coinos_request(
+        "POST", "/invoice",
+        {"invoice": {"amount": 0, "type": "bitcoin"}},
+    )
+    if not invoice or "uid" not in invoice:
+        return None
+
+    uid = invoice["uid"]
+    user_info = _coinos_public_request(f"/users/{uid}")
+    if user_info and "username" in user_info:
+        logger.info("Coinos username resolved via public API username=%s", user_info["username"])
+        return user_info["username"]
     return None
 
 
