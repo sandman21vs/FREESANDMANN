@@ -12,6 +12,10 @@ def register_public_routes(app):
             session["lang"] = lang
         return redirect(request.referrer or url_for("index"))
 
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "ok"})
+
     @app.route("/")
     def index():
         lang = session.get("lang", "pt")

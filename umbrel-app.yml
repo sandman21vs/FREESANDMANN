@@ -1,0 +1,24 @@
+manifestVersion: 1
+id: freesandmann
+category: finance
+name: Free Sandmann
+version: "1.0.0"
+tagline: Self-hosted Bitcoin fundraising for legal defense
+description: >-
+  A self-hostable Bitcoin fundraising platform for legal defense campaigns.
+  Accept on-chain and Lightning donations, publish campaign updates, and manage
+  your operation through a built-in admin panel. No KYC, no third parties
+  holding your funds.
+releaseNotes: ""
+developer: sandman21vs
+website: https://github.com/sandman21vs/FREESANDMANN
+dependencies: []
+repo: https://github.com/sandman21vs/FREESANDMANN
+support: https://github.com/sandman21vs/FREESANDMANN/issues
+port: 4040
+gallery: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: sandman21vs
+submission: ""

@@ -35,6 +35,14 @@ class TestDonate:
         assert b"Bitcoin" in resp.data or b"bitcoin" in resp.data
 
 
+class TestHealth:
+    def test_health_returns_ok_json(self, client):
+        """Healthcheck deve responder JSON minimo com status ok."""
+        resp = client.get("/health")
+        assert resp.status_code == 200
+        assert resp.get_json() == {"status": "ok"}
+
+
 class TestUpdates:
     def test_updates_returns_200(self, client):
         """Lista de artigos deve retornar 200."""

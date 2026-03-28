@@ -1,7 +1,7 @@
 # Free Sandmann — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
-Last verified: 2026-03-28 — 285 tests passing.
+Last verified: 2026-03-28 — 286 tests passing.
 
 ---
 
@@ -56,7 +56,10 @@ FREESANDMANN/
 ├── requirements.txt    # 6 Python dependencies
 ├── Dockerfile
 ├── docker-compose.yml
+├── umbrel-app.yml      # Umbrel App Store manifest draft for packaging/submission
 ├── .env.example
+├── .github/workflows/
+│   └── docker-publish.yml # Multi-arch image publish workflow for GHCR
 │
 ├── static/
 │   ├── app.js          # Shared frontend behavior: theme, menu, clipboard, invoice polling, settings nav, toasts
@@ -102,7 +105,7 @@ FREESANDMANN/
 │   ├── en.json         # 93 keys
 │   └── de.json         # 93 keys
 │
-├── tests/              # 285 tests via pytest
+├── tests/              # 286 tests via pytest
 │   ├── conftest.py     # Temp-file SQLite fixture, test client
 │   ├── test_routes_admin.py
 │   ├── test_lawyer_workflow.py
@@ -259,6 +262,7 @@ CREATE TABLE login_attempts (
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/` | Homepage: progress bar, hero, pinned articles, QR codes, media links |
+| GET | `/health` | Minimal healthcheck endpoint for Docker/Umbrel probing |
 | GET | `/donate` | Donation page: large QRs, Lightning invoice generator |
 | GET | `/updates` | All published articles |
 | GET | `/updates/<slug>` | Single article (shows approval badges) |
