@@ -180,13 +180,16 @@ def validate_settings_form(form_data, current_cfg=None):
 
     coinos_enabled = "1" if form_data.get("coinos_enabled") else "0"
     coinos_onchain = "1" if form_data.get("coinos_onchain") else "0"
+    coinos_show_addresses = "1" if form_data.get("coinos_show_addresses") else "0"
     liquid_enabled = "1" if form_data.get("liquid_enabled") else "0"
 
     form_cfg["coinos_enabled"] = coinos_enabled
     form_cfg["coinos_onchain"] = coinos_onchain
+    form_cfg["coinos_show_addresses"] = coinos_show_addresses
     form_cfg["liquid_enabled"] = liquid_enabled
     normalized["coinos_enabled"] = coinos_enabled
     normalized["coinos_onchain"] = coinos_onchain
+    normalized["coinos_show_addresses"] = coinos_show_addresses
     normalized["liquid_enabled"] = liquid_enabled
 
     for field in SETTINGS_TEXT_FIELDS:
@@ -249,6 +252,9 @@ def validate_settings_form(form_data, current_cfg=None):
 
     if coinos_enabled == "1" and not normalized["coinos_api_key"]:
         errors.append("Coinos API token is required when Coinos invoices are enabled.")
+
+    if coinos_show_addresses == "1" and not normalized["coinos_api_key"]:
+        errors.append("Coinos API key is required to show Coinos addresses.")
 
     if coinos_onchain == "1" and coinos_enabled != "1":
         errors.append("Coinos on-chain mode requires Coinos invoices to be enabled.")

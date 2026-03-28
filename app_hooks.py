@@ -14,19 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 def _enrich_cfg_with_fallback_addresses(cfg):
-    """Fill in empty address fields with Coinos-derived values when possible."""
-    if cfg.get("coinos_enabled") != "1":
-        return cfg
-
-    if not cfg.get("lightning_address"):
-        try:
-            import coinos_client
-            username = coinos_client.get_account_username()
-            if username:
-                cfg["lightning_address"] = f"{username}@coinos.io"
-        except Exception:
-            logger.debug("Could not fetch Coinos username for LN address fallback")
-
+    """Resolve which addresses to show on the public site."""
+    if cfg.get("coinos_show_addresses") == "1":
+        # Use cached Coinos addresses, falling back to manual
+        cached_ln = cfg.get("coinos_cached_ln_address", "")
+        cached_btc = cfg.get("coinos_cached_btc_address", "")
+        if cached_ln:
+            cfg["lightning_address"] = cached_ln
+        if cached_btc:
+            cfg["btc_address"] = cached_btc
+    # If coinos_show_addresses is OFF, manual addresses are used as-is.
+    # No API calls, no HTTP requests — pure SQLite reads.
     return cfg
 
 

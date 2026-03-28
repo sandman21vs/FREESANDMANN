@@ -34,6 +34,9 @@ DEFAULTS = {
     "coinos_webhook_secret": "",
     "liquid_enabled": "0",
     "liquid_address": "",
+    "coinos_show_addresses": "0",
+    "coinos_cached_btc_address": "",
+    "coinos_cached_ln_address": "",
 }
 
 for field in (

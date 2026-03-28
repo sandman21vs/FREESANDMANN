@@ -72,12 +72,12 @@
         {{ section_title("Receiving Addresses") }}
         {{ text_field("btc_address", "Bitcoin On-Chain Address",
             value=cfg['btc_address'],
-            hint="Managed by Coinos when on-chain mode is enabled below." if cfg['coinos_onchain'] == '1' else "Your on-chain BTC address for donations.",
+            hint="Managed by Coinos when on-chain mode is enabled below." if cfg['coinos_onchain'] == '1' else ("Coinos addresses are shown on the public site. This manual address is used when that option is off." if cfg['coinos_show_addresses'] == '1' else "Your on-chain BTC address for donations."),
             readonly=(cfg['coinos_onchain'] == '1')
         ) }}
         {{ text_field("lightning_address", "Lightning Address",
             value=cfg['lightning_address'],
-            hint="An LN address like you@coinos.io or LNURL."
+            hint="Coinos LN address is shown on the public site. This manual address is used when that option is off." if cfg['coinos_show_addresses'] == '1' else "An LN address like you@coinos.io or LNURL."
         ) }}
         {{ text_field("liquid_address", "Liquid Address",
             value=cfg['liquid_address'],
@@ -108,6 +108,17 @@
         ) }}
 
         <div class="bo-toggle-sub" data-depends-notempty="coinos_api_key">
+            {{ toggle_field("coinos_show_addresses", "Show Coinos addresses on public site",
+                checked=(cfg['coinos_show_addresses'] == '1'),
+                hint="Display your Coinos account addresses (LN and on-chain) as QR codes on the landing page and donate page. When off, only manually entered addresses above are shown."
+            ) }}
+            {% if cfg['coinos_show_addresses'] == '1' and (cfg['coinos_cached_ln_address'] or cfg['coinos_cached_btc_address']) %}
+            <div class="bo-info-note">
+                <strong>Coinos addresses currently shown:</strong><br>
+                {% if cfg['coinos_cached_ln_address'] %}Lightning: {{ cfg['coinos_cached_ln_address'] }}<br>{% endif %}
+                {% if cfg['coinos_cached_btc_address'] %}On-chain: {{ cfg['coinos_cached_btc_address'] }}{% endif %}
+            </div>
+            {% endif %}
             {{ toggle_field("coinos_enabled", "Lightning Invoices via Coinos",
                 checked=(cfg['coinos_enabled'] == '1'),
                 hint="Generate Lightning invoices through your Coinos account."
@@ -120,10 +131,6 @@
                 checked=(cfg['coinos_onchain'] == '1'),
                 hint="Use a Coinos-generated BTC address. Balance tracked via Coinos instead of mempool.space."
             ) }}
-            <div class="bo-info-note">
-                When Coinos features are enabled and manual address fields above are
-                empty, the site will automatically use your Coinos account addresses.
-            </div>
         </div>
     </div>
 

@@ -6,6 +6,7 @@ from coinos_client import (
     check_lightning_balance,
     create_invoice,
     get_account_username,
+    get_fresh_onchain_address,
     get_onchain_address,
     get_received_sats,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "check_lightning_balance",
     "create_invoice",
     "get_account_username",
+    "get_fresh_onchain_address",
     "get_onchain_address",
     "get_received_sats",
 ]

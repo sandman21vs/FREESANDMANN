@@ -168,6 +168,23 @@ def process_admin_settings(form_data, current_cfg=None):
             models.set_config("lightning_address", ln_addr)
             logger.info("Admin settings auto-derived LN address from Coinos username=%s", username)
 
+    # Cache Coinos addresses when show_addresses is enabled
+    if normalized_cfg.get("coinos_show_addresses") == "1" and normalized_cfg.get("coinos_api_key"):
+        username = coinos.get_account_username()
+        if username:
+            ln_addr = f"{username}@coinos.io"
+            models.set_config("coinos_cached_ln_address", ln_addr)
+            logger.info("Cached Coinos LN address: %s", ln_addr)
+
+        btc_addr = coinos.get_fresh_onchain_address()
+        if btc_addr:
+            models.set_config("coinos_cached_btc_address", btc_addr)
+            logger.info("Cached Coinos BTC address suffix: %s", btc_addr[-8:])
+
+    if normalized_cfg.get("coinos_show_addresses") != "1" or not normalized_cfg.get("coinos_api_key"):
+        models.set_config("coinos_cached_btc_address", "")
+        models.set_config("coinos_cached_ln_address", "")
+
     models.recalculate_raised_btc()
     logger.info(
         "Admin settings saved coinos_enabled=%s coinos_onchain=%s liquid_enabled=%s",
