@@ -270,6 +270,64 @@ progress::-moz-progress-bar {
     align-items: center;
 }
 
+/* Public article previews */
+.article-preview {
+    padding: 1rem 0 1.25rem;
+    border-bottom: 1px solid var(--pico-muted-border-color, rgba(128, 128, 128, 0.25));
+}
+
+.article-preview:last-of-type {
+    border-bottom: 0;
+}
+
+.article-preview-title {
+    margin-bottom: 0.25rem;
+}
+
+.article-preview-title-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.12em;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.article-preview-title-link:hover {
+    color: var(--btc-orange);
+    text-decoration-color: var(--btc-orange);
+}
+
+.article-preview-date {
+    display: inline-block;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.article-preview-excerpt {
+    margin-bottom: 0.75rem;
+}
+
+.article-preview-cta-wrap {
+    margin: 0;
+}
+
+.article-preview-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.article-preview-cta::after {
+    content: "→";
+    transition: transform 0.2s ease;
+}
+
+.article-preview-cta:hover::after {
+    transform: translateX(0.18rem);
+}
+
 /* Flash messages */
 .flash-msg {
     padding: 1rem;

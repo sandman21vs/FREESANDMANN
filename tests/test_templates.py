@@ -95,8 +95,22 @@ class TestPublicTemplates:
     def test_index_with_articles(self, client):
         """Homepage com artigos fixados deve mostrar titulos."""
         models.create_article("Pinned Story", "Important", pinned=1)
+        with client.session_transaction() as sess:
+            sess["lang"] = "pt"
+
         resp = client.get("/")
         assert b"Pinned Story" in resp.data
+        assert "Leia mais".encode() in resp.data
+
+    def test_index_with_articles_uses_translated_read_more_cta(self, client):
+        """Homepage deve mostrar CTA traduzido para abrir o artigo."""
+        models.create_article("Pinned Story", "Important", pinned=1)
+        with client.session_transaction() as sess:
+            sess["lang"] = "en"
+
+        resp = client.get("/")
+        assert resp.status_code == 200
+        assert b"Read more" in resp.data
 
     def test_index_with_media_links(self, client):
         """Homepage com media links deve mostrar links."""
@@ -149,6 +163,17 @@ class TestPublicTemplates:
         resp = client.get("/")
         assert resp.status_code == 200
         assert "Titulo Base".encode() in resp.data
+
+    def test_updates_with_articles_show_read_more_cta(self, client):
+        """Lista publica de updates deve mostrar CTA explicito para abrir o artigo."""
+        models.create_article("Public Update", "Body for excerpt")
+        with client.session_transaction() as sess:
+            sess["lang"] = "de"
+
+        resp = client.get("/updates")
+        assert resp.status_code == 200
+        assert b"Public Update" in resp.data
+        assert "Mehr lesen".encode() in resp.data
 
 
 class TestAdminTemplates:

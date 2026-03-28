@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/article_preview.html" import article_preview with context %}
 
 {% block title %}{{ t('updates_title') }} &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
 
@@ -7,11 +8,7 @@
 
 {% if articles %}
     {% for a in articles %}
-    <article>
-        <h2><a href="{{ url_for('article', slug=a.slug) }}">{{ a.title }}</a></h2>
-        <small>{{ a.created_at[:10] }}</small>
-        <p>{{ a.body_md[:200] }}</p>
-    </article>
+    {{ article_preview(a, heading_tag='h2', show_excerpt=true) }}
     {% endfor %}
 {% else %}
     <p>{{ t('no_updates_yet') }}</p>

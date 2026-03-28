@@ -1,0 +1,21 @@
+{% macro article_preview(article, heading_tag='h2', show_excerpt=true) -%}
+<article class="article-preview">
+    <{{ heading_tag }} class="article-preview-title">
+        <a href="{{ url_for('article', slug=article.slug) }}" class="article-preview-title-link">
+            {{ article.title }}
+        </a>
+    </{{ heading_tag }}>
+    <small class="article-preview-date">{{ article.created_at[:10] }}</small>
+    {% if show_excerpt %}
+    {% set excerpt = article.body_md[:200] %}
+    <p class="article-preview-excerpt">
+        {{ excerpt }}{% if article.body_md|length > 200 %}&hellip;{% endif %}
+    </p>
+    {% endif %}
+    <p class="article-preview-cta-wrap">
+        <a href="{{ url_for('article', slug=article.slug) }}" class="article-preview-cta">
+            {{ t('read_more') }}
+        </a>
+    </p>
+</article>
+{%- endmacro %}

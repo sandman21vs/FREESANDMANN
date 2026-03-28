@@ -3,6 +3,7 @@
 {% from "components/qr_codes.html" import qr_section with context %}
 {% from "components/embed.html" import share_buttons with context %}
 {% from "components/invoice_widget.html" import invoice_widget with context %}
+{% from "components/article_preview.html" import article_preview with context %}
 
 {% block content %}
 {{ progress_bar(cfg.get('raised_btc', '0'), cfg.get('goal_btc', '1'), cfg.get('supporters_count', '0')) }}
@@ -44,10 +45,7 @@
 <section>
     <h2>{{ t('latest_updates') }}</h2>
     {% for a in pinned %}
-    <article>
-        <h3><a href="{{ url_for('article', slug=a.slug) }}">{{ a.title }}</a></h3>
-        <small>{{ a.created_at[:10] }}</small>
-    </article>
+    {{ article_preview(a, heading_tag='h3', show_excerpt=false) }}
     {% endfor %}
     <a href="{{ url_for('updates') }}">{{ t('see_all') }}</a>
 </section>
