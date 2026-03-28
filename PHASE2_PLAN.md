@@ -475,7 +475,7 @@ manifestVersion: 1
 id: freesandmann
 name: Free Sandmann  # Will be renamed in Phase 2.4
 tagline: Self-hosted Bitcoin fundraising for legal defense
-icon: https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/master/static/icon.png
+icon: https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/main/static/icon.png
 category: finance
 version: "1.0.0"
 port: 4040
@@ -488,9 +488,9 @@ website: https://github.com/sandman21vs/FREESANDMANN
 repo: https://github.com/sandman21vs/FREESANDMANN
 support: https://github.com/sandman21vs/FREESANDMANN/issues
 gallery:
-  - https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/master/screenshots/homepage.png
-  - https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/master/screenshots/admin.png
-  - https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/master/screenshots/donate.png
+  - https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/main/screenshots/homepage.png
+  - https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/main/screenshots/admin.png
+  - https://raw.githubusercontent.com/sandman21vs/FREESANDMANN/main/screenshots/donate.png
 dependencies: []
 path: ""
 defaultUsername: ""

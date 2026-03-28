@@ -1,6 +1,50 @@
 """Testes das rotas publicas — homepage, donate, updates, article."""
 
 
+class TestBootstrapGate:
+    def test_first_visit_redirects_to_setup(self, fresh_client):
+        """Homepage deve redirecionar ao setup enquanto a instalacao nao foi inicializada."""
+        resp = fresh_client.get("/")
+        assert resp.status_code == 302
+        assert "/admin/setup" in resp.headers.get("Location", "")
+
+    def test_donate_redirects_to_setup(self, fresh_client):
+        """Pagina de doacao deve ficar bloqueada ate o setup ser concluido."""
+        resp = fresh_client.get("/donate")
+        assert resp.status_code == 302
+        assert "/admin/setup" in resp.headers.get("Location", "")
+
+    def test_updates_redirects_to_setup(self, fresh_client):
+        """Lista publica de updates nao deve abrir antes do setup."""
+        resp = fresh_client.get("/updates")
+        assert resp.status_code == 302
+        assert "/admin/setup" in resp.headers.get("Location", "")
+
+    def test_health_stays_available_during_bootstrap(self, fresh_client):
+        """Healthcheck deve continuar acessivel durante o bootstrap."""
+        resp = fresh_client.get("/health")
+        assert resp.status_code == 200
+        assert resp.get_json() == {"status": "ok"}
+
+    def test_static_assets_stay_available_during_bootstrap(self, fresh_client):
+        """Arquivos estaticos devem continuar acessiveis para renderizar o wizard."""
+        resp = fresh_client.get("/static/style.css")
+        assert resp.status_code == 200
+        assert b"--btc-orange" in resp.data
+
+    def test_language_switch_is_allowed_during_bootstrap(self, fresh_client):
+        """Troca de idioma precisa continuar funcionando no setup wizard."""
+        resp = fresh_client.get(
+            "/set-lang/en",
+            headers={"Referer": "http://localhost/admin/setup"},
+        )
+        assert resp.status_code == 302
+        assert "/admin/setup" in resp.headers.get("Location", "")
+
+        with fresh_client.session_transaction() as sess:
+            assert sess.get("lang") == "en"
+
+
 class TestHomepage:
     def test_index_returns_200(self, client):
         """Homepage deve retornar 200."""

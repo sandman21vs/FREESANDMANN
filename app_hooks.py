@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import abort, g, request, session
+from flask import abort, g, redirect, request, session, url_for
 
 import i18n
 import models
@@ -11,6 +11,8 @@ from model_content import render_markdown
 CSRF_EXEMPT = {"/donate/webhook/coinos"}
 
 logger = logging.getLogger(__name__)
+
+SETUP_GATE_ALLOWED_ENDPOINTS = {"admin_setup", "health", "set_language", "static"}
 
 
 def _enrich_cfg_with_fallback_addresses(cfg):
@@ -56,6 +58,14 @@ def register_request_hooks(app):
     def generate_csrf_token():
         if "csrf_token" not in session:
             session["csrf_token"] = os.urandom(16).hex()
+
+    @app.before_request
+    def enforce_setup_gate():
+        if models.get_config("setup_complete") == "1":
+            return
+        if request.endpoint in SETUP_GATE_ALLOWED_ENDPOINTS:
+            return
+        return redirect(url_for("admin_setup"))
 
     @app.before_request
     def csrf_protect():

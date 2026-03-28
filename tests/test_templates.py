@@ -163,9 +163,9 @@ class TestAdminTemplates:
         assert b"sticky-donate" in resp.data
         assert b"/advogado/login" in resp.data
 
-    def test_setup_wizard_renders(self, client):
+    def test_setup_wizard_renders(self, fresh_client):
         """Wizard inicial deve renderizar no primeiro acesso."""
-        resp = client.get("/admin/setup")
+        resp = fresh_client.get("/admin/setup")
         assert resp.status_code == 200
         assert b"Initial Setup" in resp.data
         assert b"csrf_token" in resp.data
