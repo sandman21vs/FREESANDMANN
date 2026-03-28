@@ -177,7 +177,7 @@ class TestAdminDashboard:
         assert resp.data.count(b"Complete this step") == 5
 
     def test_dashboard_checklist_configured(self, admin_session):
-        """Checklist deve indicar tudo completo quando os itens centrais ja foram feitos."""
+        """Checklist hidden when all setup tasks are complete."""
         models.set_config("site_title", "Open Defense")
         models.set_config("btc_address", "bc1qconfiguredaddress")
         models.set_config("goal_btc", "5.0")
@@ -187,9 +187,10 @@ class TestAdminDashboard:
         resp = admin_session.get("/admin/")
 
         assert resp.status_code == 200
-        assert b"Getting Started" in resp.data
-        assert b"All set!" in resp.data
-        assert b"All core setup tasks are complete." in resp.data
+        # Checklist card is hidden when all items are done
+        assert b"Getting Started" not in resp.data
+        # Dashboard hero card still renders
+        assert b"Campaign Progress" in resp.data
 
 
 class TestAdminSettings:
@@ -292,7 +293,7 @@ class TestAdminSettings:
         }, follow_redirects=True)
 
         assert resp.status_code == 200
-        assert b"Liquid address is required when Liquid Network is enabled." in resp.data
+        assert b"Liquid address is required when Coinos is not configured." in resp.data
         assert models.get_config("liquid_enabled") == "0"
 
     def test_settings_normalize_trimmed_values(self, admin_session):
@@ -342,40 +343,40 @@ class TestAdminSettings:
 
 
 class TestAdminSetupWizard:
-    def _wizard_csrf(self, client):
-        client.get("/admin/setup")
-        with client.session_transaction() as sess:
+    def _wizard_csrf(self, fresh_client):
+        fresh_client.get("/admin/setup")
+        with fresh_client.session_transaction() as sess:
             return sess.get("csrf_token", "")
 
-    def test_wizard_shown_on_first_access(self, client):
+    def test_wizard_shown_on_first_access(self, fresh_client):
         """Primeiro acesso ao admin deve redirecionar para setup."""
-        resp = client.get("/admin/")
+        resp = fresh_client.get("/admin/")
         assert resp.status_code == 302
         assert "/admin/setup" in resp.headers.get("Location", "")
 
-    def test_wizard_shown_on_login_access(self, client):
+    def test_wizard_shown_on_login_access(self, fresh_client):
         """Login deve redirecionar para wizard enquanto setup nao acabou."""
-        resp = client.get("/admin/login")
+        resp = fresh_client.get("/admin/login")
         assert resp.status_code == 302
         assert "/admin/setup" in resp.headers.get("Location", "")
 
-    def test_wizard_renders(self, client):
+    def test_wizard_renders(self, fresh_client):
         """Wizard deve renderizar quando setup_complete == 0."""
-        resp = client.get("/admin/setup")
+        resp = fresh_client.get("/admin/setup")
         assert resp.status_code == 200
         assert b"Initial Setup" in resp.data
 
-    def test_wizard_redirects_when_complete(self, client):
+    def test_wizard_redirects_when_complete(self, fresh_client):
         """Wizard nao deve ficar acessivel depois do setup."""
         models.set_config("setup_complete", "1")
-        resp = client.get("/admin/setup")
+        resp = fresh_client.get("/admin/setup")
         assert resp.status_code == 302
         assert "/admin/login" in resp.headers.get("Location", "")
 
-    def test_wizard_submit_success(self, client):
+    def test_wizard_submit_success(self, fresh_client):
         """POST valido no wizard deve concluir setup e logar admin."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "wizardpass123",
             "admin_password_confirm": "wizardpass123",
             "site_title": "Open Defense",
@@ -394,13 +395,13 @@ class TestAdminSetupWizard:
         assert models.get_config("btc_address") == "bc1qwizardaddress"
         assert models.get_config("goal_btc") == "2.5"
 
-        with client.session_transaction() as sess:
+        with fresh_client.session_transaction() as sess:
             assert sess.get("admin") is True
 
-    def test_wizard_submit_validation(self, client):
+    def test_wizard_submit_validation(self, fresh_client):
         """Senha curta deve re-renderizar o wizard com erro."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "short",
             "admin_password_confirm": "short",
             "site_title": "Open Defense",
@@ -412,10 +413,10 @@ class TestAdminSetupWizard:
         assert b"Password must be at least 8 characters." in resp.data
         assert models.get_config("setup_complete") == "0"
 
-    def test_wizard_submit_password_mismatch(self, client):
+    def test_wizard_submit_password_mismatch(self, fresh_client):
         """Senhas divergentes devem falhar."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "wizardpass123",
             "admin_password_confirm": "wizardpass999",
             "site_title": "Open Defense",
@@ -426,10 +427,10 @@ class TestAdminSetupWizard:
         assert resp.status_code == 200
         assert b"Passwords do not match." in resp.data
 
-    def test_wizard_submit_missing_title(self, client):
+    def test_wizard_submit_missing_title(self, fresh_client):
         """Titulo e obrigatorio."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "wizardpass123",
             "admin_password_confirm": "wizardpass123",
             "site_title": "",
@@ -440,10 +441,10 @@ class TestAdminSetupWizard:
         assert resp.status_code == 200
         assert b"Site title is required." in resp.data
 
-    def test_wizard_does_not_require_btc(self, client):
+    def test_wizard_does_not_require_btc(self, fresh_client):
         """BTC address deve ser opcional no wizard."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "wizardpass123",
             "admin_password_confirm": "wizardpass123",
             "site_title": "Open Defense",
@@ -457,15 +458,15 @@ class TestAdminSetupWizard:
         assert models.get_config("setup_complete") == "1"
         assert models.get_config("btc_address") == ""
 
-    def test_normal_login_works_after_setup(self, client):
+    def test_normal_login_works_after_setup(self, fresh_client):
         """Depois do setup, o login admin deve funcionar normalmente."""
         models.set_config("setup_complete", "1")
         models.change_password("wizardpass123")
-        client.get("/admin/login")
-        with client.session_transaction() as sess:
+        fresh_client.get("/admin/login")
+        with fresh_client.session_transaction() as sess:
             csrf = sess.get("csrf_token", "")
 
-        resp = client.post("/admin/login", data={
+        resp = fresh_client.post("/admin/login", data={
             "username": "FREE",
             "password": "wizardpass123",
             "csrf_token": csrf,

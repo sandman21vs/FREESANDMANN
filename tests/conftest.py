@@ -66,6 +66,16 @@ def app(temp_database):
 @pytest.fixture
 def client(app):
     """Flask test client — simula requests HTTP sem servidor real."""
+    import models
+    models.set_config("setup_complete", "1")
+    return app.test_client()
+
+
+@pytest.fixture
+def fresh_client(app):
+    """Client com install fresca, antes do setup inicial ser concluido."""
+    import models
+    models.set_config("setup_complete", "0")
     return app.test_client()
 
 
@@ -110,6 +120,7 @@ def lawyer_session(client):
     Cria conta, troca senha, e faz login.
     """
     import models
+    models.set_config("setup_complete", "1")
     models.create_lawyer("drsilva", "Dr. Silva", "TempPass123!")
     lawyer = models.get_lawyer_by_username("drsilva")
     models.change_lawyer_password(lawyer["id"], "permanent_pass_123")

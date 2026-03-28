@@ -34,6 +34,18 @@ def get_wallet_qr_response(qr_type):
 
     config_key, format_string = config_entry
     value = models.get_config(config_key)
+
+    # Fallback to cached Coinos addresses when show_addresses is enabled
+    if not value and models.get_config("coinos_show_addresses") == "1":
+        cache_map = {
+            "btc_address": "coinos_cached_btc_address",
+            "lightning_address": "coinos_cached_ln_address",
+            "liquid_address": "coinos_cached_liquid_address",
+        }
+        cache_key = cache_map.get(config_key)
+        if cache_key:
+            value = models.get_config(cache_key)
+
     if not value:
         return None
 

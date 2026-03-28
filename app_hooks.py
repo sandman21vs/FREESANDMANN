@@ -1,6 +1,7 @@
+import logging
 import os
 
-from flask import abort, g, request, session
+from flask import abort, g, redirect, request, session, url_for
 
 import i18n
 import models
@@ -9,10 +10,33 @@ from model_content import render_markdown
 
 CSRF_EXEMPT = {"/donate/webhook/coinos"}
 
+logger = logging.getLogger(__name__)
+
+SETUP_GATE_ALLOWED_ENDPOINTS = {"admin_setup", "health", "set_language", "static"}
+
+
+def _enrich_cfg_with_fallback_addresses(cfg):
+    """Resolve which addresses to show on the public site."""
+    if cfg.get("coinos_show_addresses") == "1":
+        # Use cached Coinos addresses, falling back to manual
+        cached_ln = cfg.get("coinos_cached_ln_address", "")
+        cached_btc = cfg.get("coinos_cached_btc_address", "")
+        cached_liquid = cfg.get("coinos_cached_liquid_address", "")
+        if cached_ln:
+            cfg["lightning_address"] = cached_ln
+        if cached_btc:
+            cfg["btc_address"] = cached_btc
+        if cached_liquid:
+            cfg["liquid_address"] = cached_liquid
+    # If coinos_show_addresses is OFF, manual addresses are used as-is.
+    # No API calls, no HTTP requests — pure SQLite reads.
+    return cfg
+
 
 def build_template_context():
     lang = g.get("lang", "pt")
     cfg = get_localized_config(models.get_all_config(), lang)
+    cfg = _enrich_cfg_with_fallback_addresses(cfg)
     if cfg.get("transparency_text"):
         cfg["transparency_html"] = render_markdown(cfg["transparency_text"])
 
@@ -34,6 +58,14 @@ def register_request_hooks(app):
     def generate_csrf_token():
         if "csrf_token" not in session:
             session["csrf_token"] = os.urandom(16).hex()
+
+    @app.before_request
+    def enforce_setup_gate():
+        if models.get_config("setup_complete") == "1":
+            return
+        if request.endpoint in SETUP_GATE_ALLOWED_ENDPOINTS:
+            return
+        return redirect(url_for("admin_setup"))
 
     @app.before_request
     def csrf_protect():

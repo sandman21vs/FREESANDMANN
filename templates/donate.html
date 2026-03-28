@@ -10,7 +10,7 @@
 
 {{ progress_bar(cfg.get('raised_btc', '0'), cfg.get('goal_btc', '1'), cfg.get('supporters_count', '0')) }}
 
-{{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'large', cfg.get('liquid_address', '') if cfg.get('liquid_enabled') == '1' else '') }}
+{{ qr_section(cfg.get('btc_address', ''), cfg.get('lightning_address', ''), 'large', cfg.get('liquid_address', '')) }}
 
 {% if cfg.get('coinos_enabled') == '1' %}
 {{ invoice_widget(section_id='invoice-pay', heading_tag='h2', show_choose_amount=true) }}

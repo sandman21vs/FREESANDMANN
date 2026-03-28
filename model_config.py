@@ -191,15 +191,18 @@ def validate_settings_form(form_data, current_cfg=None):
 
     coinos_enabled = "1" if form_data.get("coinos_enabled") else "0"
     coinos_onchain = "1" if form_data.get("coinos_onchain") else "0"
+    coinos_show_addresses = "1" if form_data.get("coinos_show_addresses") else "0"
     liquid_enabled = "1" if form_data.get("liquid_enabled") else "0"
     profile_enabled = "1" if form_data.get("profile_enabled") else "0"
 
     form_cfg["coinos_enabled"] = coinos_enabled
     form_cfg["coinos_onchain"] = coinos_onchain
+    form_cfg["coinos_show_addresses"] = coinos_show_addresses
     form_cfg["liquid_enabled"] = liquid_enabled
     form_cfg["profile_enabled"] = profile_enabled
     normalized["coinos_enabled"] = coinos_enabled
     normalized["coinos_onchain"] = coinos_onchain
+    normalized["coinos_show_addresses"] = coinos_show_addresses
     normalized["liquid_enabled"] = liquid_enabled
     normalized["profile_enabled"] = profile_enabled
 
@@ -219,6 +222,13 @@ def validate_settings_form(form_data, current_cfg=None):
     if coinos_onchain == "1":
         form_cfg["btc_address"] = current_cfg.get("btc_address", "")
         normalized["btc_address"] = current_cfg.get("btc_address", "")
+
+    if coinos_show_addresses == "1":
+        # Preserve manual addresses; cached Coinos values are stored separately
+        form_cfg["lightning_address"] = current_cfg.get("lightning_address", "")
+        normalized["lightning_address"] = current_cfg.get("lightning_address", "")
+        form_cfg["liquid_address"] = current_cfg.get("liquid_address", "")
+        normalized["liquid_address"] = current_cfg.get("liquid_address", "")
 
     form_cfg["goal_btc"] = _normalize_text(_form_value_or_current(form_data, current_cfg, "goal_btc"))
     form_cfg["raised_btc_manual_adjustment"] = _normalize_text(
@@ -264,10 +274,13 @@ def validate_settings_form(form_data, current_cfg=None):
     if coinos_enabled == "1" and not normalized["coinos_api_key"]:
         errors.append("Coinos API token is required when Coinos invoices are enabled.")
 
+    if coinos_show_addresses == "1" and not normalized["coinos_api_key"]:
+        errors.append("Coinos API key is required to show Coinos addresses.")
+
     if coinos_onchain == "1" and coinos_enabled != "1":
         errors.append("Coinos on-chain mode requires Coinos invoices to be enabled.")
 
-    if liquid_enabled == "1" and not normalized["liquid_address"]:
-        errors.append("Liquid address is required when Liquid Network is enabled.")
+    if liquid_enabled == "1" and not normalized["liquid_address"] and coinos_enabled != "1":
+        errors.append("Liquid address is required when Coinos is not configured.")
 
     return normalized, form_cfg, errors

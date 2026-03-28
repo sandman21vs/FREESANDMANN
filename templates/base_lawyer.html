@@ -7,6 +7,7 @@
     <meta name="description" content="{{ cfg.get('site_description', '') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>:root { --role-accent: var(--role-accent-lawyer); }</style>
     <script>
     (function() {
       var stored = localStorage.getItem('theme');
@@ -23,8 +24,7 @@
     <header class="bo-topbar">
         <div class="container bo-topbar-inner">
             <div class="bo-topbar-title">
-                <strong>Lawyer Portal</strong>
-                <small>{{ session.get('lawyer_display_name', t('lawyer_dashboard_title')) }}</small>
+                <strong>{{ session.get('lawyer_display_name', t('lawyer_dashboard_title')) }} <span class="bo-role-badge bo-role-lawyer">Lawyer</span></strong>
             </div>
             <div class="bo-topbar-actions">
                 <button id="theme-toggle" type="button" class="secondary outline">{{ t('widget_theme_light') }}</button>

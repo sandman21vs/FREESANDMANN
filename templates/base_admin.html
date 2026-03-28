@@ -23,8 +23,7 @@
     <header class="bo-topbar">
         <div class="container bo-topbar-inner">
             <div class="bo-topbar-title">
-                <strong>{{ cfg.get('site_title', 'Bastion') }}</strong>
-                <small>Admin</small>
+                <strong>{{ cfg.get('site_title', 'Bastion') }} <span class="bo-role-badge bo-role-admin">Admin</span></strong>
             </div>
             <div class="bo-topbar-actions">
                 <button id="theme-toggle" type="button" class="secondary outline">{{ t('widget_theme_light') }}</button>

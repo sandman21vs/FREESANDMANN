@@ -308,15 +308,15 @@ class TestChecklistBoundary:
 class TestSetupWizardEdgeCases:
     """Validation edge cases not covered in main wizard tests."""
 
-    def _wizard_csrf(self, client):
-        client.get("/admin/setup")
-        with client.session_transaction() as sess:
+    def _wizard_csrf(self, fresh_client):
+        fresh_client.get("/admin/setup")
+        with fresh_client.session_transaction() as sess:
             return sess.get("csrf_token", "")
 
-    def test_wizard_goal_zero_rejected(self, client):
+    def test_wizard_goal_zero_rejected(self, fresh_client):
         """goal_btc = 0 must be rejected."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "securepass123",
             "admin_password_confirm": "securepass123",
             "site_title": "Test Campaign",
@@ -327,10 +327,10 @@ class TestSetupWizardEdgeCases:
         assert resp.status_code == 200
         assert b"positive number" in resp.data.lower()
 
-    def test_wizard_goal_negative_rejected(self, client):
+    def test_wizard_goal_negative_rejected(self, fresh_client):
         """goal_btc = -5 must be rejected."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "securepass123",
             "admin_password_confirm": "securepass123",
             "site_title": "Test Campaign",
@@ -341,10 +341,10 @@ class TestSetupWizardEdgeCases:
         assert resp.status_code == 200
         assert b"positive number" in resp.data.lower()
 
-    def test_wizard_goal_empty_uses_default(self, client):
+    def test_wizard_goal_empty_uses_default(self, fresh_client):
         """Empty goal_btc should succeed (uses existing default '1.0')."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "securepass123",
             "admin_password_confirm": "securepass123",
             "site_title": "Test Campaign",
@@ -357,10 +357,10 @@ class TestSetupWizardEdgeCases:
         # Default should remain unchanged
         assert models.get_config("goal_btc") == "1.0"
 
-    def test_wizard_whitespace_title_rejected(self, client):
+    def test_wizard_whitespace_title_rejected(self, fresh_client):
         """Title with only spaces must be rejected."""
-        csrf = self._wizard_csrf(client)
-        resp = client.post("/admin/setup", data={
+        csrf = self._wizard_csrf(fresh_client)
+        resp = fresh_client.post("/admin/setup", data={
             "admin_password": "securepass123",
             "admin_password_confirm": "securepass123",
             "site_title": "   ",

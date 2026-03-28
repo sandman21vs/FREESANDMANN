@@ -188,9 +188,9 @@ class TestAdminTemplates:
         assert b"sticky-donate" in resp.data
         assert b"/advogado/login" in resp.data
 
-    def test_setup_wizard_renders(self, client):
+    def test_setup_wizard_renders(self, fresh_client):
         """Wizard inicial deve renderizar no primeiro acesso."""
-        resp = client.get("/admin/setup")
+        resp = fresh_client.get("/admin/setup")
         assert resp.status_code == 200
         assert b"Initial Setup" in resp.data
         assert b"csrf_token" in resp.data
@@ -211,8 +211,8 @@ class TestAdminTemplates:
         assert b"<form" in resp.data
         assert b"bo-sidebar" in resp.data
         assert b"sticky-donate" not in resp.data
-        assert b"bo-section-nav" in resp.data
-        assert b'href="#section-general"' in resp.data
+        assert b"bo-tabs" in resp.data
+        assert b"bo-tab-panel" in resp.data
         assert b"bo-sticky-save" in resp.data
         assert b'name="site_title_en"' in resp.data
         assert b'name="transparency_text_de"' in resp.data

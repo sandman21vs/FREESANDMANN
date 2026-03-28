@@ -221,60 +221,119 @@
         });
     }
 
-    function initSettingsSectionNav() {
-        var sectionNav = document.querySelector(".bo-section-nav");
-        if (!sectionNav) {
-            return;
-        }
+    function initI18nBar() {
+        var bar = document.getElementById("i18n-bar");
+        if (!bar) return;
 
-        var links = Array.prototype.slice.call(sectionNav.querySelectorAll('a[href^="#"]'));
-        if (!links.length) {
-            return;
-        }
+        var form = bar.closest("form") || bar.parentElement;
+        var buttons = bar.querySelectorAll(".i18n-lang-btn");
 
-        var sections = links.map(function(link) {
-            return document.querySelector(link.getAttribute("href"));
-        }).filter(Boolean);
-        if (!sections.length) {
-            return;
-        }
+        buttons.forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                var lang = btn.dataset.lang;
 
-        function setActiveSection(sectionId) {
-            links.forEach(function(link) {
-                link.classList.toggle("is-active", link.getAttribute("href") === "#" + sectionId);
-            });
-        }
+                // Update button states
+                buttons.forEach(function(b) { b.classList.remove("active"); });
+                btn.classList.add("active");
 
-        var currentHash = window.location.hash.replace("#", "");
-        setActiveSection(currentHash || sections[0].id);
-
-        links.forEach(function(link) {
-            link.addEventListener("click", function() {
-                setActiveSection(link.getAttribute("href").replace("#", ""));
+                // Switch form mode
+                form.classList.remove("i18n-mode-en", "i18n-mode-de");
+                if (lang !== "pt") {
+                    form.classList.add("i18n-mode-" + lang);
+                }
             });
         });
+    }
 
-        if (!("IntersectionObserver" in window)) {
-            return;
-        }
+    function initSaveBarDirtyState() {
+        var form = document.querySelector(".bo-settings-form");
+        if (!form) return;
 
-        var observer = new IntersectionObserver(function(entries) {
-            var activeEntry = entries.filter(function(entry) {
-                return entry.isIntersecting;
-            }).sort(function(a, b) {
-                return a.boundingClientRect.top - b.boundingClientRect.top;
-            })[0];
+        var saveText = document.getElementById("save-bar-text");
+        var saveBtn = document.getElementById("save-bar-btn");
+        if (!saveText || !saveBtn) return;
 
-            if (activeEntry) {
-                setActiveSection(activeEntry.target.id);
+        var initial = new FormData(form);
+        var initialMap = {};
+        initial.forEach(function(value, key) { initialMap[key] = value; });
+
+        function checkDirty() {
+            var current = new FormData(form);
+            var dirty = false;
+            current.forEach(function(value, key) {
+                if (key === "csrf_token") return;
+                if (initialMap[key] !== value) dirty = true;
+            });
+            // Check removed keys (unchecked checkboxes)
+            Object.keys(initialMap).forEach(function(key) {
+                if (key === "csrf_token") return;
+                if (!current.has(key)) dirty = true;
+            });
+
+            if (dirty) {
+                saveText.textContent = "You have unsaved changes.";
+                saveText.style.color = "var(--btc-orange)";
+                saveBtn.disabled = false;
+            } else {
+                saveText.textContent = "No changes.";
+                saveText.style.color = "";
+                saveBtn.disabled = true;
             }
-        }, {
-            rootMargin: "-20% 0px -65% 0px",
-            threshold: [0, 0.2, 1]
+        }
+
+        form.addEventListener("input", checkDirty);
+        form.addEventListener("change", checkDirty);
+        // Initial state
+        checkDirty();
+    }
+
+    function initSettingsTabs() {
+        var tabButtons = document.querySelectorAll(".bo-tab[data-tab-target]");
+        var tabPanels = document.querySelectorAll(".bo-tab-panel");
+        if (!tabButtons.length) return;
+
+        tabButtons.forEach(function(btn) {
+            btn.addEventListener("click", function(e) {
+                e.preventDefault();
+                var target = btn.dataset.tabTarget;
+
+                tabButtons.forEach(function(b) { b.classList.remove("bo-tab-active"); });
+                btn.classList.add("bo-tab-active");
+
+                tabPanels.forEach(function(p) {
+                    p.style.display = p.dataset.tab === target ? "block" : "none";
+                });
+            });
+        });
+    }
+
+    function initToggleDependents() {
+        document.querySelectorAll(".bo-toggle-row input[type='checkbox']").forEach(function(toggle) {
+            var name = toggle.name;
+            var deps = document.querySelectorAll('[data-depends="' + name + '"]');
+            if (!deps.length) return;
+
+            function update() {
+                deps.forEach(function(dep) {
+                    dep.style.display = toggle.checked ? "block" : "none";
+                });
+            }
+
+            toggle.addEventListener("change", update);
+            update();
         });
 
-        sections.forEach(function(section) {
-            observer.observe(section);
+        document.querySelectorAll("[data-depends-notempty]").forEach(function(dep) {
+            var fieldName = dep.dataset.dependsNotempty;
+            var field = document.querySelector("input[name=\"" + fieldName + "\"]");
+            if (!field) return;
+
+            function update() {
+                dep.style.display = field.value.trim() ? "block" : "none";
+            }
+
+            field.addEventListener("input", update);
+            update();
         });
     }
 
@@ -313,6 +372,9 @@
     initHamburgerMenu();
     initCopyButtons();
     initInvoiceWidgets();
-    initSettingsSectionNav();
+    initI18nBar();
+    initSaveBarDirtyState();
+    initSettingsTabs();
+    initToggleDependents();
     initFlashToasts();
 })();

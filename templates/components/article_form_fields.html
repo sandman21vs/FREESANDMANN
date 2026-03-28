@@ -1,13 +1,34 @@
+{% from "components/bo_components.html" import i18n_bar, i18n_text_field %}
+
 {% macro article_form_fields(article, show_publish_mode=false, show_pinned=false) %}
 <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
-<label>Title
-    <input type="text" name="title" value="{{ article.title if article else '' }}" required>
-</label>
+{{ i18n_bar(
+    translatable_count=2,
+    values_en=[
+        article.title_en if article else '',
+        article.body_md_en if article else ''
+    ],
+    values_de=[
+        article.title_de if article else '',
+        article.body_md_de if article else ''
+    ]
+) }}
 
-<label>Body (Markdown)
-    <textarea name="body_md" rows="20" placeholder="Write in Markdown. YouTube and Twitter/X URLs are auto-embedded.">{{ article.body_md if article else '' }}</textarea>
-</label>
+{{ i18n_text_field("title", "Title",
+    value_pt=article.title if article else '',
+    value_en=article.title_en if article else '',
+    value_de=article.title_de if article else ''
+) }}
+
+{{ i18n_text_field("body_md", "Body (Markdown)",
+    value_pt=article.body_md if article else '',
+    value_en=article.body_md_en if article else '',
+    value_de=article.body_md_de if article else '',
+    input_type="textarea",
+    rows=20,
+    placeholder="Write in Markdown. YouTube and Twitter/X URLs are auto-embedded."
+) }}
 
 {% if show_publish_mode %}
 <fieldset>
@@ -29,26 +50,6 @@
     Pinned (show on homepage)
 </label>
 {% endif %}
-
-<details>
-    <summary>English Translation (optional)</summary>
-    <label>Title (EN)
-        <input type="text" name="title_en" value="{{ article.title_en if article else '' }}">
-    </label>
-    <label>Content (EN — Markdown)
-        <textarea name="body_md_en" rows="12" placeholder="Write in Markdown.">{{ article.body_md_en if article else '' }}</textarea>
-    </label>
-</details>
-
-<details>
-    <summary>Deutsche Übersetzung (optional)</summary>
-    <label>Titel (DE)
-        <input type="text" name="title_de" value="{{ article.title_de if article else '' }}">
-    </label>
-    <label>Inhalt (DE — Markdown)
-        <textarea name="body_md_de" rows="12" placeholder="Schreiben Sie auf Markdown.">{{ article.body_md_de if article else '' }}</textarea>
-    </label>
-</details>
 
 <button type="submit">{{ 'Update' if article else 'Create' }} Article</button>
 {% endmacro %}
