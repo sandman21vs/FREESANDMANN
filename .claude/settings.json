@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(pip index:*)",
+      "Bash(python:*)",
+      "Bash(python3 -c:*)",
+      "Bash(pytest:*)",
+      "Bash(git status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:coinos.io)",
+      "WebFetch(domain:docs.strike.me)",
+      "WebFetch(domain:getalby.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:blockstream.info)"
+    ]
+  }
+}
