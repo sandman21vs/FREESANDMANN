@@ -71,8 +71,8 @@
 {% endmacro %}
 
 {% macro i18n_bar(translatable_count=0, values_en=[], values_de=[]) %}
-{% set en_filled = values_en | select("truthy") | list | length %}
-{% set de_filled = values_de | select("truthy") | list | length %}
+{% set en_filled = values_en | select | list | length %}
+{% set de_filled = values_de | select | list | length %}
 <div class="i18n-bar" id="i18n-bar">
     <button type="button" class="i18n-lang-btn active" data-lang="pt">PT (principal)</button>
     <button type="button" class="i18n-lang-btn" data-lang="en">EN <span class="i18n-coverage">{{ en_filled }}/{{ translatable_count }}</span></button>

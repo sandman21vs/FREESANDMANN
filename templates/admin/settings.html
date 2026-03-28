@@ -33,14 +33,14 @@
     ) }}
 
     <nav class="bo-tabs" aria-label="Settings tabs">
-        <a href="#" class="bo-tab bo-tab-active" data-tab-target="general">General</a>
-        <a href="#" class="bo-tab" data-tab-target="bitcoin">Bitcoin &amp; Payments</a>
-        <a href="#" class="bo-tab" data-tab-target="campaign">Campaign</a>
-        <a href="#" class="bo-tab" data-tab-target="advanced">Advanced</a>
+        <a href="#section-general" class="bo-tab bo-tab-active" data-tab-target="general">General</a>
+        <a href="#section-bitcoin" class="bo-tab" data-tab-target="bitcoin">Bitcoin &amp; Payments</a>
+        <a href="#section-campaign" class="bo-tab" data-tab-target="campaign">Campaign</a>
+        <a href="#section-advanced" class="bo-tab" data-tab-target="advanced">Advanced</a>
     </nav>
 
     {# Tab: General #}
-    <div class="bo-tab-panel" data-tab="general">
+    <div class="bo-tab-panel" id="section-general" data-tab="general">
         {{ i18n_text_field("site_title", "Site Title",
             value_pt=cfg['site_title'],
             value_en=cfg.get('site_title_en', ''),
@@ -68,7 +68,7 @@
     </div>
 
     {# Tab: Bitcoin & Payments #}
-    <div class="bo-tab-panel" data-tab="bitcoin" style="display:none">
+    <div class="bo-tab-panel" id="section-bitcoin" data-tab="bitcoin" style="display:none">
         {{ section_title("On-Chain Bitcoin") }}
         {{ text_field("btc_address", "Bitcoin On-Chain Address",
             value=cfg['btc_address'],
@@ -115,7 +115,7 @@
     </div>
 
     {# Tab: Campaign #}
-    <div class="bo-tab-panel" data-tab="campaign" style="display:none">
+    <div class="bo-tab-panel" id="section-campaign" data-tab="campaign" style="display:none">
         {{ text_field("goal_btc", "Goal (BTC)", value=cfg['goal_btc']) }}
         {{ i18n_text_field("goal_description", "Goal Description",
             value_pt=cfg['goal_description'],
@@ -140,7 +140,7 @@
     </div>
 
     {# Tab: Advanced #}
-    <div class="bo-tab-panel" data-tab="advanced" style="display:none">
+    <div class="bo-tab-panel" id="section-advanced" data-tab="advanced" style="display:none">
         {{ i18n_text_field("transparency_text", "Transparency Text",
             value_pt=cfg['transparency_text'],
             value_en=cfg.get('transparency_text_en', ''),

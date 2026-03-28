@@ -63,7 +63,7 @@
     {# Review Queue #}
     <article class="bo-card" style="margin-bottom:0;">
         <div class="bo-card-header">
-            <h2 class="bo-card-title">Review Queue</h2>
+            <h2 class="bo-card-title">Review Queue — Pending Articles</h2>
             <a href="{{ url_for('admin_articles', filter='pending') }}" class="secondary outline" role="button" style="font-size:0.85rem;">Review all</a>
         </div>
         {% set pending_articles = articles | selectattr("approval_status", "in", ["pending", "draft"]) | list %}
