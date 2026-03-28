@@ -38,7 +38,7 @@ def register_public_routes(app):
     def article(slug):
         lang = session.get("lang", "pt")
         art = models.get_article_for_lang(slug, lang)
-        if not art:
+        if not art or not art["published"]:
             abort(404)
         return render_template("article.html", article=art)
 
