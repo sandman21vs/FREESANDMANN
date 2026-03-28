@@ -2,6 +2,7 @@
 
 import models
 from model_config import get_localized_config
+from service_profile import get_public_profile_context
 
 
 class TestProfileSettingsConfig:
@@ -229,3 +230,109 @@ class TestAdminProfileRoutes:
 
         assert resp.status_code == 302
         assert models.get_profile_links() == []
+
+
+class TestPublicProfileRoutes:
+    def test_about_404_when_disabled(self, client):
+        """Public about page should return 404 when the feature is disabled."""
+        resp = client.get("/about")
+
+        assert resp.status_code == 404
+
+    def test_about_renders_when_enabled(self, client):
+        """Public about page should render the configured profile."""
+        models.set_config("profile_enabled", "1")
+        models.set_config("profile_display_name", "Sandmann")
+        models.set_config("profile_heading", "Quem sou eu?")
+        models.set_config("profile_summary_md", "Resumo **publico**")
+
+        resp = client.get("/about")
+
+        assert resp.status_code == 200
+        assert b"Quem sou eu?" in resp.data
+        assert b"Sandmann" in resp.data
+        assert b"<strong>publico</strong>" in resp.data
+
+    def test_homepage_teaser_hidden_when_disabled(self, client):
+        """Homepage should not render the teaser block when the profile is disabled."""
+        resp = client.get("/")
+
+        assert resp.status_code == 200
+        assert b"profile-teaser" not in resp.data
+
+    def test_homepage_teaser_shown_when_enabled(self, client):
+        """Homepage should render the teaser block with featured links when enabled."""
+        models.set_config("profile_enabled", "1")
+        models.set_config("profile_display_name", "Sandmann")
+        models.set_config("profile_summary_md", "Resumo teaser")
+        models.add_profile_link(
+            title="Podcast",
+            url="https://example.com/podcast",
+            category="podcast",
+            featured=True,
+        )
+
+        resp = client.get("/")
+
+        assert resp.status_code == 200
+        assert b"profile-teaser" in resp.data
+        assert b"Podcast" in resp.data
+
+    def test_profile_localization(self, client):
+        """EN translations should override the base profile copy on the public page."""
+        models.set_config("profile_enabled", "1")
+        models.set_config("profile_heading", "Quem sou eu?")
+        models.set_config("profile_heading_en", "Who am I?")
+        models.set_config("profile_summary_md", "Resumo")
+        models.set_config("profile_summary_md_en", "English summary")
+        models.add_profile_link(
+            title="Projeto",
+            title_en="Project",
+            url="https://example.com/project",
+            category="project",
+            description="Descricao",
+            description_en="English description",
+            featured=True,
+        )
+
+        with client.session_transaction() as sess:
+            sess["lang"] = "en"
+
+        resp = client.get("/about")
+
+        assert resp.status_code == 200
+        assert b"Who am I?" in resp.data
+        assert b"English summary" in resp.data
+        assert b"Project" in resp.data
+        assert b"English description" in resp.data
+
+
+class TestPublicProfileService:
+    def test_public_profile_context_returns_none_when_disabled(self, temp_database):
+        """Public profile context should be absent until the feature is enabled."""
+        assert get_public_profile_context("pt") is None
+
+    def test_public_profile_context_localizes_featured_links(self, temp_database):
+        """Public profile context should localize profile links and cap featured items."""
+        models.set_config("profile_enabled", "1")
+        models.set_config("profile_heading", "Quem sou eu?")
+        models.set_config("profile_heading_en", "Who am I?")
+        for index in range(4):
+            models.add_profile_link(
+                title=f"Projeto {index}",
+                title_en=f"Project {index}",
+                url=f"https://example.com/{index}",
+                category="project",
+                featured=True,
+                sort_order=index,
+            )
+
+        context = get_public_profile_context("en")
+
+        assert context["heading"] == "Who am I?"
+        assert len(context["featured_links"]) == 3
+        assert [link["title"] for link in context["featured_links"]] == [
+            "Project 0",
+            "Project 1",
+            "Project 2",
+        ]

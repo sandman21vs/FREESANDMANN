@@ -3,6 +3,7 @@
 from urllib.parse import urlparse
 
 import models
+from model_content import render_markdown
 
 
 def _is_allowed_external_url(value):
@@ -146,3 +147,54 @@ def update_profile_link_from_form(link_id, form_data):
         description_de=form_data.get("description_de", "").strip(),
     )
     return {"ok": True, "message": "Link updated."}
+
+
+def get_public_profile_context(lang="pt"):
+    """Build the localized context dict for the public /about page."""
+    cfg = models.get_all_config()
+    if cfg.get("profile_enabled") != "1":
+        return None
+
+    suffix = f"_{lang}" if lang in ("en", "de") else ""
+
+    def localized_config_value(field):
+        if suffix:
+            translated = cfg.get(f"{field}{suffix}", "").strip()
+            if translated:
+                return translated
+        return cfg.get(field, "").strip()
+
+    links = models.get_profile_links()
+    localized_links = []
+    for link in links:
+        localized = dict(link)
+        if suffix:
+            title = localized.get(f"title{suffix}", "").strip()
+            description = localized.get(f"description{suffix}", "").strip()
+            if title:
+                localized["title"] = title
+            if description:
+                localized["description"] = description
+        localized_links.append(localized)
+
+    links_grouped = {}
+    for link in localized_links:
+        links_grouped.setdefault(link["category"], []).append(link)
+
+    featured_links = [link for link in localized_links if link["featured"]][:3]
+    summary_md = localized_config_value("profile_summary_md")
+    bio_md = localized_config_value("profile_long_bio_md")
+    commitment_md = localized_config_value("profile_commitment_md")
+    heading = localized_config_value("profile_heading")
+    display_name = cfg.get("profile_display_name", "").strip()
+
+    return {
+        "display_name": display_name,
+        "heading": heading,
+        "avatar_url": cfg.get("profile_avatar_url", "").strip(),
+        "summary_html": render_markdown(summary_md) if summary_md else "",
+        "bio_html": render_markdown(bio_md) if bio_md else "",
+        "commitment_html": render_markdown(commitment_md) if commitment_md else "",
+        "links_grouped": links_grouped,
+        "featured_links": featured_links,
+    }

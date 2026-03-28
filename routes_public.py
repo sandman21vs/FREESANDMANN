@@ -2,6 +2,7 @@ from flask import abort, jsonify, redirect, render_template, request, session, u
 
 import models
 from service_donations import check_invoice_response, create_invoice_response, handle_coinos_webhook
+from service_profile import get_public_profile_context
 from service_qr import get_invoice_qr_response, get_wallet_qr_response
 
 
@@ -22,11 +23,26 @@ def register_public_routes(app):
         articles = models.get_articles_for_lang(published_only=True, lang=lang)
         pinned = [a for a in articles if a["pinned"]]
         media_links = models.get_media_links()
-        return render_template("index.html", articles=articles, pinned=pinned, media_links=media_links)
+        profile = get_public_profile_context(lang)
+        return render_template(
+            "index.html",
+            articles=articles,
+            pinned=pinned,
+            media_links=media_links,
+            profile=profile,
+        )
 
     @app.route("/donate")
     def donate():
         return render_template("donate.html")
+
+    @app.route("/about")
+    def about():
+        lang = session.get("lang", "pt")
+        profile = get_public_profile_context(lang)
+        if not profile:
+            abort(404)
+        return render_template("about.html", profile=profile)
 
     @app.route("/updates")
     def updates():

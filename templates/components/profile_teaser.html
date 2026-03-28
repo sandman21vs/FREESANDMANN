@@ -1,0 +1,23 @@
+{% macro profile_teaser(profile) -%}
+{% if profile %}
+<section class="profile-teaser">
+    <h2>{{ profile.heading or profile.display_name or t('about_heading_default') }}</h2>
+    {% if profile.avatar_url %}
+    <img src="{{ profile.avatar_url }}" alt="{{ profile.display_name or t('about_heading_default') }}" class="profile-teaser-avatar">
+    {% endif %}
+    {% if profile.summary_html %}
+    <div class="profile-teaser-text">
+        {{ profile.summary_html|safe }}
+    </div>
+    {% endif %}
+    {% if profile.featured_links %}
+    <ul class="profile-teaser-links">
+        {% for link in profile.featured_links %}
+        <li><a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.title }}</a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <a href="{{ url_for('about') }}" class="profile-cta">{{ t('profile_learn_more') }}</a>
+</section>
+{% endif %}
+{%- endmacro %}

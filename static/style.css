@@ -328,6 +328,97 @@ progress::-moz-progress-bar {
     transform: translateX(0.18rem);
 }
 
+/* Profile / About page */
+.profile-page {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.profile-avatar,
+.profile-teaser-avatar {
+    display: block;
+    border-radius: 50%;
+    max-width: 120px;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    margin: 0 auto 1rem;
+}
+
+.profile-display-name {
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+.profile-summary,
+.profile-bio,
+.profile-commitment,
+.profile-links,
+.profile-teaser {
+    background: var(--bg-card);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+}
+
+.profile-link-group {
+    margin-bottom: 1.5rem;
+}
+
+.profile-link-group:last-child {
+    margin-bottom: 0;
+}
+
+.profile-link-group ul,
+.profile-teaser-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-link-group li {
+    margin-bottom: 0.65rem;
+}
+
+.profile-link-group li:last-child {
+    margin-bottom: 0;
+}
+
+.profile-link-group small {
+    display: block;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+}
+
+.profile-teaser {
+    text-align: center;
+}
+
+.profile-teaser-text {
+    text-align: left;
+}
+
+.profile-teaser-links {
+    display: flex;
+    gap: 0.75rem 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.profile-cta {
+    display: inline-block;
+    margin-top: 1rem;
+    font-weight: 600;
+}
+
+.profile-back {
+    margin-top: 1.5rem;
+}
+
 /* Flash messages */
 .flash-msg {
     padding: 1rem;

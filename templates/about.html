@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.heading or profile.display_name or t('about_heading_default') }} &mdash; {{ cfg.get('site_title', 'Bastion') }}{% endblock %}
+
+{% block content %}
+<article class="profile-page">
+    <header class="profile-header">
+        {% if profile.avatar_url %}
+        <img src="{{ profile.avatar_url }}" alt="{{ profile.display_name or t('about_heading_default') }}" class="profile-avatar">
+        {% endif %}
+        <h1>{{ profile.heading or profile.display_name or t('about_heading_default') }}</h1>
+        {% if profile.display_name and profile.display_name != profile.heading %}
+        <p class="profile-display-name">{{ profile.display_name }}</p>
+        {% endif %}
+    </header>
+
+    {% if profile.summary_html %}
+    <section class="profile-summary">
+        {{ profile.summary_html|safe }}
+    </section>
+    {% endif %}
+
+    {% if profile.bio_html %}
+    <section class="profile-bio">
+        {{ profile.bio_html|safe }}
+    </section>
+    {% endif %}
+
+    {% if profile.commitment_html %}
+    <section class="profile-commitment">
+        <h2>{{ t('profile_commitment_heading') }}</h2>
+        {{ profile.commitment_html|safe }}
+    </section>
+    {% endif %}
+
+    {% if profile.links_grouped %}
+    <section class="profile-links">
+        <h2>{{ t('profile_links_heading') }}</h2>
+        {% for category, links in profile.links_grouped.items() %}
+        <div class="profile-link-group">
+            <h3>{{ t('profile_cat_' ~ category) }}</h3>
+            <ul>
+                {% for link in links %}
+                <li>
+                    <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.title }}</a>
+                    {% if link.description %}
+                    <small>{{ link.description }}</small>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+</article>
+
+<nav class="profile-back">
+    <a href="{{ url_for('index') }}">&larr; {{ t('go_back_home') }}</a>
+</nav>
+{% endblock %}

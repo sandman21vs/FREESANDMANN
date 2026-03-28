@@ -4,6 +4,7 @@
 {% from "components/embed.html" import share_buttons with context %}
 {% from "components/invoice_widget.html" import invoice_widget with context %}
 {% from "components/article_preview.html" import article_preview with context %}
+{% from "components/profile_teaser.html" import profile_teaser with context %}
 
 {% block content %}
 {{ progress_bar(cfg.get('raised_btc', '0'), cfg.get('goal_btc', '1'), cfg.get('supporters_count', '0')) }}
@@ -19,6 +20,8 @@
     {% endif %}
     <a href="{{ url_for('donate') }}" class="cta-btn">{{ t('donate_now') }}</a>
 </section>
+
+{{ profile_teaser(profile) }}
 
 {% if cfg.get('transparency_text') %}
 <section>

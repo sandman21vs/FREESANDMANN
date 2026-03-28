@@ -42,6 +42,9 @@
             <ul class="nav-links" id="nav-links">
                 <li><a href="{{ url_for('index') }}">{{ t('nav_home') }}</a></li>
                 <li><a href="{{ url_for('updates') }}">{{ t('nav_updates') }}</a></li>
+                {% if cfg.get('profile_enabled') == '1' %}
+                <li><a href="{{ url_for('about') }}">{{ t('nav_about') }}</a></li>
+                {% endif %}
                 <li><a href="{{ url_for('donate') }}" role="button" class="donate-nav-btn">{{ t('nav_donate') }}</a></li>
                 <li class="nav-pref-mobile">
                     <div class="nav-pref-inner">
@@ -86,6 +89,9 @@
                 <ul class="footer-nav-list">
                     <li><a href="{{ url_for('index') }}">{{ t('nav_home') }}</a></li>
                     <li><a href="{{ url_for('updates') }}">{{ t('nav_updates') }}</a></li>
+                    {% if cfg.get('profile_enabled') == '1' %}
+                    <li><a href="{{ url_for('about') }}">{{ t('nav_about') }}</a></li>
+                    {% endif %}
                     <li><a href="{{ url_for('donate') }}">{{ t('nav_donate') }}</a></li>
                 </ul>
             </div>
