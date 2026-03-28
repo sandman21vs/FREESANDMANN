@@ -25,8 +25,41 @@ Stack: Flask + Jinja2 + SQLite, deploy em producao com Docker.
 
 ## i18n
 
-- Site bilingue PT/EN, deteccao automatica de idioma.
+- Site trilingue: PT (default), EN, DE.
+- Deteccao: `session['lang']` → `Accept-Language` → fallback `en`.
+- Campos localizados: `{field}_en`, `{field}_de` (artigos e config de campanha).
+- Strings de UI em `translations/{pt,en,de}.json`.
 - Copia de campanha localizada nas configuracoes do admin.
+
+## Padrao arquitetural
+
+- Camadas: `routes_*.py` (handlers finos) → `service_*.py` (logica) → `model_*.py` (dados/SQL).
+- `app_auth.py`: decorators de autenticacao admin/advogado.
+- `app_hooks.py`: request hooks (CSRF, idioma) e context processors.
+- `app_background.py`: thread de manutencao (balance checker via mempool.space).
+- `coinos_client.py`: client da API Coinos (Lightning/Liquid/onchain).
+- Detalhes completos em `ARCHITECTURE.md`.
+
+## Integracoes externas
+
+- **Coinos.io**: invoices Lightning e Liquid, webhook de pagamento, onchain opcional.
+  Config via admin: `coinos_api_key`, `coinos_enabled`, `coinos_webhook_secret`.
+- **mempool.space**: balance check onchain automatico a cada 5 min.
+- **Liquid Network**: suporte opcional (`liquid_enabled`, `liquid_address`).
+
+## Deploy
+
+- Producao: `docker compose up -d` (porta host 4040 → container 8000).
+- Gunicorn com `preload_app=True`, background loop no master process.
+- Volume persistente para `data/` (SQLite).
+- Proxy/SSL: Cloudflare Tunnel (sem portas abertas).
+- Env vars de producao: `SECRET_KEY`, `DATABASE_PATH`, `ADMIN_USERNAME`.
+
+## Seguranca
+
+- CSRF em todos os POSTs (exceto webhook Coinos).
+- Rate limit por IP no login (5 tentativas → lockout 5 min), SQLite-backed.
+- Senha admin/advogado: werkzeug PBKDF2. Force password change no primeiro login.
 
 ## Ambiente de desenvolvimento
 
