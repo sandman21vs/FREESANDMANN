@@ -9,7 +9,7 @@ ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "FREE")
 
 DEFAULTS = {
     "setup_complete": "0",
-    "site_title": "Free Sandmann",
+    "site_title": "Bastion",
     "site_description": "Help me fight injustice. I am being wrongfully accused and need your support to pay for legal defense.",
     "site_tagline": "Justice needs funding",
     "btc_address": "",

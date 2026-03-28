@@ -8,7 +8,7 @@ class TestConfig:
     def test_get_config_existing(self, temp_database):
         """Deve retornar valor existente."""
         val = models.get_config("site_title")
-        assert val == "Free Sandmann"
+        assert val == "Bastion"
 
     def test_get_config_missing(self, temp_database):
         """Deve retornar default para chave inexistente."""

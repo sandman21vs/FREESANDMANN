@@ -1,4 +1,4 @@
-# Free Sandmann — Architecture Reference
+# Bastion — Architecture Reference
 
 Single source of truth for the codebase. Keep this in sync when adding features.
 Last verified: 2026-03-28 — 286 tests passing.
@@ -28,7 +28,7 @@ JS in the project: theme toggle, hamburger menu, copy-to-clipboard, and Lightnin
 ## File Structure
 
 ```
-FREESANDMANN/
+project-root/
 ├── app.py              # Flask app assembly + bootstrap
 ├── app_auth.py         # Admin/lawyer auth decorators
 ├── app_background.py   # Background maintenance loop bootstrap
@@ -116,7 +116,7 @@ FREESANDMANN/
 │   └── ...
 │
 └── data/               # Docker volume mount
-    └── freesandmann.db # SQLite database (runtime)
+    └── freesandmann.db # SQLite database (runtime, legacy filename kept for upgrades)
 ```
 
 ---
@@ -450,7 +450,7 @@ Alternative: [Admin Override Publish] → skips lawyer approval requirement
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SECRET_KEY` | `change-me-in-production` | Flask session signing key |
-| `DATABASE_PATH` | `data/freesandmann.db` | SQLite file path |
+| `DATABASE_PATH` | `data/freesandmann.db` | SQLite file path (legacy filename kept for compatibility) |
 | `ADMIN_USERNAME` | `FREE` | Admin login username |
 
 All other configuration (Bitcoin addresses, goal, Coinos keys, etc.) lives in the `config` table and is editable via the admin panel.
@@ -489,6 +489,9 @@ python -m pytest tests/test_i18n.py -v   # single file
 ```
 
 Tests use a temporary SQLite file fixture (`conftest.py`, via pytest `tmp_path`) — they never touch `data/freesandmann.db`.
+
+The public product name is **Bastion**. Legacy `freesandmann` identifiers remain
+in Docker volume/database paths until a dedicated data migration is introduced.
 
 ---
 

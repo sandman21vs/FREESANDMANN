@@ -18,7 +18,7 @@ def _build_setup_checklist(cfg, articles, lawyers):
         },
         {
             "label": "Campaign title set",
-            "done": cfg.get("site_title", "") not in ("", "Free Sandmann"),
+            "done": cfg.get("site_title", "") not in ("", "Bastion"),
             "target": "settings_general",
         },
         {

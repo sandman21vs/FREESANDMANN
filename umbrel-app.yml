@@ -1,7 +1,7 @@
 manifestVersion: 1
-id: freesandmann
+id: bastion
 category: finance
-name: Free Sandmann
+name: Bastion
 version: "1.0.0"
 tagline: Self-hosted Bitcoin fundraising for legal defense
 description: >-
@@ -9,7 +9,7 @@ description: >-
   Accept on-chain and Lightning donations, publish campaign updates, and manage
   your operation through a built-in admin panel. No KYC, no third parties
   holding your funds.
-releaseNotes: ""
+releaseNotes: Rebranded from Free Sandmann to Bastion.
 developer: sandman21vs
 website: https://github.com/sandman21vs/FREESANDMANN
 dependencies: []

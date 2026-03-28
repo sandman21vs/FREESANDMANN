@@ -11,7 +11,7 @@
     {% if cfg.get('hero_image_url') %}
     <img src="{{ cfg.get('hero_image_url') }}" alt="{{ cfg.get('site_title') }}">
     {% endif %}
-    <h1>{{ cfg.get('site_title', 'Free Sandmann') }}</h1>
+    <h1>{{ cfg.get('site_title', 'Bastion') }}</h1>
     <p>{{ cfg.get('site_description', '') }}</p>
     {% if cfg.get('deadline_text') %}
     <p class="deadline-text">{{ cfg.get('deadline_text') }}</p>
@@ -67,5 +67,5 @@
 </section>
 {% endif %}
 
-{{ share_buttons(request.url_root, cfg.get('site_title', 'Free Sandmann') ~ ' — ' ~ cfg.get('site_tagline', '')) }}
+{{ share_buttons(request.url_root, cfg.get('site_title', 'Bastion') ~ ' — ' ~ cfg.get('site_tagline', '')) }}
 {% endblock %}

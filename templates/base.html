@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}</title>
+    <title>{% block title %}{{ cfg.get('site_title', 'Bastion') }}{% endblock %}</title>
     <meta name="description" content="{{ cfg.get('site_description', '') }}">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="{{ cfg.get('site_title', 'Free Sandmann') }}">
+    <meta property="og:title" content="{{ cfg.get('site_title', 'Bastion') }}">
     <meta property="og:description" content="{{ cfg.get('site_description', '') }}">
     {% if cfg.get('og_image_url') %}
     <meta property="og:image" content="{{ cfg.get('og_image_url') }}">
@@ -34,7 +34,7 @@
     <header class="container">
         <nav>
             <ul>
-                <li><a href="{{ url_for('index') }}"><strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong></a></li>
+                <li><a href="{{ url_for('index') }}"><strong>{{ cfg.get('site_title', 'Bastion') }}</strong></a></li>
             </ul>
             <button class="hamburger" id="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
                 <span></span><span></span><span></span>
@@ -78,7 +78,7 @@
     <footer>
         <div class="container footer-grid">
             <div class="footer-col">
-                <strong>{{ cfg.get('site_title', 'Free Sandmann') }}</strong>
+                <strong>{{ cfg.get('site_title', 'Bastion') }}</strong>
                 <p>{{ cfg.get('site_tagline', '') }}</p>
             </div>
             <div class="footer-col">
@@ -96,7 +96,7 @@
             </div>
         </div>
         <div class="container footer-bottom">
-            <small>&copy; {{ cfg.get('site_title', 'Free Sandmann') }}</small>
+            <small>&copy; {{ cfg.get('site_title', 'Bastion') }}</small>
         </div>
     </footer>
 

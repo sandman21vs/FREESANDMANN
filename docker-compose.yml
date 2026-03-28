@@ -1,10 +1,10 @@
 services:
-  web:
+  bastion:
     build: .
     ports:
       - "4040:8000"
     volumes:
-      - freesandmann_data:/app/data
+      - bastion_data:/app/data
     environment:
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - DATABASE_PATH=/app/data/freesandmann.db
@@ -12,4 +12,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  freesandmann_data:
+  bastion_data:
+    name: freesandmann_data

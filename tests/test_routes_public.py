@@ -10,7 +10,7 @@ class TestHomepage:
     def test_index_contains_site_title(self, client):
         """Homepage deve conter o titulo do site."""
         resp = client.get("/")
-        assert b"Free Sandmann" in resp.data
+        assert b"Bastion" in resp.data
 
     def test_index_contains_progress(self, client):
         """Homepage deve conter elementos da barra de progresso."""

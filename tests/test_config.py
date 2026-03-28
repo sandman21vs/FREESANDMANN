@@ -26,7 +26,7 @@ def test_secret_key_exists():
 
 
 def test_database_path_exists():
-    """DATABASE_PATH deve existir e conter 'freesandmann'."""
+    """DATABASE_PATH deve existir e manter o nome legado para upgrades."""
     from config import DATABASE_PATH
     assert DATABASE_PATH, "DATABASE_PATH is empty"
     assert "freesandmann" in DATABASE_PATH or "test" in DATABASE_PATH
