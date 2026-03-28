@@ -69,48 +69,61 @@
 
     {# Tab: Bitcoin & Payments #}
     <div class="bo-tab-panel" id="section-bitcoin" data-tab="bitcoin" style="display:none">
-        {{ section_title("On-Chain Bitcoin") }}
+        {{ section_title("Receiving Addresses") }}
         {{ text_field("btc_address", "Bitcoin On-Chain Address",
             value=cfg['btc_address'],
-            hint="Managed by Coinos when on-chain mode is enabled." if cfg['coinos_onchain'] == '1' else "",
+            hint="Managed by Coinos when on-chain mode is enabled below." if cfg['coinos_onchain'] == '1' else "Your on-chain BTC address for donations.",
             readonly=(cfg['coinos_onchain'] == '1')
         ) }}
-        {{ text_field("lightning_address", "Lightning Address / LNURL", value=cfg['lightning_address']) }}
-        {{ text_field("wallet_explorer_url", "Wallet Explorer URL", hint="For transparency links on the public page.", value=cfg['wallet_explorer_url']) }}
-
-        {{ section_title("Coinos Lightning API") }}
-        {{ toggle_field("coinos_enabled", "Enable Coinos Lightning invoices",
-            checked=(cfg['coinos_enabled'] == '1'),
-            hint="Enables Lightning invoice generation via Coinos."
+        {{ text_field("lightning_address", "Lightning Address",
+            value=cfg['lightning_address'],
+            hint="An LN address like you@coinos.io or LNURL."
         ) }}
-        <div class="bo-toggle-sub" data-depends="coinos_enabled">
-            {{ toggle_field("coinos_onchain", "Use Coinos for on-chain address",
-                checked=(cfg['coinos_onchain'] == '1'),
-                hint="Balance tracked via Coinos. A new BTC address will be generated."
-            ) }}
-            {{ text_field("coinos_api_key", "Coinos Read-Only API Token",
-                input_type="password",
-                value=cfg['coinos_api_key'],
-                hint="Use the read-only token from coinos.io/docs. It can create invoices but cannot withdraw funds.",
-                placeholder="Paste your read-only token from coinos.io/docs"
-            ) }}
-            {{ text_field("coinos_webhook_secret", "Webhook Secret",
-                value=cfg['coinos_webhook_secret'],
-                hint="Optional. A random string to verify webhook authenticity.",
-                placeholder="A random string to verify webhook authenticity"
-            ) }}
+        {{ text_field("liquid_address", "Liquid Address",
+            value=cfg['liquid_address'],
+            hint="A Liquid Network address (lq1qq... or VJL...).",
+            placeholder="lq1qq... or VJL..."
+        ) }}
+        {{ text_field("wallet_explorer_url", "Wallet Explorer URL",
+            hint="Public link for transparency (e.g. mempool.space).",
+            value=cfg['wallet_explorer_url']
+        ) }}
+
+        <div class="bo-info-note">
+            <strong>Automatic balance tracking:</strong> On-chain balance is updated every 5&nbsp;minutes
+            via mempool.space. Lightning and Liquid balances are only tracked
+            automatically when Coinos is configured below.
         </div>
 
-        {{ section_title("Liquid Network") }}
-        {{ toggle_field("liquid_enabled", "Enable Liquid Network QR code",
-            checked=(cfg['liquid_enabled'] == '1'),
-            hint="Displays a QR code for Liquid Network donations."
+        {{ section_title("Advanced — Coinos API") }}
+        {{ text_field("coinos_api_key", "Coinos API Key",
+            input_type="password",
+            value=cfg['coinos_api_key'],
+            hint="Read-only token from coinos.io/docs. Enables invoice generation and balance tracking.",
+            placeholder="Paste your read-only token"
         ) }}
-        <div class="bo-toggle-sub" data-depends="liquid_enabled">
-            {{ text_field("liquid_address", "Liquid Address",
-                value=cfg['liquid_address'],
-                placeholder="lq1qq... or VJL..."
+        {{ text_field("coinos_webhook_secret", "Webhook Secret",
+            value=cfg['coinos_webhook_secret'],
+            hint="Optional. Random string to verify webhook callbacks."
+        ) }}
+
+        <div class="bo-toggle-sub" data-depends-notempty="coinos_api_key">
+            {{ toggle_field("coinos_enabled", "Lightning Invoices via Coinos",
+                checked=(cfg['coinos_enabled'] == '1'),
+                hint="Generate Lightning invoices through your Coinos account."
             ) }}
+            {{ toggle_field("liquid_enabled", "Liquid Invoices via Coinos",
+                checked=(cfg['liquid_enabled'] == '1'),
+                hint="Generate Liquid invoices through your Coinos account."
+            ) }}
+            {{ toggle_field("coinos_onchain", "On-Chain via Coinos",
+                checked=(cfg['coinos_onchain'] == '1'),
+                hint="Use a Coinos-generated BTC address. Balance tracked via Coinos instead of mempool.space."
+            ) }}
+            <div class="bo-info-note">
+                When Coinos features are enabled and manual address fields above are
+                empty, the site will automatically use your Coinos account addresses.
+            </div>
         </div>
     </div>
 

@@ -322,6 +322,19 @@
             toggle.addEventListener("change", update);
             update();
         });
+
+        document.querySelectorAll("[data-depends-notempty]").forEach(function(dep) {
+            var fieldName = dep.dataset.dependsNotempty;
+            var field = document.querySelector("input[name=\"" + fieldName + "\"]");
+            if (!field) return;
+
+            function update() {
+                dep.style.display = field.value.trim() ? "block" : "none";
+            }
+
+            field.addEventListener("input", update);
+            update();
+        });
     }
 
     function hideFlashMessage(message) {

@@ -161,6 +161,13 @@ def process_admin_settings(form_data, current_cfg=None):
             warning = "Coinos on-chain address could not be refreshed. Previous BTC address kept."
             logger.warning("Coinos on-chain address refresh failed during admin settings save")
 
+    if normalized_cfg["coinos_enabled"] == "1" and not normalized_cfg.get("lightning_address"):
+        username = coinos.get_account_username()
+        if username:
+            ln_addr = f"{username}@coinos.io"
+            models.set_config("lightning_address", ln_addr)
+            logger.info("Admin settings auto-derived LN address from Coinos username=%s", username)
+
     models.recalculate_raised_btc()
     logger.info(
         "Admin settings saved coinos_enabled=%s coinos_onchain=%s liquid_enabled=%s",

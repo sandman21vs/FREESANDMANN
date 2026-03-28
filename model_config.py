@@ -253,7 +253,7 @@ def validate_settings_form(form_data, current_cfg=None):
     if coinos_onchain == "1" and coinos_enabled != "1":
         errors.append("Coinos on-chain mode requires Coinos invoices to be enabled.")
 
-    if liquid_enabled == "1" and not normalized["liquid_address"]:
-        errors.append("Liquid address is required when Liquid Network is enabled.")
+    if liquid_enabled == "1" and not normalized["liquid_address"] and coinos_enabled != "1":
+        errors.append("Liquid address is required when Coinos is not configured.")
 
     return normalized, form_cfg, errors

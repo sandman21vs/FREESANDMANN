@@ -293,7 +293,7 @@ class TestAdminSettings:
         }, follow_redirects=True)
 
         assert resp.status_code == 200
-        assert b"Liquid address is required when Liquid Network is enabled." in resp.data
+        assert b"Liquid address is required when Coinos is not configured." in resp.data
         assert models.get_config("liquid_enabled") == "0"
 
     def test_settings_normalize_trimmed_values(self, admin_session):

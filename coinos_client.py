@@ -92,6 +92,16 @@ def get_onchain_address():
     return None
 
 
+def get_account_username():
+    """Fetch the Coinos account username for LN address derivation."""
+    if models.get_config("coinos_enabled") != "1":
+        return None
+    result = _coinos_request("GET", "/me")
+    if result and "username" in result:
+        return result["username"]
+    return None
+
+
 def check_lightning_balance():
     if models.get_config("coinos_enabled") != "1":
         return
