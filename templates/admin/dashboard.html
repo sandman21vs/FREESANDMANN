@@ -1,22 +1,15 @@
 {% extends "base_admin.html" %}
-{% from "components/bo_components.html" import page_header, stat_card %}
+{% from "components/bo_components.html" import page_header %}
 
 {% block title %}Dashboard &mdash; {{ cfg.get('site_title', 'Free Sandmann') }}{% endblock %}
 
 {% block content %}
 {{ page_header(
     "Dashboard",
-    "Keep an eye on fundraising, review queue, and the operational health of the campaign.",
+    "Campaign progress, review queue, and system status.",
     url_for('admin_article_new'),
     "New Article"
 ) }}
-
-<div class="bo-stats">
-    {{ stat_card("%.4f"|format(cfg['raised_btc']|float) ~ " BTC", "Raised", "#f7931a") }}
-    {{ stat_card("%.4f"|format(cfg['goal_btc']|float) ~ " BTC", "Goal") }}
-    {{ stat_card(pending_count, "Pending Articles", "#d29922") }}
-    {{ stat_card(active_lawyers_count, "Active Lawyers", "#2ea043") }}
-</div>
 
 {% if alerts %}
 <div class="bo-alerts">
@@ -26,23 +19,30 @@
 </div>
 {% endif %}
 
-<div class="bo-quick-actions">
-    <a href="{{ url_for('admin_article_new') }}" role="button">New Article</a>
-    <a href="{{ url_for('admin_articles', filter='pending') }}" role="button" class="secondary">Review Pending ({{ pending_count }})</a>
-    <form method="POST" action="{{ url_for('admin_refresh_balance') }}">
-        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-        <button type="submit" class="secondary">Refresh Balance</button>
-    </form>
-</div>
-
+{# Hero: Campaign Progress #}
+{% set raised = cfg['raised_btc']|float %}
+{% set goal = cfg['goal_btc']|float %}
+{% set pct = [((raised / goal * 100) if goal > 0 else 0), 100]|min %}
 <article class="bo-card">
     <div class="bo-card-header">
         <div>
-            <h2 class="bo-card-title">Balance Breakdown</h2>
-            <p class="bo-muted">Supporters: {{ cfg['supporters_count'] }} &middot; Articles: {{ articles|length }} &middot; Media Links: {{ media_links|length }}</p>
+            <h2 class="bo-card-title">Campaign Progress</h2>
+            <p class="bo-muted">{{ cfg['supporters_count'] }} supporters &middot; Last check: {{ cfg['last_balance_check'] or 'Never' }}</p>
         </div>
+        <form method="POST" action="{{ url_for('admin_refresh_balance') }}">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit" class="secondary outline">Refresh Balance</button>
+        </form>
     </div>
-    <div class="bo-balance-list">
+    <div style="margin: var(--space-md) 0;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:var(--space-xs);">
+            <strong style="color:var(--btc-orange); font-size:1.3rem;">{{ "%.4f"|format(raised) }} BTC</strong>
+            <span class="bo-muted">Goal: {{ "%.4f"|format(goal) }} BTC</span>
+        </div>
+        <progress value="{{ pct }}" max="100" style="width:100%;"></progress>
+        <div class="bo-muted" style="text-align:right; font-size:0.85rem; margin-top:var(--space-xs);">{{ "%.1f"|format(pct) }}%</div>
+    </div>
+    <div class="bo-balance-list" style="margin-top:var(--space-md);">
         <div class="bo-balance-row">
             <span>On-chain</span>
             <strong>{{ "%.8f"|format(cfg['raised_onchain_btc']|float) }} BTC</strong>
@@ -55,14 +55,81 @@
             <span>Manual adjustment</span>
             <strong>{{ "%.8f"|format(cfg['raised_btc_manual_adjustment']|float) }} BTC</strong>
         </div>
-        <div class="bo-balance-row">
-            <span>Total raised</span>
-            <strong>{{ "%.8f"|format(cfg['raised_btc']|float) }} BTC</strong>
+    </div>
+</article>
+
+{# Two-column grid: Review Queue + Content #}
+<div class="bo-dashboard-grid">
+    {# Review Queue #}
+    <article class="bo-card" style="margin-bottom:0;">
+        <div class="bo-card-header">
+            <h2 class="bo-card-title">Review Queue</h2>
+            <a href="{{ url_for('admin_articles', filter='pending') }}" class="secondary outline" role="button" style="font-size:0.85rem;">Review all</a>
         </div>
-        <div class="bo-balance-row">
-            <span>Last balance check</span>
-            <strong>{{ cfg['last_balance_check'] or 'Never' }}</strong>
+        {% set pending_articles = articles | selectattr("approval_status", "in", ["pending", "draft"]) | list %}
+        {% if pending_articles %}
+        <div class="bo-card-stack" style="margin-top:var(--space-sm);">
+            {% for article in pending_articles[:5] %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:var(--space-xs) 0; border-bottom:1px solid var(--border-subtle); gap:var(--space-sm);">
+                <a href="{{ url_for('admin_article_edit', article_id=article.id) }}" style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.92rem;">{{ article.title }}</a>
+                <span class="bo-badge bo-badge-{{ article.approval_status or 'draft' }}" style="flex-shrink:0;">{{ article.approval_status or 'draft' }}</span>
+            </div>
+            {% endfor %}
+            {% if pending_articles|length > 5 %}
+            <p class="bo-muted" style="font-size:0.85rem; margin-top:var(--space-xs);">+{{ pending_articles|length - 5 }} more</p>
+            {% endif %}
         </div>
+        {% else %}
+        <p class="bo-muted" style="margin-top:var(--space-sm);">No articles pending review.</p>
+        {% endif %}
+    </article>
+
+    {# Content overview #}
+    <article class="bo-card" style="margin-bottom:0;">
+        <h2 class="bo-card-title">Content</h2>
+        <div class="bo-balance-list" style="margin-top:var(--space-sm);">
+            {% set published_count = articles | selectattr("published") | list | length %}
+            {% set draft_count = articles | selectattr("approval_status", "equalto", "draft") | list | length %}
+            <div class="bo-balance-row">
+                <span>Total articles</span>
+                <strong>{{ articles|length }}</strong>
+            </div>
+            <div class="bo-balance-row">
+                <span>Published</span>
+                <strong>{{ published_count }}</strong>
+            </div>
+            <div class="bo-balance-row">
+                <span>Drafts</span>
+                <strong>{{ draft_count }}</strong>
+            </div>
+            <div class="bo-balance-row">
+                <span>Media links</span>
+                <strong>{{ media_links|length }}</strong>
+            </div>
+            <div class="bo-balance-row">
+                <span>Active lawyers</span>
+                <strong>{{ active_lawyers_count }}</strong>
+            </div>
+        </div>
+    </article>
+</div>
+
+{# System Status #}
+<article class="bo-card">
+    <h2 class="bo-card-title" style="margin-bottom:var(--space-sm);">System Status</h2>
+    <div class="bo-system-row">
+        <span>
+            <span class="bo-status-dot {% if cfg['coinos_enabled'] == '1' %}bo-status-dot-green{% else %}bo-status-dot-gray{% endif %}"></span>
+            Coinos: {{ 'Active' if cfg['coinos_enabled'] == '1' else 'Disabled' }}
+        </span>
+        <span>
+            <span class="bo-status-dot {% if cfg['liquid_enabled'] == '1' %}bo-status-dot-green{% else %}bo-status-dot-gray{% endif %}"></span>
+            Liquid: {{ 'Active' if cfg['liquid_enabled'] == '1' else 'Disabled' }}
+        </span>
+        <span>
+            <span class="bo-status-dot bo-status-dot-green"></span>
+            mempool.space: Last check {{ cfg['last_balance_check'] or 'Never' }}
+        </span>
     </div>
 </article>
 {% endblock %}

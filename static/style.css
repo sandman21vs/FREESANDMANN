@@ -1262,6 +1262,42 @@ progress::-moz-progress-bar {
     font-size: 0.88rem;
 }
 
+/* Dashboard grid */
+.bo-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+    .bo-dashboard-grid { grid-template-columns: 1fr; }
+}
+
+.bo-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+}
+.bo-status-dot-green { background: var(--success-green); }
+.bo-status-dot-gray { background: var(--text-tertiary); }
+
+.bo-system-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.bo-system-row span {
+    display: flex;
+    align-items: center;
+}
+
 /* Role badges */
 .bo-role-badge {
     display: inline-flex;
